@@ -1,0 +1,14 @@
+{
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:cov": "jest --coverage",
+  "test:coverage": "jest --coverage --coverageReporters=text-lcov --coverageReporters=html",
+  "test:coverage:ci": "jest --coverage --coverageReporters=text-lcov --coverageReporters=cobertura --coverageReporters=json-summary",
+  "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+  "test:unit": "jest --testPathIgnorePatterns=.*\\.e2e-spec\\.ts$",
+  "test:integration": "jest --testPathPattern=.*\\.integration\\.spec\\.ts$",
+  "test:e2e": "jest --config ./jest-e2e.config.js",
+  "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
+  "test:ci": "npm run test:unit && npm run test:integration",
+  "test:enhanced": "jest --testNamePattern=\"Enhanced Tests|Integration Tests\""
+}

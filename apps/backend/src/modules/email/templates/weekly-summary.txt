@@ -1,0 +1,113 @@
+{{appName}} - Your Weekly Study Summary
+
+📊 YOUR WEEKLY STUDY SUMMARY
+
+Week of {{weekStart}} - {{weekEnd}}
+Here's how your study week went, {{name}}!
+
+WEEKLY STATS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 Tasks Completed: {{tasksCompleted}}
+{{#if previousWeekComparison.tasksCompletedChange}}
+   {{#if previousWeekComparison.tasksCompletedChange > 0}}↗{{else if previousWeekComparison.tasksCompletedChange < 0}}↘{{else}}→{{/if}} {{previousWeekComparison.tasksCompletedChange}} from last week
+{{/if}}
+
+➕ Tasks Created: {{tasksCreated}}
+
+📚 Study Hours: {{studyHours}}
+{{#if previousWeekComparison.studyHoursChange}}
+   {{#if previousWeekComparison.studyHoursChange > 0}}↗{{else if previousWeekComparison.studyHoursChange < 0}}↘{{else}}→{{/if}} {{previousWeekComparison.studyHoursChange}}h from last week
+{{/if}}
+
+🎯 Focus Sessions: {{focusSessions}}
+
+{{#if averageSessionDuration}}
+⏱️ Average Session: {{averageSessionDuration}} minutes
+{{/if}}
+
+{{#if longestSession}}
+🏃 Longest Session: {{longestSession}} minutes
+{{/if}}
+
+🔥 Study Streak: {{streakDays}} days
+{{#if previousWeekComparison.streakChange}}
+   {{#if previousWeekComparison.streakChange > 0}}↗{{else if previousWeekComparison.streakChange < 0}}↘{{else}}→{{/if}} {{previousWeekComparison.streakChange}} from last week
+{{/if}}
+
+⭐ Points Earned: {{pointsEarned}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{{#if achievements}}
+🏆 ACHIEVEMENTS THIS WEEK:
+{{#each achievements}}
+• {{this.title}} - {{this.description}}
+  Earned on {{this.earnedAt}}
+
+{{/each}}
+{{/if}}
+
+{{#if topSubjects}}
+📚 TOP STUDY SUBJECTS:
+{{#each topSubjects}}
+• {{this.name}}: {{this.hoursStudied}} hours
+{{/each}}
+
+{{/if}}
+
+{{#if upcomingDeadlines}}
+⏰ UPCOMING DEADLINES:
+{{#each upcomingDeadlines}}
+• {{this.title}} - Due: {{this.dueDate}} ({{this.priority}} priority)
+{{/each}}
+{{else}}
+⏰ UPCOMING DEADLINES:
+No upcoming deadlines - great job staying on top of things! 🎉
+{{/if}}
+
+🌟 THIS WEEK'S HIGHLIGHTS:
+
+{{#if tasksCompleted > 0}}
+You completed {{tasksCompleted}} tasks this week - that's fantastic progress! 🎯
+{{/if}}
+{{#if studyHours > 0}}
+You dedicated {{studyHours}} hours to studying. Every minute counts! ⏰
+{{/if}}
+{{#if streakDays > 0}}
+Your {{streakDays}}-day study streak shows real commitment! 🔥
+{{/if}}
+{{#unless tasksCompleted}}
+Every journey starts with a single step. Ready to begin this week? 🚀
+{{/unless}}
+
+💡 TIPS FOR NEXT WEEK:
+{{#if tasksCompleted < 5}}
+• Try setting 2-3 small, achievable tasks each day
+{{/if}}
+{{#if studyHours < 10}}
+• Aim for consistent 30-minute study sessions daily
+{{/if}}
+{{#if focusSessions < 7}}
+• Use the Pomodoro technique to maintain focus
+{{/if}}
+• Plan your study schedule at the beginning of each week
+• Celebrate small wins to maintain motivation
+• Take breaks and maintain a healthy study-life balance
+
+"The secret of getting ahead is getting started." - Mark Twain
+
+📊 View Detailed Analytics: {{dashboardLink}}
+
+Keep up the excellent work, {{name}}! We're here to support you every step of the way on your learning journey.
+
+Here's to an even more productive week ahead! 🚀
+
+The {{appName}} Team
+
+---
+
+This weekly summary covers {{weekStart}} to {{weekEnd}} for your {{appName}} account.
+
+{{appName}} © {{currentYear}}. All rights reserved.
+
+Don't want to receive these emails? Unsubscribe here: {{frontendUrl}}/unsubscribe?email={{email}}

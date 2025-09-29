@@ -1,0 +1,120 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  deploy:
+    name: Deploy StudyTeddy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'bun'
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Create environment file
+        run: |
+          cat > apps/frontend/.env.production.local << EOF
+          NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL=${{ secrets.DIRECT_DATABASE_URL }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+          SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          NODE_ENV=production
+          EOF
+
+      - name: Run type checking
+        run: bun typecheck
+
+      - name: Run linting
+        run: bun lint
+
+      - name: Run tests
+        run: bun test
+        env:
+          CI: true
+
+      - name: Build packages
+        run: bun build:packages
+
+      - name: Build application
+        run: bun run build --filter=@studyteddy/frontend
+
+      - name: Run performance checks
+        run: bun scripts/performance-check.js
+
+      - name: Deploy to Vercel (Preview)
+        if: github.event_name == 'pull_request'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+
+      - name: Run post-deployment tests
+        if: github.ref == 'refs/heads/main'
+        run: |
+          sleep 30 # Wait for deployment to be ready
+          bun scripts/performance-check.js ${{ steps.deploy.outputs.preview-url || 'https://studyteddy.vercel.app' }}
+
+      - name: Upload deployment artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-reports
+          path: reports/
+          retention-days: 30
+
+      - name: Notify on success
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          echo "🎉 Production deployment successful!"
+          echo "🔗 URL: https://studyteddy.vercel.app"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Please check the logs and fix the issues."

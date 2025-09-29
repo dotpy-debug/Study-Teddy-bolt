@@ -1,0 +1,38 @@
+{
+  "displayName": "StudyTeddy Backend E2E",
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "tsconfig": "../tsconfig.json",
+      "isolatedModules": true
+    }]
+  },
+  "collectCoverageFrom": [
+    "../src/**/*.(t|j)s",
+    "!../src/**/*.d.ts",
+    "!../src/**/*.interface.ts",
+    "!../src/**/*.spec.ts",
+    "!../src/**/*.test.ts",
+    "!../src/main.ts"
+  ],
+  "coverageDirectory": "../coverage-e2e",
+  "coverageReporters": [
+    "text",
+    "text-summary",
+    "html",
+    "lcov",
+    "json"
+  ],
+  "setupFilesAfterEnv": ["<rootDir>/setup-e2e.ts"],
+  "testTimeout": 60000,
+  "maxWorkers": 1,
+  "forceExit": true,
+  "detectOpenHandles": true,
+  "verbose": true,
+  "clearMocks": true,
+  "resetMocks": true,
+  "restoreMocks": true
+}

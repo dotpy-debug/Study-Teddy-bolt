@@ -1,0 +1,401 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      version:
+        description: 'Version to deploy'
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
+
+jobs:
+  # Build and Push Container Images
+  build-and-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+    outputs:
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      backend-digest: ${{ steps.build-backend.outputs.digest }}
+      frontend-digest: ${{ steps.build-frontend.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ github.event.inputs.version }},enable=${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Build and push backend image
+        id: build-backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./studyteddy-backend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ github.event.inputs.version }},enable=${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Build and push frontend image
+        id: build-frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./studyteddy-frontend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+
+      - name: Run Trivy vulnerability scanner on backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta-backend.outputs.tags }}
+          format: 'sarif'
+          output: 'backend-trivy-results.sarif'
+
+      - name: Run Trivy vulnerability scanner on frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta-frontend.outputs.tags }}
+          format: 'sarif'
+          output: 'frontend-trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: '.'
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build-and-push
+    if: (github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment:
+      name: staging
+      url: https://staging.studyteddy.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Deploy to staging
+        run: |
+          # Update Kubernetes manifests with new image tags
+          sed -i "s|{{BACKEND_IMAGE}}|${{ needs.build-and-push.outputs.backend-image }}|g" k8s/staging/backend-deployment.yaml
+          sed -i "s|{{FRONTEND_IMAGE}}|${{ needs.build-and-push.outputs.frontend-image }}|g" k8s/staging/frontend-deployment.yaml
+
+          # Apply Kubernetes manifests
+          kubectl apply -f k8s/staging/
+
+          # Wait for rollout to complete
+          kubectl rollout status deployment/backend-staging -n staging --timeout=300s
+          kubectl rollout status deployment/frontend-staging -n staging --timeout=300s
+
+      - name: Run smoke tests
+        run: |
+          # Wait for pods to be ready
+          kubectl wait --for=condition=ready pod -l app=backend-staging -n staging --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=frontend-staging -n staging --timeout=300s
+
+          # Run health checks
+          backend_health=$(curl -s -o /dev/null -w "%{http_code}" https://api-staging.studyteddy.com/health || echo "000")
+          if [ "$backend_health" != "200" ]; then
+            echo "Backend health check failed"
+            exit 1
+          fi
+
+          frontend_health=$(curl -s -o /dev/null -w "%{http_code}" https://staging.studyteddy.com || echo "000")
+          if [ "$frontend_health" != "200" ]; then
+            echo "Frontend health check failed"
+            exit 1
+          fi
+
+          echo "Staging deployment successful!"
+
+      - name: Run staging E2E tests
+        uses: ./.github/actions/run-e2e-tests
+        with:
+          base-url: https://staging.studyteddy.com
+          api-url: https://api-staging.studyteddy.com
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build-and-push
+    if: (github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://studyteddy.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Create deployment backup
+        run: |
+          kubectl get deployment backend-production -n production -o yaml > backup-backend-$(date +%Y%m%d-%H%M%S).yaml
+          kubectl get deployment frontend-production -n production -o yaml > backup-frontend-$(date +%Y%m%d-%H%M%S).yaml
+
+      - name: Deploy to production with blue-green strategy
+        run: |
+          # Update Kubernetes manifests with new image tags
+          sed -i "s|{{BACKEND_IMAGE}}|${{ needs.build-and-push.outputs.backend-image }}|g" k8s/production/backend-deployment.yaml
+          sed -i "s|{{FRONTEND_IMAGE}}|${{ needs.build-and-push.outputs.frontend-image }}|g" k8s/production/frontend-deployment.yaml
+
+          # Apply new deployment (blue-green)
+          kubectl apply -f k8s/production/
+
+          # Wait for rollout to complete
+          kubectl rollout status deployment/backend-production -n production --timeout=600s
+          kubectl rollout status deployment/frontend-production -n production --timeout=600s
+
+      - name: Run production health checks
+        id: health-check
+        run: |
+          # Wait for pods to be ready
+          kubectl wait --for=condition=ready pod -l app=backend-production -n production --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=frontend-production -n production --timeout=300s
+
+          # Detailed health checks
+          for i in {1..10}; do
+            backend_health=$(curl -s -o /dev/null -w "%{http_code}" https://api.studyteddy.com/health || echo "000")
+            frontend_health=$(curl -s -o /dev/null -w "%{http_code}" https://studyteddy.com || echo "000")
+
+            if [ "$backend_health" = "200" ] && [ "$frontend_health" = "200" ]; then
+              echo "All health checks passed!"
+              exit 0
+            fi
+
+            echo "Health check attempt $i failed. Retrying in 30 seconds..."
+            sleep 30
+          done
+
+          echo "Health checks failed after 10 attempts"
+          exit 1
+
+      - name: Rollback on failure
+        if: failure() && steps.health-check.outcome == 'failure'
+        run: |
+          echo "Deployment failed, rolling back..."
+          kubectl rollout undo deployment/backend-production -n production
+          kubectl rollout undo deployment/frontend-production -n production
+
+          # Wait for rollback to complete
+          kubectl rollout status deployment/backend-production -n production --timeout=300s
+          kubectl rollout status deployment/frontend-production -n production --timeout=300s
+
+      - name: Run production E2E tests
+        uses: ./.github/actions/run-e2e-tests
+        with:
+          base-url: https://studyteddy.com
+          api-url: https://api.studyteddy.com
+
+      - name: Update deployment status
+        run: |
+          # Update deployment tracking
+          kubectl annotate deployment backend-production -n production deployment.kubernetes.io/revision-history="$(date): ${{ github.sha }}"
+          kubectl annotate deployment frontend-production -n production deployment.kubernetes.io/revision-history="$(date): ${{ github.sha }}"
+
+  # Database Migration
+  migrate-database:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 'latest'
+          cache-dependency-path: studyteddy-backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./apps/backend
+        run: bun install --frozen-lockfile
+
+      - name: Run database migrations
+        working-directory: ./apps/backend
+        run: bun run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Verify migration
+        working-directory: ./apps/backend
+        run: bun run db:verify
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  # Notification and Monitoring
+  notify-deployment:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [deploy-staging, deploy-production, migrate-database]
+    if: always()
+
+    steps:
+      - name: Notify Slack on success
+        if: needs.deploy-production.result == 'success'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            🚀 **Study Teddy Production Deployment Successful!**
+
+            **Environment:** Production
+            **Version:** ${{ github.sha }}
+            **Deployed by:** ${{ github.actor }}
+            **Frontend:** https://studyteddy.com
+            **Backend:** https://api.studyteddy.com
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on failure
+        if: needs.deploy-production.result == 'failure' || needs.migrate-database.result == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            ❌ **Study Teddy Production Deployment Failed!**
+
+            **Environment:** Production
+            **Version:** ${{ github.sha }}
+            **Failed by:** ${{ github.actor }}
+            **Action:** Manual intervention required
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main' && needs.deploy-production.result == 'success'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            ## What's Changed
+
+            This release includes the latest changes deployed to production.
+
+            **Backend Image:** ${{ needs.build-and-push.outputs.backend-image }}
+            **Frontend Image:** ${{ needs.build-and-push.outputs.frontend-image }}
+
+            **Deployment Status:**
+            - Backend: ✅ Deployed
+            - Frontend: ✅ Deployed
+            - Database: ✅ Migrated
+
+            **Links:**
+            - [Production Frontend](https://studyteddy.com)
+            - [Production API](https://api.studyteddy.com)
+            - [Monitoring Dashboard](https://monitoring.studyteddy.com)
+          draft: false
+          prerelease: false

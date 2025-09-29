@@ -1,0 +1,97 @@
+{{#if isServerComponent}}
+import { Metadata } from 'next';
+{{else}}
+'use client';
+{{/if}}
+
+{{#if hasImports}}
+{{#each imports}}
+import { {{components}} } from '{{path}}';
+{{/each}}
+{{/if}}
+
+{{#if hasMetadata}}
+export const metadata: Metadata = {
+  title: '{{title}} | Study Teddy',
+  description: '{{description}}',
+  openGraph: {
+    title: '{{title}}',
+    description: '{{description}}',
+    type: 'website',
+  },
+};
+{{/if}}
+
+{{#if hasTypes}}
+interface {{pageName}}Props {
+  {{#if hasParams}}
+  params: {
+    {{#each params}}
+    {{name}}: {{type}};
+    {{/each}}
+  };
+  {{/if}}
+  {{#if hasSearchParams}}
+  searchParams: {
+    {{#each searchParams}}
+    {{name}}?: {{type}};
+    {{/each}}
+  };
+  {{/if}}
+}
+{{/if}}
+
+export default {{#if isServerComponent}}async {{/if}}function {{pageName}}({{#if hasProps}}
+  { {{#if hasParams}}params{{/if}}{{#if hasSearchParams}}{{#if hasParams}}, {{/if}}searchParams{{/if}} }: {{pageName}}Props
+{{/if}}) {
+  {{#if hasDataFetching}}
+  {{#each dataFetching}}
+  const {{name}} = await {{fetchFunction}}({{#each params}}{{this}}{{#unless @last}}, {{/unless}}{{/each}});
+  {{/each}}
+  {{/if}}
+
+  {{#if hasClientState}}
+  {{#each clientState}}
+  const [{{name}}, set{{pascalCase name}}] = useState<{{type}}>({{defaultValue}});
+  {{/each}}
+  {{/if}}
+
+  {{#if hasEffects}}
+  {{#each effects}}
+  useEffect(() => {
+    {{body}}
+  }, [{{#each dependencies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]);
+  {{/each}}
+  {{/if}}
+
+  return (
+    <div className="{{containerClasses}}">
+      {{#if hasHeader}}
+      <header className="{{headerClasses}}">
+        <h1 className="{{titleClasses}}">{{title}}</h1>
+        {{#if hasSubtitle}}
+        <p className="{{subtitleClasses}}">{{subtitle}}</p>
+        {{/if}}
+      </header>
+      {{/if}}
+
+      {{#if hasContent}}
+      <main className="{{contentClasses}}">
+        {{content}}
+      </main>
+      {{/if}}
+
+      {{#if hasSidebar}}
+      <aside className="{{sidebarClasses}}">
+        {{sidebar}}
+      </aside>
+      {{/if}}
+
+      {{#if hasFooter}}
+      <footer className="{{footerClasses}}">
+        {{footer}}
+      </footer>
+      {{/if}}
+    </div>
+  );
+}

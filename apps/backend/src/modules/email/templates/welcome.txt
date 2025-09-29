@@ -1,0 +1,45 @@
+{{appName}} - Welcome to your study journey!
+
+Hi {{name}},
+
+Welcome to {{appName}}! We're thrilled to have you join our community of dedicated learners. Your study journey starts here, and we're excited to help you achieve your academic goals.
+
+What you can do with {{appName}}:
+
+{{#if features}}
+{{#each features}}
+• {{this}}
+{{/each}}
+{{else}}
+• Create and manage study tasks with smart reminders
+• Track your study sessions and focus time
+• Generate AI-powered study materials and flashcards
+• Monitor your progress with detailed analytics
+• Sync with your calendar for seamless planning
+• Earn achievements and build study streaks
+{{/if}}
+
+{{#if trialDays}}
+🎉 Special Offer: You have {{trialDays}} days of premium features to explore everything {{appName}} has to offer!
+{{/if}}
+
+Get started now: {{loginLink}}
+
+Our Community Stats:
+• 10K+ Active Students
+• 1M+ Study Sessions Completed
+• 95% Success Rate
+
+Need help getting started? Check out our Quick Start Guide at {{frontendUrl}}/help/getting-started or reach out to our support team at {{supportEmail}}.
+
+Happy studying!
+
+The {{appName}} Team
+
+---
+
+You received this email because you signed up for {{appName}} with the email address {{email}}.
+
+{{appName}} © {{currentYear}}. All rights reserved.
+
+Don't want to receive these emails? Unsubscribe here: {{frontendUrl}}/unsubscribe?email={{email}}

@@ -1,0 +1,32 @@
+{
+  "name": "@studyteddy/shared",
+  "version": "1.0.0",
+  "packageManager": "bun@latest",
+  "description": "Shared types and utilities for Study Teddy",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "watch": "tsc --watch",
+    "clean": "bun run rm -rf dist",
+    "prepublishOnly": "bun run build",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "zod": "^4.1.8"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "author": "Study Teddy Team",
+  "license": "MIT"
+}

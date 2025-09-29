@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from 'next/server';
+{{#if hasAuth}}
+import { auth } from '@/lib/auth';
+{{/if}}
+{{#if hasValidation}}
+import { z } from 'zod';
+{{/if}}
+{{#if hasDatabase}}
+import { db } from '@/lib/db';
+{{/if}}
+
+{{#if hasValidation}}
+const {{routeName}}Schema = z.object({
+  {{#each validationFields}}
+  {{name}}: z.{{type}}(){{#if optional}}.optional(){{/if}}{{#if hasConstraints}}.{{constraints}}{{/if}},
+  {{/each}}
+});
+{{/if}}
+
+{{#each methods}}
+export async function {{uppercase method}}(
+  request: NextRequest{{#if hasParams}},
+  { params }: { params: { {{#each ../params}}{{name}}: {{type}}{{#unless @last}}; {{/unless}}{{/each}} } }{{/if}}
+) {
+  try {
+    {{#if ../hasAuth}}
+    // Authentication check
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    {{/if}}
+
+    {{#if hasBody}}
+    // Parse and validate request body
+    const body = await request.json();
+    {{#if ../hasValidation}}
+    const validatedData = {{../routeName}}Schema.parse(body);
+    {{/if}}
+    {{/if}}
+
+    {{#if hasQuery}}
+    // Extract query parameters
+    const { searchParams } = new URL(request.url);
+    {{#each queryParams}}
+    const {{name}} = searchParams.get('{{name}}'){{#if hasTransform}}.{{transform}}{{/if}};
+    {{/each}}
+    {{/if}}
+
+    {{#switch method}}
+    {{#case 'get'}}
+    // Fetch data
+    {{#if ../hasDatabase}}
+    const data = await db.{{../table}}.{{operation}}({{#each ../queryConditions}}{{this}}{{#unless @last}}, {{/unless}}{{/each}});
+    {{else}}
+    const data = { message: 'GET request successful' };
+    {{/if}}
+
+    return NextResponse.json(data);
+    {{/case}}
+
+    {{#case 'post'}}
+    // Create new resource
+    {{#if ../hasDatabase}}
+    const newItem = await db.{{../table}}.create({
+      data: validatedData,
+    });
+    {{else}}
+    const newItem = { id: '1', ...validatedData };
+    {{/if}}
+
+    return NextResponse.json(newItem, { status: 201 });
+    {{/case}}
+
+    {{#case 'put'}}
+    {{#case 'patch'}}
+    // Update existing resource
+    {{#if ../hasDatabase}}
+    const updatedItem = await db.{{../table}}.update({
+      where: { {{../idField}}: params.{{../idField}} },
+      data: validatedData,
+    });
+    {{else}}
+    const updatedItem = { id: params.id, ...validatedData };
+    {{/if}}
+
+    return NextResponse.json(updatedItem);
+    {{/case}}
+
+    {{#case 'delete'}}
+    // Delete resource
+    {{#if ../hasDatabase}}
+    await db.{{../table}}.delete({
+      where: { {{../idField}}: params.{{../idField}} },
+    });
+    {{/if}}
+
+    return NextResponse.json({ message: 'Deleted successfully' });
+    {{/case}}
+    {{/switch}}
+
+  } catch (error) {
+    console.error('{{uppercase method}} {{../routeName}} error:', error);
+
+    {{#if ../hasValidation}}
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
+    }
+    {{/if}}
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+{{/each}}

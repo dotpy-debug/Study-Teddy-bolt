@@ -1,0 +1,117 @@
+# ===========================================
+# Study Teddy Frontend Dockerfile (Next.js)
+# ===========================================
+
+# Base image with Node.js and Bun
+FROM oven/bun:1.2.22-alpine AS base
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    curl \
+    dumb-init \
+    git \
+    libc6-compat \
+    openssl
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# ===========================================
+# Dependencies Stage
+# ===========================================
+FROM base AS deps
+
+# Copy package files
+COPY package.json bun.lockb ./
+COPY apps/frontend/package.json ./apps/frontend/
+COPY packages/config/package.json ./packages/config/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY packages/validators/package.json ./packages/validators/
+
+# Install dependencies
+RUN bun install --frozen-lockfile --production=false
+
+# ===========================================
+# Builder Stage
+# ===========================================
+FROM base AS builder
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/frontend/node_modules ./apps/frontend/node_modules
+
+# Copy source code
+COPY . .
+
+# Build shared packages
+RUN bun run build:packages
+
+# Set build-time environment variables
+ARG NODE_ENV=production
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_GA_TRACKING_ID
+ARG NEXT_PUBLIC_MIXPANEL_TOKEN
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_ENABLE_AI
+ARG NEXT_PUBLIC_ENABLE_ANALYTICS
+
+ENV NODE_ENV=$NODE_ENV
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_GA_TRACKING_ID=$NEXT_PUBLIC_GA_TRACKING_ID
+ENV NEXT_PUBLIC_MIXPANEL_TOKEN=$NEXT_PUBLIC_MIXPANEL_TOKEN
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_ENABLE_AI=$NEXT_PUBLIC_ENABLE_AI
+ENV NEXT_PUBLIC_ENABLE_ANALYTICS=$NEXT_PUBLIC_ENABLE_ANALYTICS
+
+# Build frontend application
+WORKDIR /app/apps/frontend
+RUN bun run build
+
+# ===========================================
+# Production Stage
+# ===========================================
+FROM base AS production
+
+# Set NODE_ENV
+ENV NODE_ENV=production
+
+# Set timezone
+ENV TZ=UTC
+
+# Disable Next.js telemetry
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
+
+# Create necessary directories
+RUN mkdir -p .next/cache && chown nextjs:nodejs .next/cache
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Set hostname to bind to all interfaces
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start the application
+CMD ["dumb-init", "node", "apps/frontend/server.js"]

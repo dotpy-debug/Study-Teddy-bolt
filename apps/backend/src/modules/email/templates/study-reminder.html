@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Reminder: {{taskTitle}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .task-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .task-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .priority-low { background: #10b981; }
+        .priority-medium { background: #f59e0b; }
+        .priority-high { background: #ef4444; }
+        .priority-urgent { background: #dc2626; animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .due-date {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .cta-button:hover {
+            background: #4338ca;
+        }
+        .reminder-type {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .study-tips {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .motivation-quote {
+            font-style: italic;
+            text-align: center;
+            color: #6b7280;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+        .time-indicator {
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🐻 {{appName}}</div>
+            <h1 class="title">📚 Study Reminder</h1>
+        </div>
+
+        <div class="content">
+            <p>Hi {{name}},</p>
+
+            {{#if reminderType}}
+                {{#eq reminderType "initial"}}
+                <p>This is a friendly reminder about your upcoming study task. It's time to focus and make progress on your goals!</p>
+                {{/eq}}
+                {{#eq reminderType "first_reminder"}}
+                <p>Just a gentle nudge - you have a study task coming up soon. Don't let it slip by!</p>
+                {{/eq}}
+                {{#eq reminderType "final_reminder"}}
+                <div class="reminder-type">
+                    <strong>⏰ Final Reminder:</strong> This is your last reminder for this task. The deadline is approaching fast!
+                </div>
+                {{/eq}}
+            {{else}}
+            <p>This is a friendly reminder about your upcoming study task. It's time to focus and make progress on your goals!</p>
+            {{/if}}
+
+            <div class="task-card">
+                <div class="task-title">{{taskTitle}}</div>
+
+                {{#if taskDescription}}
+                <p style="margin: 10px 0; opacity: 0.95;">{{taskDescription}}</p>
+                {{/if}}
+
+                {{#if subject}}
+                <p style="margin: 10px 0; font-weight: 600;">📖 Subject: {{subject}}</p>
+                {{/if}}
+
+                <div class="task-meta">
+                    <div>
+                        {{#if priority}}
+                        <span class="priority-badge priority-{{priority}}">{{priority}} Priority</span>
+                        {{/if}}
+                        {{#if estimatedDuration}}
+                        <span style="margin-left: 10px; font-size: 14px;">⏱️ {{estimatedDuration}} min</span>
+                        {{/if}}
+                    </div>
+                    <div class="due-date">
+                        <span class="time-indicator">📅 Due: {{dueDate}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                {{#if taskLink}}
+                <a href="{{taskLink}}" class="cta-button">View Task Details</a>
+                {{else}}
+                <a href="{{dashboardLink}}" class="cta-button">Open Dashboard</a>
+                {{/if}}
+            </div>
+
+            <div class="study-tips">
+                <h3 style="margin-top: 0; color: #1f2937;">💡 Quick Study Tips:</h3>
+                <ul style="margin-bottom: 0;">
+                    <li>Find a quiet, distraction-free environment</li>
+                    <li>Break large tasks into smaller, manageable chunks</li>
+                    <li>Use the Pomodoro technique: 25 minutes focused study, 5-minute break</li>
+                    <li>Take notes and summarize key concepts</li>
+                    <li>Don't forget to stay hydrated and take breaks</li>
+                </ul>
+            </div>
+
+            <div class="motivation-quote">
+                "Success is the sum of small efforts repeated day in and day out." - Robert Collier
+            </div>
+
+            <p>Remember, consistency is key to academic success. Every study session brings you closer to your goals!</p>
+
+            <p>Need help managing your tasks or want to adjust your reminder settings? Visit your <a href="{{dashboardLink}}" style="color: #4f46e5;">dashboard</a> or contact our support team at <a href="mailto:{{supportEmail}}" style="color: #4f46e5;">{{supportEmail}}</a>.</p>
+
+            <p>Happy studying!</p>
+            <p><strong>The {{appName}} Team</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>You received this study reminder because you have notifications enabled for your {{appName}} account.</p>
+            <p>{{appName}} &copy; {{currentYear}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

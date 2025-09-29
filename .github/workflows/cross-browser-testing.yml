@@ -1,0 +1,377 @@
+name: Cross-Browser Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  BUN_VERSION: '1.0.0'
+
+jobs:
+  # Install dependencies and cache
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=deps-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps
+
+  # Cross-browser E2E tests
+  e2e-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Build application
+        run: |
+          bun run build
+        env:
+          NODE_ENV: production
+
+      - name: Run E2E tests
+        run: |
+          bunx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/4
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}-shard-${{ matrix.shard }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+
+  # Mobile browser testing
+  mobile-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [mobile-chrome, mobile-safari, tablet]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps
+
+      - name: Build application
+        run: bun run build
+
+      - name: Run mobile tests
+        run: |
+          bunx playwright test --project=${{ matrix.device }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload mobile test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: mobile-test-results-${{ matrix.device }}
+          path: |
+            playwright-report/
+            test-results/
+
+  # Visual regression testing
+  visual-regression:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Build application
+        run: bun run build
+
+      - name: Run visual regression tests
+        run: |
+          bunx playwright test --project=visual-chrome
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload visual test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: visual-regression-results
+          path: |
+            playwright-report/
+            test-results/
+            tests/visual/screenshots/
+
+  # Accessibility testing
+  accessibility-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Build application
+        run: bun run build
+
+      - name: Run accessibility tests
+        run: |
+          bunx playwright test --project=accessibility
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: accessibility-test-results
+          path: |
+            playwright-report/
+            test-results/
+
+  # Generate test report
+  test-report:
+    needs: [e2e-tests, mobile-tests, visual-regression, accessibility-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: test-artifacts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Generate consolidated test report
+        run: |
+          npx allure generate test-artifacts/*/allure-results -o allure-report --clean || true
+
+      - name: Create test summary
+        run: |
+          echo "# Cross-Browser Test Results" > test-summary.md
+          echo "" >> test-summary.md
+          echo "## Test Execution Summary" >> test-summary.md
+          echo "- **Date**: $(date)" >> test-summary.md
+          echo "- **Commit**: ${{ github.sha }}" >> test-summary.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> test-summary.md
+          echo "" >> test-summary.md
+
+          # Count test results
+          total_tests=0
+          passed_tests=0
+          failed_tests=0
+
+          for artifact in test-artifacts/*/test-results.json; do
+            if [ -f "$artifact" ]; then
+              tests=$(jq '.stats.tests // 0' "$artifact")
+              failures=$(jq '.stats.failures // 0' "$artifact")
+              total_tests=$((total_tests + tests))
+              failed_tests=$((failed_tests + failures))
+              passed_tests=$((passed_tests + tests - failures))
+            fi
+          done
+
+          echo "- **Total Tests**: $total_tests" >> test-summary.md
+          echo "- **Passed**: $passed_tests" >> test-summary.md
+          echo "- **Failed**: $failed_tests" >> test-summary.md
+          echo "" >> test-summary.md
+
+          if [ $failed_tests -gt 0 ]; then
+            echo "⚠️ Some tests failed. Please check the detailed reports." >> test-summary.md
+          else
+            echo "✅ All tests passed!" >> test-summary.md
+          fi
+
+      - name: Upload consolidated report
+        uses: actions/upload-artifact@v3
+        with:
+          name: consolidated-test-report
+          path: |
+            allure-report/
+            test-summary.md
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('test-summary.md', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  # Performance regression check
+  performance-check:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Build application
+        run: bun run build
+
+      - name: Run performance tests
+        run: |
+          bunx playwright test --project=performance
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-test-results
+          path: |
+            playwright-report/
+            test-results/
+
+  # Notification on failure
+  notify-failure:
+    needs: [e2e-tests, mobile-tests, visual-regression, accessibility-tests]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#testing'
+          text: |
+            🚨 Cross-browser tests failed!
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+
+            Please check the test results: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

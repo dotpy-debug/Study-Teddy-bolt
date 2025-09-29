@@ -1,0 +1,234 @@
+# ============================================
+# Study Teddy - Kubernetes ConfigMap for Staging
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: studyteddy-staging-config
+  namespace: studyteddy-staging
+  labels:
+    app: studyteddy
+    environment: staging
+    version: "1.0.0"
+data:
+  # ============================================
+  # Environment Configuration
+  # ============================================
+  NODE_ENV: "staging"
+  APP_NAME: "Study Teddy Staging"
+  APP_VERSION: "1.0.0"
+  DEBUG: "false"
+  LOG_LEVEL: "info"
+
+  # ============================================
+  # Server Configuration
+  # ============================================
+  PORT: "3001"
+  HOST: "0.0.0.0"
+
+  # ============================================
+  # URLs
+  # ============================================
+  FRONTEND_URL: "https://staging.studyteddy.com"
+  BACKEND_URL: "https://api-staging.studyteddy.com"
+  NEXT_PUBLIC_API_URL: "https://api-staging.studyteddy.com"
+  NEXT_PUBLIC_APP_URL: "https://staging.studyteddy.com"
+
+  # ============================================
+  # Database Configuration (Non-sensitive)
+  # ============================================
+  DATABASE_HOST: "postgres-staging-service"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "studyteddy_staging"
+  DATABASE_SSL: "true"
+  DATABASE_SSL_REJECT_UNAUTHORIZED: "true"
+  DATABASE_POOL_MIN: "5"
+  DATABASE_POOL_MAX: "25"
+  DATABASE_LOG: "false"
+
+  # ============================================
+  # Redis Configuration (Non-sensitive)
+  # ============================================
+  REDIS_HOST: "redis-staging-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_TTL: "3600"
+
+  # ============================================
+  # OAuth Configuration (Non-sensitive)
+  # ============================================
+  GOOGLE_CALLBACK_URL: "https://api-staging.studyteddy.com/auth/google/callback"
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: "staging-google-client-id.apps.googleusercontent.com"
+
+  # ============================================
+  # AI Services Configuration (Non-sensitive)
+  # ============================================
+  OPENAI_MODEL: "gpt-3.5-turbo"
+  OPENAI_MAX_TOKENS: "1000"
+  OPENAI_TEMPERATURE: "0.7"
+  DEEPSEEK_BASE_URL: "https://api.deepseek.com/v1"
+  DEEPSEEK_MODEL: "deepseek-chat"
+
+  # ============================================
+  # Email Configuration (Non-sensitive)
+  # ============================================
+  SMTP_HOST: "smtp.sendgrid.net"
+  SMTP_PORT: "587"
+  SMTP_SECURE: "true"
+  SMTP_USER: "apikey"
+  EMAIL_FROM: "Study Teddy Staging <noreply@staging.studyteddy.com>"
+
+  # ============================================
+  # Storage Configuration (Non-sensitive)
+  # ============================================
+  STORAGE_PROVIDER: "s3"
+  AWS_REGION: "us-east-1"
+  AWS_S3_BUCKET: "studyteddy-staging-uploads"
+  AWS_S3_REGION: "us-east-1"
+  AWS_CLOUDFRONT_DOMAIN: "staging-cdn.studyteddy.com"
+
+  # ============================================
+  # Security Configuration
+  # ============================================
+  CORS_ORIGIN: "https://staging.studyteddy.com"
+  CORS_CREDENTIALS: "true"
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  HELMET_ENABLED: "true"
+  CSRF_ENABLED: "true"
+  CSP_ENABLED: "true"
+
+  # ============================================
+  # Logging Configuration
+  # ============================================
+  LOG_FILE_ENABLED: "true"
+  LOG_FILE_PATH: "/app/logs/app.log"
+  LOG_JSON: "true"
+  LOG_ROTATION: "true"
+
+  # ============================================
+  # Monitoring Configuration (Non-sensitive)
+  # ============================================
+  SENTRY_ENVIRONMENT: "staging"
+  SENTRY_ENABLED: "true"
+  SENTRY_TRACES_SAMPLE_RATE: "0.5"
+  SENTRY_PROFILES_SAMPLE_RATE: "0.5"
+  DATADOG_ENABLED: "true"
+  DATADOG_SERVICE: "study-teddy-staging"
+
+  # ============================================
+  # Feature Flags
+  # ============================================
+  FEATURE_AI_TUTOR: "true"
+  FEATURE_FLASHCARDS: "true"
+  FEATURE_ANALYTICS: "true"
+  FEATURE_GAMIFICATION: "true"
+  FEATURE_CALENDAR_INTEGRATION: "true"
+  FEATURE_FILE_UPLOAD: "true"
+  FEATURE_REAL_TIME_SYNC: "true"
+  FEATURE_BETA_FEATURES: "true"
+  FEATURE_A_B_TESTING: "true"
+
+  # ============================================
+  # Performance Configuration
+  # ============================================
+  CACHE_TTL: "600"
+  SESSION_TIMEOUT: "1800000"
+  REQUEST_TIMEOUT: "30000"
+  HEALTH_CHECK_ENABLED: "true"
+  METRICS_ENABLED: "true"
+  PERFORMANCE_MONITORING: "true"
+  COMPRESSION_ENABLED: "true"
+
+  # ============================================
+  # Development Tools
+  # ============================================
+  API_DOCS_ENABLED: "true"
+  SWAGGER_ENABLED: "true"
+  HOT_RELOAD_ENABLED: "false"
+  SOURCE_MAPS_ENABLED: "true"
+
+  # ============================================
+  # Calendar Integration (Non-sensitive)
+  # ============================================
+  GOOGLE_CALENDAR_CALLBACK_URL: "https://api-staging.studyteddy.com/auth/google-calendar/callback"
+
+  # ============================================
+  # External Services (Non-sensitive)
+  # ============================================
+  WEBHOOK_ENDPOINT: "https://api-staging.studyteddy.com/webhooks"
+
+  # ============================================
+  # Backup Configuration
+  # ============================================
+  BACKUP_ENABLED: "true"
+  BACKUP_SCHEDULE: "0 2 * * *"
+  BACKUP_RETENTION_DAYS: "7"
+  BACKUP_S3_BUCKET: "studyteddy-staging-backups"
+
+  # ============================================
+  # SSL Configuration
+  # ============================================
+  SSL_ENABLED: "true"
+  SSL_CERT_PATH: "/etc/ssl/certs/staging.crt"
+  SSL_KEY_PATH: "/etc/ssl/private/staging.key"
+
+  # ============================================
+  # Load Balancing
+  # ============================================
+  LOAD_BALANCER_ENABLED: "true"
+  STICKY_SESSIONS: "false"
+  HEALTH_CHECK_PATH: "/health"
+
+  # ============================================
+  # Content Delivery
+  # ============================================
+  CDN_ENABLED: "true"
+  CDN_URL: "https://staging-cdn.studyteddy.com"
+  STATIC_ASSETS_CDN: "true"
+
+---
+# ============================================
+# Frontend ConfigMap
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: studyteddy-frontend-staging-config
+  namespace: studyteddy-staging
+  labels:
+    app: studyteddy
+    component: frontend
+    environment: staging
+data:
+  # Next.js specific configuration
+  NEXT_PUBLIC_API_URL: "https://api-staging.studyteddy.com"
+  NEXT_PUBLIC_APP_URL: "https://staging.studyteddy.com"
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: "staging-google-client-id.apps.googleusercontent.com"
+  NEXT_PUBLIC_GA_TRACKING_ID: "G-STAGING-TRACKING-ID"
+  NEXT_PUBLIC_MIXPANEL_TOKEN: "staging-mixpanel-token"
+  NEXT_PUBLIC_DEMO_MODE: "false"
+  NEXTAUTH_URL: "https://staging.studyteddy.com"
+
+---
+# ============================================
+# Backend ConfigMap
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: studyteddy-backend-staging-config
+  namespace: studyteddy-staging
+  labels:
+    app: studyteddy
+    component: backend
+    environment: staging
+data:
+  # NestJS specific configuration
+  JWT_EXPIRE_TIME: "7d"
+  JWT_REFRESH_EXPIRE_TIME: "30d"
+  JWT_COOKIE_SECURE: "true"
+  BETTER_AUTH_URL: "https://staging.studyteddy.com"
+  OPENAI_RATE_LIMIT_RPM: "500"
+  STRIPE_PUBLIC_KEY: "pk_test_staging_stripe_key"

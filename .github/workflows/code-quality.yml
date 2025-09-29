@@ -1,0 +1,383 @@
+name: Code Quality Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run code quality checks weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ESLint Analysis
+  eslint:
+    name: ESLint Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: |
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif || true
+
+      - name: Upload ESLint results to GitHub
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: eslint-results.sarif
+          wait-for-processing: true
+
+  # SonarCloud Analysis
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: |
+          npm run test:coverage
+        env:
+          CI: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # CodeQL Analysis
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # Dependency Audit
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Audit dependencies
+        run: |
+          npm audit --audit-level=moderate --output=json > audit-results.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-audit-results
+          path: audit-results.json
+
+      - name: Check for high/critical vulnerabilities
+        run: |
+          if [ $(npm audit --audit-level=high --output=json | jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical') -gt 0 ]; then
+            echo "High or critical vulnerabilities found!"
+            npm audit --audit-level=high
+            exit 1
+          fi
+
+  # Bundle Analysis (Frontend)
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: studyteddy-frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./studyteddy-frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./studyteddy-frontend
+        run: npm run build
+
+      - name: Analyze bundle size
+        working-directory: ./studyteddy-frontend
+        run: npm run bundle:analyze
+
+      - name: Upload bundle analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis
+          path: studyteddy-frontend/bundle-analysis/
+
+  # Performance Benchmarks
+  performance-benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'pull_request'
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: studyteddy_perf
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run backend performance tests
+        working-directory: ./studyteddy-backend
+        run: npm run test:perf
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/studyteddy_perf
+          REDIS_URL: redis://localhost:6379
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-benchmarks
+          path: studyteddy-backend/performance-results/
+
+  # Type Coverage Analysis
+  type-coverage:
+    name: TypeScript Type Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check backend type coverage
+        working-directory: ./studyteddy-backend
+        run: |
+          npx type-coverage --detail --strict --output-dir ../type-coverage/backend
+
+      - name: Check frontend type coverage
+        working-directory: ./studyteddy-frontend
+        run: |
+          npx type-coverage --detail --strict --output-dir ../type-coverage/frontend
+
+      - name: Upload type coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: type-coverage-results
+          path: type-coverage/
+
+  # Dead Code Detection
+  dead-code-detection:
+    name: Dead Code Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install knip globally
+        run: npm install -g knip
+
+      - name: Run dead code detection
+        run: |
+          knip --reporter json --output-file dead-code-results.json || true
+
+      - name: Upload dead code results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dead-code-results
+          path: dead-code-results.json
+
+  # License Compliance Check
+  license-compliance:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check license compliance
+        run: |
+          npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;Apache-1.1;Apache-2.1;Artistic-2.0;BlueOak-1.0.0;BSD-1-Clause;BSD-3-Clause-Clear;BSL-1.0;CC0-1.0;ECL-2.0;EPL-1.0;EPL-2.0;EUPL-1.1;EUPL-1.2;Fair;FTL;IPL-1.0;ISC;LGPL-2.1;LGPL-3.0;LicenseRef-scancode-other-permissive;LicenseRef-scancode-public-domain;MIT-0;MPL-2.0;MS-PL;NCSA;OFL-1.1;OSL-3.0;PostgreSQL;Ruby;Unlicense;UPL-1.0;W3C;W3C-20150513;WTFPL;X11;Zlib' --json --out license-report.json
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-compliance-report
+          path: license-report.json
+
+  # Aggregate Results
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [eslint, sonarcloud, codeql, dependency-audit, type-coverage]
+    if: always()
+
+    steps:
+      - name: Check quality gate status
+        run: |
+          if [ "${{ needs.eslint.result }}" != "success" ]; then
+            echo "ESLint analysis failed"
+            exit 1
+          fi
+
+          if [ "${{ needs.dependency-audit.result }}" != "success" ]; then
+            echo "Dependency audit failed"
+            exit 1
+          fi
+
+          if [ "${{ needs.type-coverage.result }}" != "success" ]; then
+            echo "Type coverage check failed"
+            exit 1
+          fi
+
+          echo "All quality checks passed!"
+
+      - name: Create quality report comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## 🔍 Code Quality Report
+
+            | Check | Status |
+            |-------|--------|
+            | ESLint | ${{ needs.eslint.result == 'success' && '✅' || '❌' }} |
+            | SonarCloud | ${{ needs.sonarcloud.result == 'success' && '✅' || '❌' }} |
+            | CodeQL | ${{ needs.codeql.result == 'success' && '✅' || '❌' }} |
+            | Dependency Audit | ${{ needs.dependency-audit.result == 'success' && '✅' || '❌' }} |
+            | Type Coverage | ${{ needs.type-coverage.result == 'success' && '✅' || '❌' }} |
+
+            View detailed results in the [Actions tab](${context.payload.repository.html_url}/actions/runs/${context.runId}).
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

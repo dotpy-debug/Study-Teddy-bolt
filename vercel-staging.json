@@ -1,0 +1,76 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "name": "studyteddy-staging",
+  "buildCommand": "cd ../.. && bun scripts/build-packages.js && turbo run build --filter=@studyteddy/frontend",
+  "outputDirectory": "apps/frontend/.next",
+  "installCommand": "bun install",
+  "rootDirectory": "apps/frontend",
+  "framework": "nextjs",
+  "env": {
+    "NODE_ENV": "staging",
+    "VERCEL_ENV": "preview",
+    "TURBO_TEAM": "@studyteddy",
+    "TURBO_TOKEN": "@vercel_turbo_token",
+    "NEXT_PUBLIC_APP_ENV": "staging"
+  },
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "SKIP_ENV_VALIDATION": "false"
+    }
+  },
+  "functions": {
+    "apps/frontend/src/app/api/**/*.ts": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 10
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "X-Environment",
+          "value": "staging"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/staging-notice",
+      "permanent": false,
+      "has": [
+        {
+          "type": "header",
+          "key": "x-staging-access",
+          "value": "(?<access>.*)"
+        }
+      ]
+    }
+  ]
+}

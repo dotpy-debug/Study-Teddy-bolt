@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {{appName}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+        .welcome-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .features {
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .cta-button:hover {
+            background: #4338ca;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .stat-item {
+            flex: 1;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🐻 {{appName}}</div>
+            <h1 class="welcome-title">Welcome to your study journey!</h1>
+        </div>
+
+        <div class="content">
+            <p>Hi {{name}},</p>
+
+            <p>Welcome to {{appName}}! We're thrilled to have you join our community of dedicated learners. Your study journey starts here, and we're excited to help you achieve your academic goals.</p>
+
+            <div class="features">
+                <h3 style="margin-top: 0; color: #1f2937;">What you can do with {{appName}}:</h3>
+
+                {{#if features}}
+                    {{#each features}}
+                    <div class="feature-item">
+                        <span class="feature-icon"></span>
+                        <span>{{this}}</span>
+                    </div>
+                    {{/each}}
+                {{else}}
+                    <div class="feature-item">
+                        <span class="feature-icon"></span>
+                        <span>Create and manage study tasks with smart reminders</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon"></span>
+                        <span>Track your study sessions and focus time</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon"></span>
+                        <span>Generate AI-powered study materials and flashcards</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon"></span>
+                        <span>Monitor your progress with detailed analytics</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon"></span>
+                        <span>Sync with your calendar for seamless planning</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon"></span>
+                        <span>Earn achievements and build study streaks</span>
+                    </div>
+                {{/if}}
+            </div>
+
+            {{#if trialDays}}
+            <p style="background: #fef3c7; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                <strong>🎉 Special Offer:</strong> You have {{trialDays}} days of premium features to explore everything {{appName}} has to offer!
+            </p>
+            {{/if}}
+
+            <div style="text-align: center;">
+                <a href="{{loginLink}}" class="cta-button">Start Your Study Journey</a>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">10K+</div>
+                    <div class="stat-label">Active Students</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1M+</div>
+                    <div class="stat-label">Study Sessions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+
+            <p>Need help getting started? Check out our <a href="{{frontendUrl}}/help/getting-started" style="color: #4f46e5;">Quick Start Guide</a> or reach out to our support team at <a href="mailto:{{supportEmail}}" style="color: #4f46e5;">{{supportEmail}}</a>.</p>
+
+            <p>Happy studying!</p>
+            <p><strong>The {{appName}} Team</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>You received this email because you signed up for {{appName}} with the email address {{email}}.</p>
+            <p>{{appName}} &copy; {{currentYear}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Weekly Study Summary</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .week-period {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+        .stat-card:hover {
+            border-color: #4f46e5;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4f46e5;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .stat-change {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .stat-change.positive { color: #10b981; }
+        .stat-change.negative { color: #ef4444; }
+        .stat-change.neutral { color: #6b7280; }
+
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #4f46e5;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        .achievement-item {
+            background: #fff;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #fbbf24;
+        }
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .subject-item:last-child {
+            border-bottom: none;
+        }
+        .subject-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .subject-hours {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .deadline-item {
+            background: #fff;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #ef4444;
+        }
+        .deadline-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .deadline-meta {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        .priority-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .priority-low { background: #dcfce7; color: #166534; }
+        .priority-medium { background: #fef3c7; color: #92400e; }
+        .priority-high { background: #fee2e2; color: #991b1b; }
+        .priority-urgent { background: #fecaca; color: #7f1d1d; }
+
+        .cta-button {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .cta-button:hover {
+            background: #4338ca;
+        }
+        .motivation-section {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🐻 {{appName}}</div>
+            <h1 class="title">📊 Your Weekly Study Summary</h1>
+        </div>
+
+        <div class="week-period">
+            <h2 style="margin: 0; font-size: 20px;">Week of {{weekStart}} - {{weekEnd}}</h2>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Here's how your study week went, {{name}}!</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">{{tasksCompleted}}</span>
+                <span class="stat-label">Tasks Completed</span>
+                {{#if previousWeekComparison.tasksCompletedChange}}
+                <div class="stat-change {{#if previousWeekComparison.tasksCompletedChange > 0}}positive{{else if previousWeekComparison.tasksCompletedChange < 0}}negative{{else}}neutral{{/if}}">
+                    {{#if previousWeekComparison.tasksCompletedChange > 0}}↗{{else if previousWeekComparison.tasksCompletedChange < 0}}↘{{else}}→{{/if}} {{previousWeekComparison.tasksCompletedChange}} from last week
+                </div>
+                {{/if}}
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-number">{{tasksCreated}}</span>
+                <span class="stat-label">Tasks Created</span>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-number">{{studyHours}}</span>
+                <span class="stat-label">Study Hours</span>
+                {{#if previousWeekComparison.studyHoursChange}}
+                <div class="stat-change {{#if previousWeekComparison.studyHoursChange > 0}}positive{{else if previousWeekComparison.studyHoursChange < 0}}negative{{else}}neutral{{/if}}">
+                    {{#if previousWeekComparison.studyHoursChange > 0}}↗{{else if previousWeekComparison.studyHoursChange < 0}}↘{{else}}→{{/if}} {{previousWeekComparison.studyHoursChange}}h from last week
+                </div>
+                {{/if}}
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-number">{{focusSessions}}</span>
+                <span class="stat-label">Focus Sessions</span>
+            </div>
+
+            {{#if averageSessionDuration}}
+            <div class="stat-card">
+                <span class="stat-number">{{averageSessionDuration}}</span>
+                <span class="stat-label">Avg Session (min)</span>
+            </div>
+            {{/if}}
+
+            {{#if longestSession}}
+            <div class="stat-card">
+                <span class="stat-number">{{longestSession}}</span>
+                <span class="stat-label">Longest Session (min)</span>
+            </div>
+            {{/if}}
+
+            <div class="stat-card">
+                <span class="stat-number">{{streakDays}}</span>
+                <span class="stat-label">Study Streak</span>
+                {{#if previousWeekComparison.streakChange}}
+                <div class="stat-change {{#if previousWeekComparison.streakChange > 0}}positive{{else if previousWeekComparison.streakChange < 0}}negative{{else}}neutral{{/if}}">
+                    {{#if previousWeekComparison.streakChange > 0}}↗{{else if previousWeekComparison.streakChange < 0}}↘{{else}}→{{/if}} {{previousWeekComparison.streakChange}} from last week
+                </div>
+                {{/if}}
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-number">{{pointsEarned}}</span>
+                <span class="stat-label">Points Earned</span>
+            </div>
+        </div>
+
+        {{#if achievements}}
+        <div class="section">
+            <div class="section-title">🏆 Achievements This Week</div>
+            {{#each achievements}}
+            <div class="achievement-item">
+                <div style="font-weight: 600; color: #1f2937;">{{this.title}}</div>
+                <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">{{this.description}}</div>
+                <div style="font-size: 12px; color: #8b5cf6; margin-top: 5px;">Earned on {{this.earnedAt}}</div>
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        {{#if topSubjects}}
+        <div class="section">
+            <div class="section-title">📚 Top Study Subjects</div>
+            {{#each topSubjects}}
+            <div class="subject-item">
+                <span class="subject-name">{{this.name}}</span>
+                <span class="subject-hours">{{this.hoursStudied}}h</span>
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        {{#if upcomingDeadlines}}
+        <div class="section">
+            <div class="section-title">⏰ Upcoming Deadlines</div>
+            {{#each upcomingDeadlines}}
+            <div class="deadline-item">
+                <div class="deadline-title">{{this.title}}</div>
+                <div class="deadline-meta">
+                    Due: {{this.dueDate}}
+                    <span class="priority-badge priority-{{this.priority}}">{{this.priority}}</span>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="section">
+            <div class="section-title">⏰ Upcoming Deadlines</div>
+            <div class="empty-state">No upcoming deadlines - great job staying on top of things! 🎉</div>
+        </div>
+        {{/if}}
+
+        <div class="motivation-section">
+            <h3 style="margin-top: 0; font-size: 20px;">🌟 This Week's Highlights</h3>
+            {{#if tasksCompleted > 0}}
+            <p>You completed {{tasksCompleted}} tasks this week - that's fantastic progress! 🎯</p>
+            {{/if}}
+            {{#if studyHours > 0}}
+            <p>You dedicated {{studyHours}} hours to studying. Every minute counts! ⏰</p>
+            {{/if}}
+            {{#if streakDays > 0}}
+            <p>Your {{streakDays}}-day study streak shows real commitment! 🔥</p>
+            {{/if}}
+            {{#unless tasksCompleted}}
+            <p>Every journey starts with a single step. Ready to begin this week? 🚀</p>
+            {{/unless}}
+        </div>
+
+        <div style="text-align: center;">
+            <a href="{{dashboardLink}}" class="cta-button">View Detailed Analytics</a>
+        </div>
+
+        <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 4px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #1f2937;">💡 Tips for Next Week:</h3>
+            <ul style="margin-bottom: 0;">
+                {{#if tasksCompleted < 5}}
+                <li>Try setting 2-3 small, achievable tasks each day</li>
+                {{/if}}
+                {{#if studyHours < 10}}
+                <li>Aim for consistent 30-minute study sessions daily</li>
+                {{/if}}
+                {{#if focusSessions < 7}}
+                <li>Use the Pomodoro technique to maintain focus</li>
+                {{/if}}
+                <li>Plan your study schedule at the beginning of each week</li>
+                <li>Celebrate small wins to maintain motivation</li>
+                <li>Take breaks and maintain a healthy study-life balance</li>
+            </ul>
+        </div>
+
+        <p style="text-align: center; font-style: italic; color: #6b7280;">
+            "The secret of getting ahead is getting started." - Mark Twain
+        </p>
+
+        <p>Keep up the excellent work, {{name}}! We're here to support you every step of the way on your learning journey.</p>
+
+        <p>Here's to an even more productive week ahead! 🚀</p>
+        <p><strong>The {{appName}} Team</strong></p>
+
+        <div class="footer">
+            <p>This weekly summary covers {{weekStart}} to {{weekEnd}} for your {{appName}} account.</p>
+            <p>{{appName}} &copy; {{currentYear}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

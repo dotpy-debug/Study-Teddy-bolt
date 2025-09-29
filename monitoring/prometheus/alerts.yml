@@ -1,0 +1,616 @@
+# Prometheus Alert Rules for StudyTeddy
+# Comprehensive monitoring and alerting for production systems
+
+groups:
+  # Application Health Alerts
+  - name: studyteddy.application
+    interval: 30s
+    rules:
+      - alert: ApplicationDown
+        expr: up{job=~"studyteddy-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "StudyTeddy application is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/application-down"
+          dashboard_url: "https://grafana.studyteddy.com/d/studyteddy-overview"
+
+      - alert: HighErrorRate
+        expr: (rate(http_requests_total{job=~"studyteddy-.*",status=~"5.."}[5m]) / rate(http_requests_total{job=~"studyteddy-.*"}[5m])) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+          team: backend
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.job }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-error-rate"
+
+      - alert: CriticalErrorRate
+        expr: (rate(http_requests_total{job=~"studyteddy-.*",status=~"5.."}[5m]) / rate(http_requests_total{job=~"studyteddy-.*"}[5m])) * 100 > 15
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.job }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/critical-error-rate"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~"studyteddy-.*"}[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+          team: performance
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Slow response time detected"
+          description: "95th percentile response time is {{ $value | humanizeDuration }} for {{ $labels.job }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/slow-response-time"
+
+      - alert: VerySlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~"studyteddy-.*"}[5m])) > 5
+        for: 1m
+        labels:
+          severity: critical
+          team: performance
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Very slow response time detected"
+          description: "95th percentile response time is {{ $value | humanizeDuration }} for {{ $labels.job }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/very-slow-response-time"
+
+  # Database Alerts
+  - name: studyteddy.database
+    interval: 30s
+    rules:
+      - alert: DatabaseConnectionsHigh
+        expr: postgresql_connections{state="active"} / postgresql_max_connections * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+          team: database
+          service: postgresql
+        annotations:
+          summary: "High database connection usage"
+          description: "PostgreSQL connection usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/database-connections-high"
+
+      - alert: DatabaseConnectionsCritical
+        expr: postgresql_connections{state="active"} / postgresql_max_connections * 100 > 95
+        for: 1m
+        labels:
+          severity: critical
+          team: database
+          service: postgresql
+        annotations:
+          summary: "Critical database connection usage"
+          description: "PostgreSQL connection usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/database-connections-critical"
+
+      - alert: DatabaseSlowQueries
+        expr: rate(postgresql_slow_queries_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          team: database
+          service: postgresql
+        annotations:
+          summary: "Database slow queries detected"
+          description: "Slow query rate is {{ $value | humanize }} queries/sec on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/database-slow-queries"
+
+      - alert: DatabaseReplicationLag
+        expr: postgresql_replication_lag_bytes > 100000000
+        for: 2m
+        labels:
+          severity: warning
+          team: database
+          service: postgresql
+        annotations:
+          summary: "Database replication lag high"
+          description: "PostgreSQL replication lag is {{ $value | humanizeBytes }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/database-replication-lag"
+
+      - alert: DatabaseDiskSpaceHigh
+        expr: (postgresql_database_size_bytes / postgresql_disk_space_total_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+          service: postgresql
+        annotations:
+          summary: "Database disk space high"
+          description: "PostgreSQL disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/database-disk-space-high"
+
+  # Redis Alerts
+  - name: studyteddy.redis
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: cache
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance is down on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/redis-down"
+
+      - alert: RedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+          team: cache
+          service: redis
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/redis-memory-high"
+
+      - alert: RedisMemoryCritical
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 95
+        for: 1m
+        labels:
+          severity: critical
+          team: cache
+          service: redis
+        annotations:
+          summary: "Redis memory usage critical"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/redis-memory-critical"
+
+      - alert: RedisConnectionsHigh
+        expr: redis_connected_clients / redis_max_clients * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+          team: cache
+          service: redis
+        annotations:
+          summary: "Redis connections high"
+          description: "Redis connection usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/redis-connections-high"
+
+  # Kubernetes Alerts
+  - name: studyteddy.kubernetes
+    interval: 30s
+    rules:
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: kubernetes
+        annotations:
+          summary: "Pod is crash looping"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+          runbook_url: "https://docs.studyteddy.com/runbooks/pod-crash-looping"
+
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{condition="false"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: kubernetes
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready"
+          runbook_url: "https://docs.studyteddy.com/runbooks/pod-not-ready"
+
+      - alert: DeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas != kube_deployment_status_replicas_available
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: kubernetes
+        annotations:
+          summary: "Deployment replicas mismatch"
+          description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has {{ $labels.spec_replicas }} desired but {{ $labels.available_replicas }} available"
+          runbook_url: "https://docs.studyteddy.com/runbooks/deployment-replicas-mismatch"
+
+      - alert: NodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          service: kubernetes
+        annotations:
+          summary: "Kubernetes node not ready"
+          description: "Node {{ $labels.node }} is not ready"
+          runbook_url: "https://docs.studyteddy.com/runbooks/node-not-ready"
+
+      - alert: NodeMemoryPressure
+        expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+          service: kubernetes
+        annotations:
+          summary: "Node under memory pressure"
+          description: "Node {{ $labels.node }} is under memory pressure"
+          runbook_url: "https://docs.studyteddy.com/runbooks/node-memory-pressure"
+
+      - alert: NodeDiskPressure
+        expr: kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+          service: kubernetes
+        annotations:
+          summary: "Node under disk pressure"
+          description: "Node {{ $labels.node }} is under disk pressure"
+          runbook_url: "https://docs.studyteddy.com/runbooks/node-disk-pressure"
+
+  # Resource Usage Alerts
+  - name: studyteddy.resources
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: node
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-cpu-usage"
+
+      - alert: CriticalCPUUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          service: node
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/critical-cpu-usage"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: node
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-memory-usage"
+
+      - alert: CriticalMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          service: node
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/critical-memory-usage"
+
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: node
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-disk-usage"
+
+      - alert: CriticalDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          service: node
+        annotations:
+          summary: "Critical disk usage"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          runbook_url: "https://docs.studyteddy.com/runbooks/critical-disk-usage"
+
+  # Network and Connectivity Alerts
+  - name: studyteddy.network
+    interval: 30s
+    rules:
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) * 8 > 100000000
+        for: 5m
+        labels:
+          severity: warning
+          team: network
+          service: node
+        annotations:
+          summary: "High network traffic"
+          description: "Network receive traffic is {{ $value | humanizeBitrate }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-network-traffic"
+
+      - alert: HighNetworkErrors
+        expr: rate(node_network_receive_errs_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          team: network
+          service: node
+        annotations:
+          summary: "High network errors"
+          description: "Network error rate is {{ $value | humanize }} errors/sec on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-network-errors"
+
+      - alert: SSLCertificateExpiring
+        expr: (ssl_certificate_expiry_timestamp - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          team: security
+          service: ssl
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days"
+          runbook_url: "https://docs.studyteddy.com/runbooks/ssl-certificate-expiring"
+
+      - alert: SSLCertificateExpired
+        expr: ssl_certificate_expiry_timestamp < time()
+        for: 0s
+        labels:
+          severity: critical
+          team: security
+          service: ssl
+        annotations:
+          summary: "SSL certificate expired"
+          description: "SSL certificate for {{ $labels.instance }} has expired"
+          runbook_url: "https://docs.studyteddy.com/runbooks/ssl-certificate-expired"
+
+  # Security Alerts
+  - name: studyteddy.security
+    interval: 30s
+    rules:
+      - alert: SuspiciousLoginActivity
+        expr: rate(auth_failed_attempts_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          team: security
+          service: auth
+        annotations:
+          summary: "Suspicious login activity detected"
+          description: "Failed login rate is {{ $value | humanize }} attempts/sec from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/suspicious-login-activity"
+
+      - alert: UnauthorizedAPIAccess
+        expr: rate(http_requests_total{status="401"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          team: security
+          service: api
+        annotations:
+          summary: "High rate of unauthorized API access"
+          description: "Unauthorized access rate is {{ $value | humanize }} requests/sec on {{ $labels.job }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/unauthorized-api-access"
+
+      - alert: SecurityVulnerabilityDetected
+        expr: vulnerability_score > 7.0
+        for: 0s
+        labels:
+          severity: critical
+          team: security
+          service: security-scanner
+        annotations:
+          summary: "High severity vulnerability detected"
+          description: "Vulnerability with CVSS score {{ $value }} detected in {{ $labels.component }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/security-vulnerability"
+
+  # Business Logic Alerts
+  - name: studyteddy.business
+    interval: 60s
+    rules:
+      - alert: LowUserRegistrations
+        expr: rate(user_registrations_total[1h]) < 0.01
+        for: 30m
+        labels:
+          severity: warning
+          team: product
+          service: user-management
+        annotations:
+          summary: "Low user registration rate"
+          description: "User registration rate is {{ $value | humanize }} registrations/hour"
+          runbook_url: "https://docs.studyteddy.com/runbooks/low-user-registrations"
+
+      - alert: HighUserChurnRate
+        expr: (rate(user_deletions_total[24h]) / rate(user_registrations_total[24h])) * 100 > 20
+        for: 1h
+        labels:
+          severity: warning
+          team: product
+          service: user-management
+        annotations:
+          summary: "High user churn rate"
+          description: "User churn rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-user-churn-rate"
+
+      - alert: PaymentProcessingErrors
+        expr: rate(payment_errors_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          team: payments
+          service: payment-processor
+        annotations:
+          summary: "Payment processing errors detected"
+          description: "Payment error rate is {{ $value | humanize }} errors/sec"
+          runbook_url: "https://docs.studyteddy.com/runbooks/payment-processing-errors"
+
+      - alert: StudySessionFailures
+        expr: rate(study_session_failures_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          team: education
+          service: study-engine
+        annotations:
+          summary: "Study session failures detected"
+          description: "Study session failure rate is {{ $value | humanize }} failures/sec"
+          runbook_url: "https://docs.studyteddy.com/runbooks/study-session-failures"
+
+  # AI/ML Service Alerts
+  - name: studyteddy.ai
+    interval: 60s
+    rules:
+      - alert: AIServiceDown
+        expr: up{job="studyteddy-ai-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: ai
+          service: ai-service
+        annotations:
+          summary: "AI service is down"
+          description: "AI service is not responding on {{ $labels.instance }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/ai-service-down"
+
+      - alert: HighAILatency
+        expr: histogram_quantile(0.95, rate(ai_inference_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: ai
+          service: ai-service
+        annotations:
+          summary: "High AI inference latency"
+          description: "95th percentile AI inference time is {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-ai-latency"
+
+      - alert: AIServiceQuotaExceeded
+        expr: rate(ai_quota_exceeded_total[1h]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: ai
+          service: ai-service
+        annotations:
+          summary: "AI service quota exceeded"
+          description: "AI service quota has been exceeded {{ $value }} times in the last hour"
+          runbook_url: "https://docs.studyteddy.com/runbooks/ai-quota-exceeded"
+
+      - alert: AIModelAccuracyDegraded
+        expr: ai_model_accuracy < 0.85
+        for: 10m
+        labels:
+          severity: warning
+          team: ai
+          service: ai-service
+        annotations:
+          summary: "AI model accuracy degraded"
+          description: "AI model accuracy is {{ $value | humanizePercentage }} for model {{ $labels.model }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/ai-model-accuracy-degraded"
+
+  # Cost and Usage Alerts
+  - name: studyteddy.cost
+    interval: 300s
+    rules:
+      - alert: HighAWSCosts
+        expr: aws_billing_estimated_charges > 500
+        for: 30m
+        labels:
+          severity: warning
+          team: finance
+          service: billing
+        annotations:
+          summary: "High AWS costs detected"
+          description: "AWS estimated charges are ${{ $value }} for {{ $labels.service }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/high-aws-costs"
+
+      - alert: UnexpectedResourceUsage
+        expr: increase(aws_ec2_instance_hours[1h]) > 100
+        for: 1h
+        labels:
+          severity: warning
+          team: platform
+          service: cost-optimization
+        annotations:
+          summary: "Unexpected resource usage spike"
+          description: "EC2 instance hours increased by {{ $value }} in the last hour"
+          runbook_url: "https://docs.studyteddy.com/runbooks/unexpected-resource-usage"
+
+  # Data Quality Alerts
+  - name: studyteddy.data
+    interval: 300s
+    rules:
+      - alert: DataPipelineFailure
+        expr: data_pipeline_last_success_timestamp < (time() - 3600)
+        for: 5m
+        labels:
+          severity: warning
+          team: data
+          service: data-pipeline
+        annotations:
+          summary: "Data pipeline failure"
+          description: "Data pipeline {{ $labels.pipeline }} hasn't succeeded in {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/data-pipeline-failure"
+
+      - alert: DataQualityIssue
+        expr: data_quality_score < 0.95
+        for: 10m
+        labels:
+          severity: warning
+          team: data
+          service: data-quality
+        annotations:
+          summary: "Data quality issue detected"
+          description: "Data quality score is {{ $value | humanizePercentage }} for dataset {{ $labels.dataset }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/data-quality-issue"
+
+  # Backup and Recovery Alerts
+  - name: studyteddy.backup
+    interval: 3600s
+    rules:
+      - alert: BackupFailure
+        expr: backup_last_success_timestamp < (time() - 86400)
+        for: 30m
+        labels:
+          severity: critical
+          team: platform
+          service: backup
+        annotations:
+          summary: "Backup failure detected"
+          description: "Backup {{ $labels.backup_name }} hasn't succeeded in {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.studyteddy.com/runbooks/backup-failure"
+
+      - alert: BackupSizeAnomaly
+        expr: abs(backup_size_bytes - backup_size_bytes offset 24h) / backup_size_bytes offset 24h > 0.5
+        for: 1h
+        labels:
+          severity: warning
+          team: platform
+          service: backup
+        annotations:
+          summary: "Backup size anomaly detected"
+          description: "Backup size changed by {{ $value | humanizePercentage }} compared to yesterday"
+          runbook_url: "https://docs.studyteddy.com/runbooks/backup-size-anomaly"

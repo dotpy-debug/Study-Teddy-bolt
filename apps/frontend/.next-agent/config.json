@@ -1,0 +1,71 @@
+{
+  "name": "Study Teddy Next.js Agent",
+  "version": "1.0.0",
+  "description": "AI-powered development agent for Study Teddy Next.js application",
+  "capabilities": [
+    "component-generation",
+    "route-creation",
+    "performance-optimization",
+    "accessibility-audit",
+    "code-review",
+    "testing-automation",
+    "deployment-assistance"
+  ],
+  "framework": {
+    "name": "Next.js",
+    "version": "15.5.3",
+    "features": [
+      "app-router",
+      "server-components",
+      "typescript",
+      "tailwindcss",
+      "shadcn-ui"
+    ]
+  },
+  "project": {
+    "name": "Study Teddy",
+    "type": "education-platform",
+    "architecture": "full-stack",
+    "backend": "NestJS",
+    "database": "PostgreSQL",
+    "auth": "NextAuth.js"
+  },
+  "rules": {
+    "typescript": {
+      "strict": true,
+      "noImplicitAny": true,
+      "enforceTypes": true
+    },
+    "components": {
+      "useForwardRef": true,
+      "implementAccessibility": true,
+      "includeErrorBoundaries": true,
+      "addLoadingStates": true
+    },
+    "performance": {
+      "enableCodeSplitting": true,
+      "optimizeImages": true,
+      "lazyLoadComponents": true,
+      "minimizeBundleSize": true
+    },
+    "seo": {
+      "addMetadata": true,
+      "structuredData": true,
+      "openGraph": true,
+      "sitemap": true
+    }
+  },
+  "patterns": {
+    "componentStructure": "atomic-design",
+    "stateManagement": "context-hooks",
+    "styling": "tailwindcss-utility-first",
+    "errorHandling": "error-boundaries",
+    "dataFetching": "server-components-swr"
+  },
+  "automation": {
+    "codeGeneration": true,
+    "testGeneration": true,
+    "documentationGeneration": true,
+    "performanceMonitoring": true
+  }
+}

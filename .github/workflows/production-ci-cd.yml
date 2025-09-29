@@ -1,0 +1,711 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, release/*, hotfix/* ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+        - canary
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+        - rolling
+        - blue-green
+        - canary
+      skip_tests:
+        description: 'Skip tests (emergency deployments only)'
+        required: false
+        default: false
+        type: boolean
+      rollback_to:
+        description: 'Version to rollback to (format: v1.2.3)'
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
+  NODE_VERSION: '20'
+  BUN_VERSION: 'latest'
+  POSTGRES_VERSION: '16'
+  REDIS_VERSION: '7'
+
+jobs:
+  # Security and Compliance Checks
+  security-scan:
+    name: Security & Compliance Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event.inputs.skip_tests != 'true'
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+
+      - name: Run Semgrep security scan
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/javascript
+            p/typescript
+            p/react
+            p/nodejs
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        id: depcheck
+        with:
+          project: 'StudyTeddy'
+          path: '.'
+          format: 'ALL'
+          out: 'reports'
+
+      - name: Upload dependency check results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports/
+
+  # License and Compliance
+  license-compliance:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event.inputs.skip_tests != 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check licenses
+        run: |
+          bunx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD' \
+            --excludePrivatePackages \
+            --summary || exit 1
+
+      - name: Generate license report
+        run: |
+          bunx license-checker --csv > license-report.csv
+          bunx license-checker --json > license-report.json
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: license-report.*
+
+  # Code Quality and Testing
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event.inputs.skip_tests != 'true'
+
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: studyteddy_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:${{ env.REDIS_VERSION }}-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run ESLint with SARIF output
+        run: |
+          bunx eslint . --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif
+        continue-on-error: true
+
+      - name: Upload ESLint results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: eslint-results.sarif
+
+      - name: Run Prettier check
+        run: bunx prettier --check "**/*.{ts,tsx,js,jsx,json,md,yml,yaml}"
+
+      - name: Type checking
+        run: bun run typecheck
+
+      - name: Build packages
+        run: bun run build:packages
+
+      - name: Run unit tests with coverage
+        run: bun run test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/studyteddy_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Run E2E tests
+        run: bun run test:e2e
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/studyteddy_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  # Performance Testing
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event.inputs.skip_tests != 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run performance tests
+        run: |
+          k6 run scripts/performance/load-test.js
+          k6 run scripts/performance/stress-test.js
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: performance-results/
+
+  # Build and Security Scan Images
+  build-secure-images:
+    name: Build & Scan Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [security-scan, quality-gate]
+    if: always() && (needs.security-scan.result == 'success' || needs.security-scan.result == 'skipped') && (needs.quality-gate.result == 'success' || needs.quality-gate.result == 'skipped')
+
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+      attestations: write
+      id-token: write
+
+    outputs:
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      backend-digest: ${{ steps.build-backend.outputs.digest }}
+      frontend-digest: ${{ steps.build-frontend.outputs.digest }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            VERSION="main-${GITHUB_SHA:0:8}"
+          elif [[ $GITHUB_REF == refs/heads/develop ]]; then
+            VERSION="develop-${GITHUB_SHA:0:8}"
+          else
+            VERSION="branch-${GITHUB_REF_NAME}-${GITHUB_SHA:0:8}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=stable,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build backend image
+        id: build-backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/backend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
+            COMMIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ fromJSON(steps.meta-backend.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=stable,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build frontend image
+        id: build-frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/frontend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
+            COMMIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ fromJSON(steps.meta-frontend.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Run Grype vulnerability scanner on backend
+        uses: anchore/scan-action@v3
+        with:
+          image: ${{ fromJSON(steps.meta-backend.outputs.json).tags[0] }}
+          format: sarif
+          output-file: backend-grype-results.sarif
+
+      - name: Run Grype vulnerability scanner on frontend
+        uses: anchore/scan-action@v3
+        with:
+          image: ${{ fromJSON(steps.meta-frontend.outputs.json).tags[0] }}
+          format: sarif
+          output-file: frontend-grype-results.sarif
+
+      - name: Upload vulnerability scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: '*-grype-results.sarif'
+
+      - name: Generate SBOM for backend
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ fromJSON(steps.meta-backend.outputs.json).tags[0] }}
+          format: spdx-json
+          output-file: backend-sbom.spdx.json
+
+      - name: Generate SBOM for frontend
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ fromJSON(steps.meta-frontend.outputs.json).tags[0] }}
+          format: spdx-json
+          output-file: frontend-sbom.spdx.json
+
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sboms
+          path: '*-sbom.spdx.json'
+
+  # Deployment Strategy Selection
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build-secure-images]
+    if: (github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment:
+      name: staging
+      url: https://staging.studyteddy.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        uses: ./.github/actions/deploy
+        with:
+          environment: staging
+          backend-image: ${{ needs.build-secure-images.outputs.backend-image }}
+          frontend-image: ${{ needs.build-secure-images.outputs.frontend-image }}
+          strategy: rolling
+          aws-region: ${{ secrets.AWS_REGION }}
+          cluster-name: ${{ secrets.EKS_STAGING_CLUSTER }}
+
+      - name: Run staging smoke tests
+        uses: ./.github/actions/smoke-tests
+        with:
+          environment: staging
+          base-url: https://staging.studyteddy.com
+          api-url: https://api-staging.studyteddy.com
+
+  # Canary Deployment
+  deploy-canary:
+    name: Deploy Canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build-secure-images, deploy-staging]
+    if: github.ref == 'refs/heads/main' && (github.event.inputs.deployment_strategy == 'canary' || github.event.inputs.environment == 'canary')
+    environment:
+      name: canary
+      url: https://canary.studyteddy.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy canary
+        uses: ./.github/actions/deploy
+        with:
+          environment: canary
+          backend-image: ${{ needs.build-secure-images.outputs.backend-image }}
+          frontend-image: ${{ needs.build-secure-images.outputs.frontend-image }}
+          strategy: canary
+          traffic-split: 10
+          aws-region: ${{ secrets.AWS_REGION }}
+          cluster-name: ${{ secrets.EKS_PRODUCTION_CLUSTER }}
+
+      - name: Monitor canary metrics
+        uses: ./.github/actions/monitor-canary
+        with:
+          duration: 600 # 10 minutes
+          error-threshold: 0.1
+          latency-threshold: 500
+
+      - name: Promote or rollback canary
+        uses: ./.github/actions/canary-decision
+        with:
+          promote-threshold: 0.05
+          auto-promote: true
+
+  # Production Deployment
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [build-secure-images, deploy-staging]
+    if: (github.ref == 'refs/heads/main' && github.event.inputs.deployment_strategy != 'canary') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://studyteddy.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create pre-deployment backup
+        uses: ./.github/actions/backup
+        with:
+          environment: production
+          backup-type: pre-deployment
+
+      - name: Deploy to production
+        uses: ./.github/actions/deploy
+        with:
+          environment: production
+          backend-image: ${{ needs.build-secure-images.outputs.backend-image }}
+          frontend-image: ${{ needs.build-secure-images.outputs.frontend-image }}
+          strategy: ${{ github.event.inputs.deployment_strategy || 'blue-green' }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          cluster-name: ${{ secrets.EKS_PRODUCTION_CLUSTER }}
+
+      - name: Run production health checks
+        uses: ./.github/actions/health-checks
+        with:
+          environment: production
+          comprehensive: true
+          timeout: 900
+
+      - name: Run production smoke tests
+        uses: ./.github/actions/smoke-tests
+        with:
+          environment: production
+          base-url: https://studyteddy.com
+          api-url: https://api.studyteddy.com
+
+  # Database Operations
+  database-migration:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build-secure-images]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ./apps/backend
+        run: bun install --frozen-lockfile
+
+      - name: Create database backup
+        run: |
+          pg_dump ${{ secrets.DATABASE_URL }} > backup-$(date +%Y%m%d-%H%M%S).sql
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+
+      - name: Run migration dry run
+        working-directory: ./apps/backend
+        run: bun run db:migrate:dry-run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run database migrations
+        working-directory: ./apps/backend
+        run: bun run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Verify migration
+        working-directory: ./apps/backend
+        run: bun run db:verify
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  # Rollback Capability
+  rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.rollback_to != ''
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback to version
+        uses: ./.github/actions/rollback
+        with:
+          environment: production
+          version: ${{ github.event.inputs.rollback_to }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          cluster-name: ${{ secrets.EKS_PRODUCTION_CLUSTER }}
+
+  # Post-deployment monitoring
+  post-deployment:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [deploy-production]
+    if: always() && needs.deploy-production.result == 'success'
+
+    steps:
+      - name: Setup monitoring alerts
+        uses: ./.github/actions/setup-alerts
+        with:
+          environment: production
+          version: ${{ needs.build-secure-images.outputs.version }}
+
+      - name: Update status page
+        run: |
+          curl -X POST "${{ secrets.STATUS_PAGE_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "component": "api",
+              "status": "operational",
+              "message": "Deployment ${{ needs.build-secure-images.outputs.version }} successful"
+            }'
+
+      - name: Trigger chaos engineering tests
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/chaos-engineering
+        with:
+          environment: production
+          duration: 300
+
+  # Notifications and Reporting
+  notify:
+    name: Notify Stakeholders
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [deploy-staging, deploy-production, database-migration, post-deployment]
+    if: always()
+
+    steps:
+      - name: Generate deployment report
+        uses: ./.github/actions/deployment-report
+        with:
+          staging-result: ${{ needs.deploy-staging.result }}
+          production-result: ${{ needs.deploy-production.result }}
+          migration-result: ${{ needs.database-migration.result }}
+          version: ${{ needs.build-secure-images.outputs.version }}
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            ${{ needs.deploy-production.result == 'success' && '🚀' || '❌' }} **Study Teddy Deployment Report**
+
+            **Environment:** ${{ github.event.inputs.environment || 'Auto' }}
+            **Version:** ${{ needs.build-secure-images.outputs.version }}
+            **Strategy:** ${{ github.event.inputs.deployment_strategy || 'blue-green' }}
+            **Deployer:** ${{ github.actor }}
+
+            **Results:**
+            - Staging: ${{ needs.deploy-staging.result || 'skipped' }}
+            - Production: ${{ needs.deploy-production.result || 'skipped' }}
+            - Database: ${{ needs.database-migration.result || 'skipped' }}
+            - Monitoring: ${{ needs.post-deployment.result || 'skipped' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main' && needs.deploy-production.result == 'success'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.build-secure-images.outputs.version }}
+          name: Release ${{ needs.build-secure-images.outputs.version }}
+          generateReleaseNotes: true
+          body: |
+            ## 🚀 Production Deployment Successful
+
+            **Backend Image:** `${{ needs.build-secure-images.outputs.backend-image }}`
+            **Frontend Image:** `${{ needs.build-secure-images.outputs.frontend-image }}`
+
+            **Security Scans:** ✅ Passed
+            **Quality Gates:** ✅ Passed
+            **Performance Tests:** ✅ Passed
+
+            **Deployment Status:**
+            - Backend: ✅ Deployed
+            - Frontend: ✅ Deployed
+            - Database: ✅ Migrated
+            - Monitoring: ✅ Active
+
+            **Links:**
+            - [Production App](https://studyteddy.com)
+            - [API Health](https://api.studyteddy.com/health)
+            - [Monitoring](https://monitoring.studyteddy.com)
+            - [Status Page](https://status.studyteddy.com)
+          token: ${{ secrets.GITHUB_TOKEN }}

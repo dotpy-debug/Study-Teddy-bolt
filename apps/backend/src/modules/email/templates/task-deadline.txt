@@ -1,0 +1,80 @@
+{{appName}} - Task Deadline Alert: {{taskTitle}}
+
+Hi {{name}},
+
+{{#if isOverdue}}
+🚨 TASK OVERDUE 🚨
+This task is {{daysPastDue}} day(s) past due!
+{{else}}
+⚠️ DEADLINE APPROACHING ⚠️
+Your task deadline is coming up soon!
+{{/if}}
+
+TASK DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 {{taskTitle}}
+
+{{#if taskDescription}}
+{{taskDescription}}
+{{/if}}
+
+{{#if subject}}
+📖 Subject: {{subject}}
+{{/if}}
+
+🎯 Priority: {{priority}}
+📅 Due Date: {{dueDate}}
+
+{{#if isOverdue}}
+📍 OVERDUE BY {{daysPastDue}} DAY(S)
+{{else}}
+⏰ {{timeUntilDue}} REMAINING
+{{/if}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{{#if taskLink}}
+👆 Complete Task Now: {{taskLink}}
+{{else}}
+📊 View in Dashboard: {{dashboardLink}}
+{{/if}}
+
+🎯 Recommended Action Steps:
+
+{{#if isOverdue}}
+1. ACT IMMEDIATELY - This task is already overdue
+2. Assess if the task can still be completed
+3. If possible, complete the task right now
+4. If not possible, update the due date or mark as incomplete
+5. Learn from this to prevent future overdue tasks
+{{else}}
+1. STOP what you're doing and focus on this task
+2. Review the task requirements and your progress
+3. If you can't complete it now, schedule dedicated time immediately
+4. Remove all distractions and work with full focus
+5. Break the task into smaller steps if it feels overwhelming
+{{/if}}
+
+{{#unless isOverdue}}
+💡 Pro Tip: Future deadlines can be avoided by:
+• Setting up earlier reminder notifications
+• Breaking large tasks into smaller daily goals
+• Using time-blocking to dedicate specific time slots
+• Regularly reviewing your task list and priorities
+{{/unless}}
+
+Remember, meeting deadlines is crucial for academic success. Don't let this task fall through the cracks!
+
+Need help managing your deadlines or want to adjust your notification settings? Visit your dashboard at {{dashboardLink}} or contact our support team at {{supportEmail}}.
+
+You've got this!
+
+The {{appName}} Team
+
+---
+
+You received this deadline alert because you have notifications enabled for your {{appName}} account.
+
+{{appName}} © {{currentYear}}. All rights reserved.
+
+Don't want to receive these emails? Unsubscribe here: {{frontendUrl}}/unsubscribe?email={{email}}

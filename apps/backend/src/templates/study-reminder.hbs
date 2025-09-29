@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Reminder - {{appName}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 35px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        .reminder-badge {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .task-card {
+            background: linear-gradient(135deg, #fff9f0 0%, #fff5f5 100%);
+            border-left: 4px solid #f5576c;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .task-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .task-description {
+            font-size: 15px;
+            color: #666;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+        }
+        .due-date {
+            background-color: #fff;
+            border: 2px solid #f5576c;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .due-date-label {
+            font-size: 14px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .due-date-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f5576c;
+            margin-top: 5px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .view-task-button {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .view-task-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+        }
+        .study-tips {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .study-tips h3 {
+            color: #667eea;
+            margin-top: 0;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .study-tips ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .study-tips li {
+            margin-bottom: 8px;
+        }
+        .motivational-quote {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: center;
+            font-style: italic;
+        }
+        .motivational-quote .quote {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .motivational-quote .author {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .snooze-options {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .snooze-text {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .logo {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        .urgency-indicator {
+            display: inline-block;
+            background-color: #ff6b6b;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📚</div>
+            <h1>Study Reminder</h1>
+            <div class="reminder-badge">🔔 Time to Study!</div>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hi {{name}},
+            </div>
+
+            <div style="font-size: 16px; color: #666; margin-bottom: 20px;">
+                Just a friendly reminder about your upcoming study task:
+            </div>
+
+            <div class="task-card">
+                <div class="task-title">
+                    {{taskTitle}}
+                    <span class="urgency-indicator">Due Soon</span>
+                </div>
+
+                {{#if taskDescription}}
+                <div class="task-description">
+                    📝 <strong>Details:</strong> {{taskDescription}}
+                </div>
+                {{/if}}
+
+                <div class="due-date">
+                    <div class="due-date-label">Due Date</div>
+                    <div class="due-date-value">⏰ {{dueDate}}</div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <a href="{{dashboardLink}}" class="view-task-button">Go to Dashboard</a>
+            </div>
+
+            <div class="study-tips">
+                <h3>💡 Quick Study Tips:</h3>
+                <ul>
+                    <li>Find a quiet, comfortable place to study</li>
+                    <li>Break your study session into 25-minute focused blocks</li>
+                    <li>Take 5-minute breaks between study blocks</li>
+                    <li>Keep water and healthy snacks nearby</li>
+                    <li>Use Teddy AI if you need help with any concepts</li>
+                </ul>
+            </div>
+
+            <div class="motivational-quote">
+                <div class="quote">
+                    "The expert in anything was once a beginner."
+                </div>
+                <div class="author">
+                    - Helen Hayes
+                </div>
+            </div>
+
+            <div class="snooze-options">
+                <div class="snooze-text">
+                    Need to reschedule? Visit your dashboard to update this task.
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>You've got this! 💪</strong></p>
+            <p>
+                Manage your study schedule at <a href="{{dashboardLink}}">your dashboard</a>
+            </p>
+            <p style="margin-top: 20px;">© {{currentYear}} {{appName}}. All rights reserved.</p>
+            <p style="margin-top: 15px; font-size: 12px; color: #bbb;">
+                You're receiving this because you have study reminders enabled.<br>
+                <a href="#" style="color: #bbb;">Manage notification preferences</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

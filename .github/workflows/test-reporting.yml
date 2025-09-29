@@ -1,0 +1,543 @@
+name: Test Reporting and Analytics
+
+on:
+  workflow_run:
+    workflows: ["Cross-Browser Testing", "Performance Testing"]
+    types: [completed]
+  schedule:
+    # Generate weekly test reports on Sundays at 6 AM UTC
+    - cron: '0 6 * * 0'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Collect and aggregate test results
+  collect-test-data:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download workflow artifacts
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+
+            const fs = require('fs');
+            const path = require('path');
+
+            // Create directory for artifacts
+            fs.mkdirSync('downloaded-artifacts', { recursive: true });
+
+            for (const artifact of artifacts.data.artifacts) {
+              try {
+                const download = await github.rest.actions.downloadArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                  archive_format: 'zip'
+                });
+
+                fs.writeFileSync(`downloaded-artifacts/${artifact.name}.zip`, Buffer.from(download.data));
+                console.log(`Downloaded artifact: ${artifact.name}`);
+              } catch (error) {
+                console.log(`Failed to download artifact ${artifact.name}:`, error.message);
+              }
+            }
+
+      - name: Extract artifacts
+        run: |
+          cd downloaded-artifacts
+          for zip in *.zip; do
+            if [ -f "$zip" ]; then
+              mkdir -p "${zip%.zip}"
+              unzip -q "$zip" -d "${zip%.zip}" || true
+            fi
+          done
+
+      - name: Aggregate test results
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+
+            const aggregatedResults = {
+              timestamp: new Date().toISOString(),
+              workflow: '${{ github.event.workflow_run.name }}',
+              conclusion: '${{ github.event.workflow_run.conclusion }}',
+              commit: '${{ github.event.workflow_run.head_sha }}',
+              branch: '${{ github.event.workflow_run.head_branch }}',
+              results: {
+                crossBrowser: {},
+                performance: {},
+                accessibility: {},
+                visual: {}
+              },
+              summary: {
+                totalTests: 0,
+                passedTests: 0,
+                failedTests: 0,
+                skippedTests: 0,
+                testFiles: 0,
+                duration: 0
+              }
+            };
+
+            function processTestResults(dir, category) {
+              const resultsPath = path.join('downloaded-artifacts', dir);
+              if (!fs.existsSync(resultsPath)) return;
+
+              try {
+                const files = fs.readdirSync(resultsPath, { recursive: true });
+
+                files.forEach(file => {
+                  if (file.endsWith('.json') && file.includes('results')) {
+                    try {
+                      const filePath = path.join(resultsPath, file);
+                      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+                      if (data.stats) {
+                        aggregatedResults.summary.totalTests += data.stats.tests || 0;
+                        aggregatedResults.summary.passedTests += (data.stats.tests || 0) - (data.stats.failures || 0);
+                        aggregatedResults.summary.failedTests += data.stats.failures || 0;
+                        aggregatedResults.summary.duration += data.stats.duration || 0;
+                        aggregatedResults.summary.testFiles += 1;
+                      }
+
+                      if (data.suites) {
+                        data.suites.forEach(suite => {
+                          suite.specs?.forEach(spec => {
+                            spec.tests?.forEach(test => {
+                              const testResult = {
+                                title: test.title,
+                                file: spec.file,
+                                duration: test.results?.[0]?.duration || 0,
+                                status: test.results?.[0]?.status || 'unknown'
+                              };
+
+                              if (!aggregatedResults.results[category][suite.title]) {
+                                aggregatedResults.results[category][suite.title] = [];
+                              }
+                              aggregatedResults.results[category][suite.title].push(testResult);
+                            });
+                          });
+                        });
+                      }
+                    } catch (error) {
+                      console.log('Error processing file:', file, error.message);
+                    }
+                  }
+                });
+              } catch (error) {
+                console.log('Error processing directory:', dir, error.message);
+              }
+            }
+
+            // Process different types of test results
+            processTestResults('playwright-report-chromium-shard-1', 'crossBrowser');
+            processTestResults('playwright-report-firefox-shard-1', 'crossBrowser');
+            processTestResults('playwright-report-webkit-shard-1', 'crossBrowser');
+            processTestResults('mobile-test-results-mobile-chrome', 'crossBrowser');
+            processTestResults('performance-test-results', 'performance');
+            processTestResults('accessibility-test-results', 'accessibility');
+            processTestResults('visual-regression-results', 'visual');
+
+            // Calculate test health metrics
+            const passRate = aggregatedResults.summary.totalTests > 0
+              ? (aggregatedResults.summary.passedTests / aggregatedResults.summary.totalTests * 100).toFixed(2)
+              : 0;
+
+            aggregatedResults.metrics = {
+              passRate: parseFloat(passRate),
+              averageTestDuration: aggregatedResults.summary.totalTests > 0
+                ? Math.round(aggregatedResults.summary.duration / aggregatedResults.summary.totalTests)
+                : 0,
+              testCoverage: {
+                browserSupport: Object.keys(aggregatedResults.results.crossBrowser).length,
+                accessibilityTests: Object.keys(aggregatedResults.results.accessibility).length,
+                visualTests: Object.keys(aggregatedResults.results.visual).length,
+                performanceTests: Object.keys(aggregatedResults.results.performance).length
+              }
+            };
+
+            // Save aggregated results
+            fs.writeFileSync('aggregated-test-results.json', JSON.stringify(aggregatedResults, null, 2));
+
+            console.log('Test Results Summary:');
+            console.log('Total Tests:', aggregatedResults.summary.totalTests);
+            console.log('Passed:', aggregatedResults.summary.passedTests);
+            console.log('Failed:', aggregatedResults.summary.failedTests);
+            console.log('Pass Rate:', passRate + '%');
+            console.log('Average Duration:', aggregatedResults.metrics.averageTestDuration + 'ms');
+          "
+
+      - name: Upload aggregated results
+        uses: actions/upload-artifact@v3
+        with:
+          name: aggregated-test-results
+          path: aggregated-test-results.json
+
+  # Generate test trend analysis
+  test-trends:
+    needs: collect-test-data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download aggregated results
+        uses: actions/download-artifact@v3
+        with:
+          name: aggregated-test-results
+          path: ./
+
+      - name: Generate trend analysis
+        run: |
+          node -e "
+            const fs = require('fs');
+
+            // Load current results
+            const currentResults = JSON.parse(fs.readFileSync('aggregated-test-results.json', 'utf8'));
+
+            // Simulate historical data loading (in real scenario, this would come from a database or storage)
+            const historicalData = [];
+
+            // Try to load previous results if they exist
+            const historyPath = '.github/test-history.json';
+            if (fs.existsSync(historyPath)) {
+              try {
+                const history = JSON.parse(fs.readFileSync(historyPath, 'utf8'));
+                historicalData.push(...history.slice(-30)); // Keep last 30 results
+              } catch (error) {
+                console.log('Could not load historical data:', error.message);
+              }
+            }
+
+            // Add current results to history
+            historicalData.push({
+              timestamp: currentResults.timestamp,
+              commit: currentResults.commit,
+              branch: currentResults.branch,
+              passRate: currentResults.metrics.passRate,
+              totalTests: currentResults.summary.totalTests,
+              avgDuration: currentResults.metrics.averageTestDuration,
+              conclusion: currentResults.conclusion
+            });
+
+            // Calculate trends
+            const trends = {
+              generated: new Date().toISOString(),
+              period: historicalData.length,
+              metrics: {
+                passRate: {
+                  current: currentResults.metrics.passRate,
+                  average: historicalData.reduce((sum, r) => sum + r.passRate, 0) / historicalData.length,
+                  trend: 'stable'
+                },
+                testCount: {
+                  current: currentResults.summary.totalTests,
+                  average: historicalData.reduce((sum, r) => sum + r.totalTests, 0) / historicalData.length,
+                  trend: 'stable'
+                },
+                performance: {
+                  current: currentResults.metrics.averageTestDuration,
+                  average: historicalData.reduce((sum, r) => sum + r.avgDuration, 0) / historicalData.length,
+                  trend: 'stable'
+                }
+              },
+              historicalData: historicalData
+            };
+
+            // Determine trends
+            if (historicalData.length >= 5) {
+              const recent = historicalData.slice(-5);
+              const older = historicalData.slice(-10, -5);
+
+              const recentPassRate = recent.reduce((sum, r) => sum + r.passRate, 0) / recent.length;
+              const olderPassRate = older.length > 0 ? older.reduce((sum, r) => sum + r.passRate, 0) / older.length : recentPassRate;
+
+              if (recentPassRate > olderPassRate + 2) trends.metrics.passRate.trend = 'improving';
+              else if (recentPassRate < olderPassRate - 2) trends.metrics.passRate.trend = 'declining';
+
+              const recentDuration = recent.reduce((sum, r) => sum + r.avgDuration, 0) / recent.length;
+              const olderDuration = older.length > 0 ? older.reduce((sum, r) => sum + r.avgDuration, 0) / older.length : recentDuration;
+
+              if (recentDuration < olderDuration * 0.9) trends.metrics.performance.trend = 'improving';
+              else if (recentDuration > olderDuration * 1.1) trends.metrics.performance.trend = 'declining';
+            }
+
+            // Save updated history
+            fs.writeFileSync('.github/test-history.json', JSON.stringify(historicalData, null, 2));
+
+            // Save trends analysis
+            fs.writeFileSync('test-trends.json', JSON.stringify(trends, null, 2));
+
+            console.log('Trend Analysis:');
+            console.log('Pass Rate Trend:', trends.metrics.passRate.trend);
+            console.log('Performance Trend:', trends.metrics.performance.trend);
+            console.log('Current vs Average Pass Rate:', trends.metrics.passRate.current + '% vs ' + trends.metrics.passRate.average.toFixed(2) + '%');
+          "
+
+      - name: Upload trend analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-trends
+          path: |
+            test-trends.json
+            .github/test-history.json
+
+  # Generate comprehensive test report
+  generate-report:
+    needs: [collect-test-data, test-trends]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all analysis artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: analysis-artifacts
+
+      - name: Generate HTML test report
+        run: |
+          node -e "
+            const fs = require('fs');
+
+            let aggregatedResults, trends;
+            try {
+              aggregatedResults = JSON.parse(fs.readFileSync('analysis-artifacts/aggregated-test-results/aggregated-test-results.json', 'utf8'));
+              trends = JSON.parse(fs.readFileSync('analysis-artifacts/test-trends/test-trends.json', 'utf8'));
+            } catch (error) {
+              console.log('Error loading analysis data:', error.message);
+              process.exit(1);
+            }
+
+            const html = \`
+<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>Test Report - Study Teddy</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: #333; }
+        .header .meta { color: #666; margin-top: 10px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
+        .summary-card { background: #f8f9fa; padding: 20px; border-radius: 6px; text-align: center; border-left: 4px solid #007bff; }
+        .summary-card.success { border-left-color: #28a745; }
+        .summary-card.warning { border-left-color: #ffc107; }
+        .summary-card.danger { border-left-color: #dc3545; }
+        .summary-card h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; text-transform: uppercase; }
+        .summary-card .value { font-size: 28px; font-weight: bold; color: #333; margin-bottom: 5px; }
+        .summary-card .trend { font-size: 12px; color: #666; }
+        .section { margin: 40px 0; }
+        .section h2 { color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .test-category { margin: 20px 0; }
+        .test-category h3 { color: #555; margin-bottom: 15px; }
+        .test-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .test-result { background: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 3px solid #28a745; }
+        .test-result.failed { border-left-color: #dc3545; }
+        .test-result.skipped { border-left-color: #ffc107; }
+        .test-result h4 { margin: 0 0 10px 0; color: #333; }
+        .test-result .details { font-size: 14px; color: #666; }
+        .recommendations { background: #e7f3ff; padding: 20px; border-radius: 6px; border-left: 4px solid #007bff; }
+        .recommendations h3 { margin-top: 0; color: #0056b3; }
+        .recommendations ul { margin: 0; padding-left: 20px; }
+        .recommendations li { margin: 10px 0; }
+        .chart-placeholder { background: #f8f9fa; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 4px; margin: 20px 0; color: #666; }
+    </style>
+</head>
+<body>
+    <div class=\"container\">
+        <div class=\"header\">
+            <h1>📊 Test Report - Study Teddy</h1>
+            <div class=\"meta\">
+                Generated: \${new Date(aggregatedResults.timestamp).toLocaleString()}<br>
+                Workflow: \${aggregatedResults.workflow}<br>
+                Commit: <code>\${aggregatedResults.commit?.substr(0, 8) || 'N/A'}</code><br>
+                Branch: <strong>\${aggregatedResults.branch || 'N/A'}</strong><br>
+                Status: <span style=\"color: \${aggregatedResults.conclusion === 'success' ? '#28a745' : '#dc3545'}\">\${aggregatedResults.conclusion?.toUpperCase() || 'UNKNOWN'}</span>
+            </div>
+        </div>
+
+        <div class=\"summary\">
+            <div class=\"summary-card \${aggregatedResults.metrics.passRate >= 90 ? 'success' : aggregatedResults.metrics.passRate >= 70 ? 'warning' : 'danger'}\">
+                <h3>Pass Rate</h3>
+                <div class=\"value\">\${aggregatedResults.metrics.passRate}%</div>
+                <div class=\"trend\">Trend: \${trends.metrics.passRate.trend}</div>
+            </div>
+            <div class=\"summary-card\">
+                <h3>Total Tests</h3>
+                <div class=\"value\">\${aggregatedResults.summary.totalTests}</div>
+                <div class=\"trend\">Files: \${aggregatedResults.summary.testFiles}</div>
+            </div>
+            <div class=\"summary-card \${aggregatedResults.summary.failedTests === 0 ? 'success' : 'danger'}\">
+                <h3>Failed Tests</h3>
+                <div class=\"value\">\${aggregatedResults.summary.failedTests}</div>
+                <div class=\"trend\">Passed: \${aggregatedResults.summary.passedTests}</div>
+            </div>
+            <div class=\"summary-card\">
+                <h3>Avg Duration</h3>
+                <div class=\"value\">\${aggregatedResults.metrics.averageTestDuration}ms</div>
+                <div class=\"trend\">Trend: \${trends.metrics.performance.trend}</div>
+            </div>
+        </div>
+
+        <div class=\"section\">
+            <h2>Test Coverage</h2>
+            <div class=\"summary\">
+                <div class=\"summary-card\">
+                    <h3>Browser Support</h3>
+                    <div class=\"value\">\${aggregatedResults.metrics.testCoverage.browserSupport}</div>
+                    <div class=\"trend\">Cross-browser tests</div>
+                </div>
+                <div class=\"summary-card\">
+                    <h3>Accessibility</h3>
+                    <div class=\"value\">\${aggregatedResults.metrics.testCoverage.accessibilityTests}</div>
+                    <div class=\"trend\">A11y test suites</div>
+                </div>
+                <div class=\"summary-card\">
+                    <h3>Performance</h3>
+                    <div class=\"value\">\${aggregatedResults.metrics.testCoverage.performanceTests}</div>
+                    <div class=\"trend\">Performance tests</div>
+                </div>
+                <div class=\"summary-card\">
+                    <h3>Visual</h3>
+                    <div class=\"value\">\${aggregatedResults.metrics.testCoverage.visualTests}</div>
+                    <div class=\"trend\">Visual regression tests</div>
+                </div>
+            </div>
+        </div>
+
+        <div class=\"section\">
+            <h2>Test Results by Category</h2>
+            \${Object.entries(aggregatedResults.results).map(([category, tests]) => \`
+                <div class=\"test-category\">
+                    <h3>\${category.charAt(0).toUpperCase() + category.slice(1)} Tests</h3>
+                    <div class=\"test-results\">
+                        \${Object.entries(tests).slice(0, 6).map(([suite, testResults]) => \`
+                            <div class=\"test-result\">
+                                <h4>\${suite}</h4>
+                                <div class=\"details\">
+                                    Tests: \${testResults.length}<br>
+                                    Avg Duration: \${Math.round(testResults.reduce((sum, t) => sum + t.duration, 0) / testResults.length) || 0}ms
+                                </div>
+                            </div>
+                        \`).join('')}
+                    </div>
+                </div>
+            \`).join('')}
+        </div>
+
+        <div class=\"section\">
+            <h2>Performance Trends</h2>
+            <div class=\"chart-placeholder\">
+                📈 Pass Rate Trend: \${trends.metrics.passRate.trend}<br>
+                ⚡ Performance Trend: \${trends.metrics.performance.trend}<br>
+                📊 Historical Data Points: \${trends.period}
+            </div>
+        </div>
+
+        <div class=\"recommendations\">
+            <h3>💡 Recommendations</h3>
+            <ul>
+                \${aggregatedResults.metrics.passRate < 90 ? '<li>Focus on improving test stability - pass rate is below 90%</li>' : ''}
+                \${aggregatedResults.metrics.averageTestDuration > 5000 ? '<li>Optimize test performance - average duration is above 5 seconds</li>' : ''}
+                \${aggregatedResults.summary.failedTests > 0 ? '<li>Address failing tests to improve overall reliability</li>' : ''}
+                \${trends.metrics.passRate.trend === 'declining' ? '<li>Pass rate is declining - investigate recent changes</li>' : ''}
+                \${trends.metrics.performance.trend === 'declining' ? '<li>Test performance is declining - optimize test execution</li>' : ''}
+                \${aggregatedResults.metrics.passRate >= 95 && aggregatedResults.summary.failedTests === 0 ? '<li>✅ Excellent test health! Consider expanding test coverage.</li>' : ''}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+            \`;
+
+            fs.writeFileSync('test-report.html', html);
+            console.log('Generated comprehensive test report');
+          "
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: comprehensive-test-report
+          path: test-report.html
+
+      - name: Deploy report to GitHub Pages (optional)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # This would deploy the report to GitHub Pages
+          # Uncomment and configure if you want to host reports
+          echo "Report generated successfully"
+
+  # Send notifications
+  notify-stakeholders:
+    needs: [collect-test-data, generate-report]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download aggregated results
+        uses: actions/download-artifact@v3
+        with:
+          name: aggregated-test-results
+          path: ./
+
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          channel: '#quality-assurance'
+          custom_payload: |
+            {
+              \"text\": \"🧪 Test Report Generated\",
+              \"attachments\": [{
+                \"color\": \"${{ fromJson(steps.download.outputs.results).metrics.passRate >= 90 && 'good' || fromJson(steps.download.outputs.results).metrics.passRate >= 70 && 'warning' || 'danger' }}\",
+                \"fields\": [
+                  {
+                    \"title\": \"Pass Rate\",
+                    \"value\": \"${{ fromJson(steps.download.outputs.results).metrics.passRate }}%\",
+                    \"short\": true
+                  },
+                  {
+                    \"title\": \"Total Tests\",
+                    \"value\": \"${{ fromJson(steps.download.outputs.results).summary.totalTests }}\",
+                    \"short\": true
+                  },
+                  {
+                    \"title\": \"Failed Tests\",
+                    \"value\": \"${{ fromJson(steps.download.outputs.results).summary.failedTests }}\",
+                    \"short\": true
+                  },
+                  {
+                    \"title\": \"Branch\",
+                    \"value\": \"${{ fromJson(steps.download.outputs.results).branch }}\",
+                    \"short\": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

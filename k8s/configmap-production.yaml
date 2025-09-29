@@ -1,0 +1,278 @@
+# ============================================
+# Study Teddy - Kubernetes ConfigMap for Production
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: studyteddy-production-config
+  namespace: studyteddy-production
+  labels:
+    app: studyteddy
+    environment: production
+    version: "1.0.0"
+data:
+  # ============================================
+  # Environment Configuration
+  # ============================================
+  NODE_ENV: "production"
+  APP_NAME: "Study Teddy"
+  APP_VERSION: "1.0.0"
+  DEBUG: "false"
+  LOG_LEVEL: "warn"
+
+  # ============================================
+  # Server Configuration
+  # ============================================
+  PORT: "3001"
+  HOST: "0.0.0.0"
+
+  # ============================================
+  # URLs
+  # ============================================
+  FRONTEND_URL: "https://studyteddy.com"
+  BACKEND_URL: "https://api.studyteddy.com"
+  NEXT_PUBLIC_API_URL: "https://api.studyteddy.com"
+  NEXT_PUBLIC_APP_URL: "https://studyteddy.com"
+
+  # ============================================
+  # Database Configuration (Non-sensitive)
+  # ============================================
+  DATABASE_HOST: "postgres-production-service"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "studyteddy_production"
+  DATABASE_SSL: "true"
+  DATABASE_SSL_REJECT_UNAUTHORIZED: "true"
+  DATABASE_POOL_MIN: "10"
+  DATABASE_POOL_MAX: "50"
+  DATABASE_LOG: "false"
+  DATABASE_CONNECTION_TIMEOUT: "30000"
+
+  # ============================================
+  # Redis Configuration (Non-sensitive)
+  # ============================================
+  REDIS_HOST: "redis-production-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_TTL: "3600"
+  REDIS_CLUSTER_ENABLED: "true"
+
+  # ============================================
+  # OAuth Configuration (Non-sensitive)
+  # ============================================
+  GOOGLE_CALLBACK_URL: "https://api.studyteddy.com/auth/google/callback"
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: "production-google-client-id.apps.googleusercontent.com"
+
+  # ============================================
+  # AI Services Configuration (Non-sensitive)
+  # ============================================
+  OPENAI_MODEL: "gpt-4-turbo-preview"
+  OPENAI_MAX_TOKENS: "2000"
+  OPENAI_TEMPERATURE: "0.7"
+  OPENAI_RATE_LIMIT_RPM: "10000"
+  DEEPSEEK_BASE_URL: "https://api.deepseek.com/v1"
+  DEEPSEEK_MODEL: "deepseek-chat"
+
+  # ============================================
+  # Email Configuration (Non-sensitive)
+  # ============================================
+  SMTP_HOST: "smtp.sendgrid.net"
+  SMTP_PORT: "587"
+  SMTP_SECURE: "true"
+  SMTP_USER: "apikey"
+  EMAIL_FROM: "Study Teddy <noreply@studyteddy.com>"
+
+  # ============================================
+  # Storage Configuration (Non-sensitive)
+  # ============================================
+  STORAGE_PROVIDER: "s3"
+  AWS_REGION: "us-east-1"
+  AWS_S3_BUCKET: "studyteddy-production-uploads"
+  AWS_S3_REGION: "us-east-1"
+  AWS_CLOUDFRONT_DOMAIN: "cdn.studyteddy.com"
+  AWS_S3_ENCRYPTION: "AES256"
+
+  # ============================================
+  # Security Configuration
+  # ============================================
+  CORS_ORIGIN: "https://studyteddy.com"
+  CORS_CREDENTIALS: "true"
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "50"
+  HELMET_ENABLED: "true"
+  CSRF_ENABLED: "true"
+  CSP_ENABLED: "true"
+  HSTS_ENABLED: "true"
+  XSS_PROTECTION: "true"
+
+  # Security Headers
+  CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  X_FRAME_OPTIONS: "DENY"
+  X_CONTENT_TYPE_OPTIONS: "nosniff"
+
+  # ============================================
+  # Logging Configuration
+  # ============================================
+  LOG_FILE_ENABLED: "true"
+  LOG_FILE_PATH: "/var/log/studyteddy/app.log"
+  LOG_JSON: "true"
+  LOG_ROTATION: "true"
+  LOG_MAX_SIZE: "100M"
+  LOG_MAX_FILES: "10"
+
+  # ============================================
+  # Monitoring Configuration (Non-sensitive)
+  # ============================================
+  SENTRY_ENVIRONMENT: "production"
+  SENTRY_ENABLED: "true"
+  SENTRY_TRACES_SAMPLE_RATE: "0.1"
+  SENTRY_PROFILES_SAMPLE_RATE: "0.1"
+  SENTRY_RELEASE: "1.0.0"
+  DATADOG_ENABLED: "true"
+  DATADOG_SERVICE: "study-teddy-production"
+
+  # ============================================
+  # Feature Flags
+  # ============================================
+  FEATURE_AI_TUTOR: "true"
+  FEATURE_FLASHCARDS: "true"
+  FEATURE_ANALYTICS: "true"
+  FEATURE_GAMIFICATION: "true"
+  FEATURE_CALENDAR_INTEGRATION: "true"
+  FEATURE_FILE_UPLOAD: "true"
+  FEATURE_REAL_TIME_SYNC: "true"
+  FEATURE_BETA_FEATURES: "false"
+  FEATURE_A_B_TESTING: "true"
+  FEATURE_MAINTENANCE_MODE: "false"
+
+  # ============================================
+  # Performance Configuration
+  # ============================================
+  CACHE_TTL: "3600"
+  SESSION_TIMEOUT: "3600000"
+  REQUEST_TIMEOUT: "30000"
+  HEALTH_CHECK_ENABLED: "true"
+  METRICS_ENABLED: "true"
+  PERFORMANCE_MONITORING: "true"
+  CONNECTION_POOLING: "true"
+  COMPRESSION_ENABLED: "true"
+  GZIP_ENABLED: "true"
+  BROTLI_ENABLED: "true"
+
+  # ============================================
+  # Development Tools (Disabled in Production)
+  # ============================================
+  API_DOCS_ENABLED: "false"
+  SWAGGER_ENABLED: "false"
+  HOT_RELOAD_ENABLED: "false"
+  SOURCE_MAPS_ENABLED: "false"
+
+  # ============================================
+  # Calendar Integration (Non-sensitive)
+  # ============================================
+  GOOGLE_CALENDAR_CALLBACK_URL: "https://api.studyteddy.com/auth/google-calendar/callback"
+
+  # ============================================
+  # External Services (Non-sensitive)
+  # ============================================
+  WEBHOOK_ENDPOINT: "https://api.studyteddy.com/webhooks"
+
+  # ============================================
+  # Backup Configuration
+  # ============================================
+  BACKUP_ENABLED: "true"
+  BACKUP_SCHEDULE: "0 2 * * *"
+  BACKUP_RETENTION_DAYS: "30"
+  BACKUP_S3_BUCKET: "studyteddy-production-backups"
+
+  # ============================================
+  # SSL Configuration
+  # ============================================
+  SSL_ENABLED: "true"
+  SSL_CERT_PATH: "/etc/ssl/certs/production.crt"
+  SSL_KEY_PATH: "/etc/ssl/private/production.key"
+  SSL_CA_PATH: "/etc/ssl/certs/ca-bundle.crt"
+
+  # ============================================
+  # Load Balancing
+  # ============================================
+  LOAD_BALANCER_ENABLED: "true"
+  STICKY_SESSIONS: "false"
+  HEALTH_CHECK_PATH: "/health"
+  HEALTH_CHECK_TIMEOUT: "5000"
+
+  # ============================================
+  # Content Delivery
+  # ============================================
+  CDN_ENABLED: "true"
+  CDN_URL: "https://cdn.studyteddy.com"
+  STATIC_ASSETS_CDN: "true"
+  CDN_CACHE_TTL: "31536000"
+
+  # ============================================
+  # Disaster Recovery
+  # ============================================
+  DISASTER_RECOVERY_ENABLED: "true"
+  FAILOVER_REGION: "us-west-2"
+  REPLICATION_ENABLED: "true"
+
+  # ============================================
+  # Compliance
+  # ============================================
+  AUDIT_LOGGING: "true"
+  GDPR_COMPLIANCE: "true"
+  HIPAA_COMPLIANCE: "false"
+  SOC2_COMPLIANCE: "true"
+
+  # ============================================
+  # Secret Rotation
+  # ============================================
+  SECRET_ROTATION_SCHEDULE: "0 0 1 * *"
+  SECRET_VERSION: "v1.0.0"
+
+---
+# ============================================
+# Frontend ConfigMap
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: studyteddy-frontend-production-config
+  namespace: studyteddy-production
+  labels:
+    app: studyteddy
+    component: frontend
+    environment: production
+data:
+  # Next.js specific configuration
+  NEXT_PUBLIC_API_URL: "https://api.studyteddy.com"
+  NEXT_PUBLIC_APP_URL: "https://studyteddy.com"
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: "production-google-client-id.apps.googleusercontent.com"
+  NEXT_PUBLIC_GA_TRACKING_ID: "REPLACE_WITH_PRODUCTION_GA_TRACKING_ID"
+  NEXT_PUBLIC_MIXPANEL_TOKEN: "REPLACE_WITH_PRODUCTION_MIXPANEL_TOKEN"
+  NEXT_PUBLIC_DEMO_MODE: "false"
+  NEXTAUTH_URL: "https://studyteddy.com"
+
+---
+# ============================================
+# Backend ConfigMap
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: studyteddy-backend-production-config
+  namespace: studyteddy-production
+  labels:
+    app: studyteddy
+    component: backend
+    environment: production
+data:
+  # NestJS specific configuration
+  JWT_EXPIRE_TIME: "1h"
+  JWT_REFRESH_EXPIRE_TIME: "7d"
+  JWT_COOKIE_SECURE: "true"
+  JWT_COOKIE_HTTP_ONLY: "true"
+  JWT_COOKIE_SAME_SITE: "strict"
+  BETTER_AUTH_URL: "https://studyteddy.com"
+  OPENAI_ORGANIZATION_ID: "org-your-production-org-id"
+  STRIPE_PUBLIC_KEY: "REPLACE_WITH_PRODUCTION_STRIPE_PUBLIC_KEY"

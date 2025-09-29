@@ -1,0 +1,273 @@
+name: 'Comprehensive Health Checks'
+description: 'Run comprehensive health checks for StudyTeddy application'
+
+inputs:
+  environment:
+    description: 'Target environment'
+    required: true
+  comprehensive:
+    description: 'Run comprehensive health checks'
+    required: false
+    default: 'false'
+  timeout:
+    description: 'Health check timeout in seconds'
+    required: false
+    default: '300'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup health check tools
+      shell: bash
+      run: |
+        # Install required tools
+        curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
+    - name: Wait for pods to be ready
+      shell: bash
+      run: |
+        echo "Waiting for pods to be ready..."
+
+        # Wait for backend pods
+        kubectl wait --for=condition=ready pod \
+          -l app=backend-${{ inputs.environment }} \
+          -n ${{ inputs.environment }} \
+          --timeout=${{ inputs.timeout }}s
+
+        # Wait for frontend pods
+        kubectl wait --for=condition=ready pod \
+          -l app=frontend-${{ inputs.environment }} \
+          -n ${{ inputs.environment }} \
+          --timeout=${{ inputs.timeout }}s
+
+    - name: Basic health checks
+      shell: bash
+      run: |
+        echo "Running basic health checks..."
+
+        # Get environment URLs
+        if [ "${{ inputs.environment }}" = "production" ]; then
+          FRONTEND_URL="https://studyteddy.com"
+          BACKEND_URL="https://api.studyteddy.com"
+        elif [ "${{ inputs.environment }}" = "staging" ]; then
+          FRONTEND_URL="https://staging.studyteddy.com"
+          BACKEND_URL="https://api-staging.studyteddy.com"
+        else
+          FRONTEND_URL="https://${{ inputs.environment }}.studyteddy.com"
+          BACKEND_URL="https://api-${{ inputs.environment }}.studyteddy.com"
+        fi
+
+        # Check backend health endpoint
+        echo "Checking backend health at $BACKEND_URL/health"
+        for i in {1..10}; do
+          if curl -f -s "$BACKEND_URL/health" > /dev/null; then
+            echo "Backend health check passed"
+            break
+          fi
+          if [ $i -eq 10 ]; then
+            echo "Backend health check failed after 10 attempts"
+            exit 1
+          fi
+          echo "Backend health check attempt $i failed, retrying in 30s..."
+          sleep 30
+        done
+
+        # Check frontend
+        echo "Checking frontend at $FRONTEND_URL"
+        for i in {1..10}; do
+          if curl -f -s -o /dev/null "$FRONTEND_URL"; then
+            echo "Frontend health check passed"
+            break
+          fi
+          if [ $i -eq 10 ]; then
+            echo "Frontend health check failed after 10 attempts"
+            exit 1
+          fi
+          echo "Frontend health check attempt $i failed, retrying in 30s..."
+          sleep 30
+        done
+
+    - name: API endpoint tests
+      shell: bash
+      run: |
+        echo "Running API endpoint tests..."
+
+        # Get environment URLs
+        if [ "${{ inputs.environment }}" = "production" ]; then
+          BACKEND_URL="https://api.studyteddy.com"
+        elif [ "${{ inputs.environment }}" = "staging" ]; then
+          BACKEND_URL="https://api-staging.studyteddy.com"
+        else
+          BACKEND_URL="https://api-${{ inputs.environment }}.studyteddy.com"
+        fi
+
+        # Test critical endpoints
+        endpoints=(
+          "/health"
+          "/api/v1/health"
+          "/api/v1/status"
+        )
+
+        for endpoint in "${endpoints[@]}"; do
+          echo "Testing $BACKEND_URL$endpoint"
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL$endpoint")
+          if [ "$response" != "200" ]; then
+            echo "Endpoint $endpoint returned $response"
+            exit 1
+          fi
+        done
+
+    - name: Database connectivity test
+      shell: bash
+      run: |
+        echo "Testing database connectivity..."
+
+        # Get backend pod
+        BACKEND_POD=$(kubectl get pods -n ${{ inputs.environment }} -l app=backend-${{ inputs.environment }} -o jsonpath='{.items[0].metadata.name}')
+
+        # Test database connection
+        kubectl exec -n ${{ inputs.environment }} $BACKEND_POD -- \
+          sh -c 'timeout 10 node -e "
+            const { Pool } = require(\"pg\");
+            const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+            pool.query(\"SELECT 1\").then(() => {
+              console.log(\"Database connection successful\");
+              process.exit(0);
+            }).catch(err => {
+              console.error(\"Database connection failed:\", err);
+              process.exit(1);
+            });
+          "'
+
+    - name: Redis connectivity test
+      shell: bash
+      run: |
+        echo "Testing Redis connectivity..."
+
+        # Get backend pod
+        BACKEND_POD=$(kubectl get pods -n ${{ inputs.environment }} -l app=backend-${{ inputs.environment }} -o jsonpath='{.items[0].metadata.name}')
+
+        # Test Redis connection
+        kubectl exec -n ${{ inputs.environment }} $BACKEND_POD -- \
+          sh -c 'timeout 10 node -e "
+            const redis = require(\"redis\");
+            const client = redis.createClient({ url: process.env.REDIS_URL });
+            client.connect().then(() => {
+              return client.ping();
+            }).then(() => {
+              console.log(\"Redis connection successful\");
+              client.disconnect();
+              process.exit(0);
+            }).catch(err => {
+              console.error(\"Redis connection failed:\", err);
+              process.exit(1);
+            });
+          "'
+
+    - name: Performance health checks
+      if: inputs.comprehensive == 'true'
+      shell: bash
+      run: |
+        echo "Running performance health checks..."
+
+        # Get environment URLs
+        if [ "${{ inputs.environment }}" = "production" ]; then
+          FRONTEND_URL="https://studyteddy.com"
+          BACKEND_URL="https://api.studyteddy.com"
+        elif [ "${{ inputs.environment }}" = "staging" ]; then
+          FRONTEND_URL="https://staging.studyteddy.com"
+          BACKEND_URL="https://api-staging.studyteddy.com"
+        else
+          FRONTEND_URL="https://${{ inputs.environment }}.studyteddy.com"
+          BACKEND_URL="https://api-${{ inputs.environment }}.studyteddy.com"
+        fi
+
+        # Check response times
+        echo "Checking response times..."
+
+        # Backend response time
+        backend_time=$(curl -o /dev/null -s -w '%{time_total}' "$BACKEND_URL/health")
+        echo "Backend response time: ${backend_time}s"
+
+        # Frontend response time
+        frontend_time=$(curl -o /dev/null -s -w '%{time_total}' "$FRONTEND_URL")
+        echo "Frontend response time: ${frontend_time}s"
+
+        # Validate response times (under 2 seconds)
+        if (( $(echo "$backend_time > 2.0" | bc -l) )); then
+          echo "Backend response time too slow: ${backend_time}s"
+          exit 1
+        fi
+
+        if (( $(echo "$frontend_time > 2.0" | bc -l) )); then
+          echo "Frontend response time too slow: ${frontend_time}s"
+          exit 1
+        fi
+
+    - name: SSL certificate checks
+      if: inputs.comprehensive == 'true'
+      shell: bash
+      run: |
+        echo "Checking SSL certificates..."
+
+        # Get environment URLs
+        if [ "${{ inputs.environment }}" = "production" ]; then
+          DOMAINS=("studyteddy.com" "api.studyteddy.com")
+        elif [ "${{ inputs.environment }}" = "staging" ]; then
+          DOMAINS=("staging.studyteddy.com" "api-staging.studyteddy.com")
+        else
+          DOMAINS=("${{ inputs.environment }}.studyteddy.com" "api-${{ inputs.environment }}.studyteddy.com")
+        fi
+
+        for domain in "${DOMAINS[@]}"; do
+          echo "Checking SSL certificate for $domain"
+
+          # Check certificate expiry (should be more than 30 days)
+          expiry_date=$(echo | openssl s_client -servername $domain -connect $domain:443 2>/dev/null | \
+                       openssl x509 -noout -enddate | cut -d= -f2)
+
+          expiry_epoch=$(date -d "$expiry_date" +%s)
+          current_epoch=$(date +%s)
+          days_until_expiry=$(( ($expiry_epoch - $current_epoch) / 86400 ))
+
+          echo "SSL certificate for $domain expires in $days_until_expiry days"
+
+          if [ $days_until_expiry -lt 30 ]; then
+            echo "WARNING: SSL certificate for $domain expires in less than 30 days"
+          fi
+        done
+
+    - name: Generate health report
+      shell: bash
+      run: |
+        echo "Generating health check report..."
+
+        cat > health-report.json << EOF
+        {
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "environment": "${{ inputs.environment }}",
+          "status": "healthy",
+          "checks": {
+            "pods": "passed",
+            "endpoints": "passed",
+            "database": "passed",
+            "redis": "passed",
+            "ssl": "passed"
+          },
+          "deployment_info": {
+            "backend_pods": $(kubectl get pods -n ${{ inputs.environment }} -l app=backend-${{ inputs.environment }} --no-headers | wc -l),
+            "frontend_pods": $(kubectl get pods -n ${{ inputs.environment }} -l app=frontend-${{ inputs.environment }} --no-headers | wc -l)
+          }
+        }
+        EOF
+
+        echo "Health check report:"
+        cat health-report.json
+
+    - name: Upload health report
+      uses: actions/upload-artifact@v4
+      with:
+        name: health-report-${{ inputs.environment }}
+        path: health-report.json

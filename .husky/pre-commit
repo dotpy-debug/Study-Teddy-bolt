@@ -1,0 +1,99 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Color output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🔍 Running pre-commit hooks...${NC}"
+
+# Run lint-staged for staged files
+echo -e "${YELLOW}📝 Formatting and linting staged files...${NC}"
+npx lint-staged
+
+if [ $? -ne 0 ]; then
+  echo -e "${RED}❌ Lint-staged failed. Please fix the issues and try again.${NC}"
+  exit 1
+fi
+
+# Check for secrets in staged files
+echo -e "${YELLOW}🔐 Checking for secrets...${NC}"
+if command -v gitleaks &> /dev/null; then
+  gitleaks detect --staged --no-git --redact --verbose
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Potential secrets detected! Please review and remove them.${NC}"
+    exit 1
+  fi
+else
+  echo -e "${YELLOW}⚠️  Gitleaks not installed. Consider installing it for secret detection.${NC}"
+fi
+
+# Run type checking for TypeScript files
+echo -e "${YELLOW}🔍 Running TypeScript type checking...${NC}"
+
+# Check if there are staged TypeScript files in backend
+if git diff --cached --name-only --diff-filter=ACM | grep -E "studyteddy-backend.*\.(ts|tsx)$" > /dev/null; then
+  echo -e "${BLUE}Checking backend types...${NC}"
+  cd studyteddy-backend && npx tsc --noEmit
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Backend TypeScript type checking failed.${NC}"
+    cd ..
+    exit 1
+  fi
+  cd ..
+fi
+
+# Check if there are staged TypeScript files in frontend
+if git diff --cached --name-only --diff-filter=ACM | grep -E "studyteddy-frontend.*\.(ts|tsx)$" > /dev/null; then
+  echo -e "${BLUE}Checking frontend types...${NC}"
+  cd studyteddy-frontend && npx tsc --noEmit
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Frontend TypeScript type checking failed.${NC}"
+    cd ..
+    exit 1
+  fi
+  cd ..
+fi
+
+# Run quick tests for changed files
+echo -e "${YELLOW}🧪 Running tests for affected areas...${NC}"
+
+# Check if backend files are changed
+if git diff --cached --name-only --diff-filter=ACM | grep -E "studyteddy-backend" > /dev/null; then
+  echo -e "${BLUE}Running backend unit tests...${NC}"
+  cd studyteddy-backend && npm run test:changed
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Backend tests failed.${NC}"
+    cd ..
+    exit 1
+  fi
+  cd ..
+fi
+
+# Check if frontend files are changed
+if git diff --cached --name-only --diff-filter=ACM | grep -E "studyteddy-frontend" > /dev/null; then
+  echo -e "${BLUE}Running frontend unit tests...${NC}"
+  cd studyteddy-frontend && npm run test:changed
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Frontend tests failed.${NC}"
+    cd ..
+    exit 1
+  fi
+  cd ..
+fi
+
+# Check bundle size impact (frontend only)
+if git diff --cached --name-only --diff-filter=ACM | grep -E "studyteddy-frontend.*\.(ts|tsx|js|jsx)$" > /dev/null; then
+  echo -e "${YELLOW}📦 Analyzing bundle size impact...${NC}"
+  cd studyteddy-frontend && npm run bundle:analyze:ci
+  if [ $? -ne 0 ]; then
+    echo -e "${YELLOW}⚠️  Bundle size analysis completed with warnings. Review the output.${NC}"
+  fi
+  cd ..
+fi
+
+echo -e "${GREEN}✅ All pre-commit hooks passed!${NC}"
+echo -e "${GREEN}🚀 Ready to commit.${NC}"

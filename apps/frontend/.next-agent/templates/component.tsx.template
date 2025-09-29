@@ -1,0 +1,103 @@
+'use client';
+
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+{{#if needsForwardRef}}
+import { forwardRef } from 'react';
+{{/if}}
+{{#if hasIcon}}
+import { {{iconName}} } from 'lucide-react';
+{{/if}}
+{{#if hasUI}}
+{{#each uiComponents}}
+import { {{this}} } from '@/components/ui/{{kebabCase this}}';
+{{/each}}
+{{/if}}
+
+{{#if hasTypes}}
+export interface {{componentName}}Props {{#if extendsProps}}extends {{extendsProps}} {{/if}}{
+  {{#each props}}
+  {{name}}{{#if optional}}?{{/if}}: {{type}};
+  {{/each}}
+  className?: string;
+  children?: React.ReactNode;
+}
+{{/if}}
+
+{{#if needsForwardRef}}
+export const {{componentName}} = forwardRef<
+  {{refType}},
+  {{componentName}}Props
+>(({ className, children, {{#each props}}{{name}}, {{/each}}...props }, ref) => {
+{{else}}
+export function {{componentName}}({
+  className,
+  children,
+  {{#each props}}
+  {{name}},
+  {{/each}}
+  ...props
+}: {{componentName}}Props) {
+{{/if}}
+  {{#if hasState}}
+  {{#each stateVars}}
+  const [{{name}}, set{{pascalCase name}}] = React.useState<{{type}}>({{defaultValue}});
+  {{/each}}
+  {{/if}}
+
+  {{#if hasEffects}}
+  {{#each effects}}
+  React.useEffect(() => {
+    // {{description}}
+    {{body}}
+  }, [{{#each dependencies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]);
+  {{/each}}
+  {{/if}}
+
+  {{#if hasHandlers}}
+  {{#each handlers}}
+  const {{name}} = React.useCallback(({{#each params}}{{name}}: {{type}}{{#unless @last}}, {{/unless}}{{/each}}) => {
+    {{body}}
+  }, [{{#each dependencies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]);
+  {{/each}}
+  {{/if}}
+
+  return (
+    <{{element}}
+      {{#if needsForwardRef}}ref={ref}{{/if}}
+      className={cn(
+        '{{baseClasses}}',
+        {{#if variants}}
+        // Variants
+        {{#each variants}}
+        {{condition}} && '{{classes}}',
+        {{/each}}
+        {{/if}}
+        className
+      )}
+      {{#if hasAriaProps}}
+      {{#each ariaProps}}
+      {{name}}={{value}}
+      {{/each}}
+      {{/if}}
+      {...props}
+    >
+      {{#if hasIcon}}
+      <{{iconName}} className="{{iconClasses}}" />
+      {{/if}}
+      {children}
+    </{{element}}>
+  );
+{{#if needsForwardRef}}
+});
+
+{{componentName}}.displayName = '{{componentName}}';
+{{/if}}
+
+{{#if hasSubComponents}}
+{{#each subComponents}}
+{{componentName}}.{{name}} = function {{name}}(props: {{propsType}}) {
+  return <{{element}} {...props} />;
+};
+{{/each}}
+{{/if}}

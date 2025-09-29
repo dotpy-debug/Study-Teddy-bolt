@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {{appName}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        .welcome-message {
+            font-size: 18px;
+            margin-top: 10px;
+            opacity: 0.95;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 20px;
+            margin-bottom: 25px;
+            color: #333;
+            font-weight: 600;
+        }
+        .message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+        .features {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .features h3 {
+            color: #667eea;
+            margin-top: 0;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .feature-icon {
+            font-size: 20px;
+            margin-right: 15px;
+            min-width: 25px;
+        }
+        .feature-text {
+            color: #666;
+            font-size: 15px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .get-started-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .get-started-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .tips-section {
+            border-top: 2px solid #f0f0f0;
+            margin-top: 40px;
+            padding-top: 30px;
+        }
+        .tips-section h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .tip {
+            background-color: #fff7ed;
+            border-left: 3px solid #f97316;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 15px;
+            color: #666;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .logo {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🧸</div>
+            <h1>Welcome to {{appName}}!</h1>
+            <div class="welcome-message">Your AI-powered study companion is ready</div>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hi {{name}}! 👋
+            </div>
+
+            <div class="message">
+                We're thrilled to have you join the {{appName}} community! Your account has been successfully created, and you're all set to start your personalized learning journey.
+            </div>
+
+            <div class="features">
+                <h3>🌟 What you can do with {{appName}}:</h3>
+
+                <div class="feature-item">
+                    <span class="feature-icon">📚</span>
+                    <span class="feature-text">Create and manage study tasks with smart scheduling</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">🤖</span>
+                    <span class="feature-text">Get instant help from Teddy AI for any subject</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">📊</span>
+                    <span class="feature-text">Track your study progress with detailed analytics</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">🔔</span>
+                    <span class="feature-text">Receive smart reminders to keep you on track</span>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">🎯</span>
+                    <span class="feature-text">Set and achieve your learning goals efficiently</span>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <a href="{{loginLink}}" class="get-started-button">Start Learning Now</a>
+            </div>
+
+            <div class="tips-section">
+                <h3>💡 Quick Tips to Get Started:</h3>
+
+                <div class="tip">
+                    <strong>Tip 1:</strong> Start by adding your first study task. Break down large topics into smaller, manageable chunks.
+                </div>
+
+                <div class="tip">
+                    <strong>Tip 2:</strong> Use Teddy AI whenever you're stuck. It's like having a personal teacher available 24/7!
+                </div>
+
+                <div class="tip">
+                    <strong>Tip 3:</strong> Check your dashboard daily to stay on top of your study schedule and track your progress.
+                </div>
+            </div>
+
+            <div class="message" style="margin-top: 30px;">
+                <strong>Your account details:</strong><br>
+                Email: {{email}}<br>
+                <span style="font-size: 14px; color: #999;">Use this email to log in to your account</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Need help getting started?</strong></p>
+            <p>
+                Check out our <a href="{{loginLink}}">Help Center</a> or contact us at
+                <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>
+            </p>
+
+            <div class="social-links">
+                <a href="#">📘</a>
+                <a href="#">🐦</a>
+                <a href="#">💼</a>
+            </div>
+
+            <p style="margin-top: 25px;">© {{currentYear}} {{appName}}. All rights reserved.</p>
+            <p style="margin-top: 15px; font-size: 12px; color: #bbb;">
+                You're receiving this email because you signed up for {{appName}}.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

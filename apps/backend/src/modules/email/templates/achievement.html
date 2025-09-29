@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievement Unlocked: {{achievementTitle}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffd700, #ff6b35, #f7931e, #ffd700);
+            background-size: 200% 200%;
+            animation: shine 3s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .achievement-card {
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+        .achievement-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .achievement-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .achievement-description {
+            font-size: 18px;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+        .achievement-meta {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        .meta-item {
+            text-align: center;
+            margin: 10px;
+        }
+        .meta-value {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+        }
+        .meta-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+        .rarity-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .rarity-common { background: #10b981; }
+        .rarity-rare { background: #3b82f6; }
+        .rarity-epic { background: #8b5cf6; }
+        .rarity-legendary { background: #ef4444; animation: glow 2s ease-in-out infinite alternate; }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #ef4444; }
+            to { box-shadow: 0 0 20px #ef4444, 0 0 30px #ef4444; }
+        }
+
+        .celebration-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd700);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .progress-section {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            background: #e5e7eb;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Confetti elements -->
+        <div class="confetti" style="left: 10%; animation-delay: 0s; background: #ff6b35;"></div>
+        <div class="confetti" style="left: 20%; animation-delay: 0.5s; background: #ffd700;"></div>
+        <div class="confetti" style="left: 30%; animation-delay: 1s; background: #4f46e5;"></div>
+        <div class="confetti" style="left: 40%; animation-delay: 1.5s; background: #10b981;"></div>
+        <div class="confetti" style="left: 50%; animation-delay: 2s; background: #ef4444;"></div>
+        <div class="confetti" style="left: 60%; animation-delay: 0.3s; background: #8b5cf6;"></div>
+        <div class="confetti" style="left: 70%; animation-delay: 0.8s; background: #f59e0b;"></div>
+        <div class="confetti" style="left: 80%; animation-delay: 1.3s; background: #06b6d4;"></div>
+        <div class="confetti" style="left: 90%; animation-delay: 1.8s; background: #84cc16;"></div>
+
+        <div class="header">
+            <div class="logo">🐻 {{appName}}</div>
+            <h1 class="title">🏆 Achievement Unlocked!</h1>
+        </div>
+
+        <div class="content">
+            <div class="celebration-banner">
+                🎉 Congratulations {{name}}! You've achieved something amazing! 🎉
+            </div>
+
+            <div class="achievement-card">
+                {{#if rarity}}
+                <div class="rarity-badge rarity-{{rarity}}">{{rarity}}</div>
+                {{/if}}
+
+                {{#if achievementIcon}}
+                <span class="achievement-icon">{{achievementIcon}}</span>
+                {{else}}
+                <span class="achievement-icon">🏆</span>
+                {{/if}}
+
+                <div class="achievement-title">{{achievementTitle}}</div>
+                <div class="achievement-description">{{achievementDescription}}</div>
+
+                {{#if badgeUrl}}
+                <div style="margin: 20px 0;">
+                    <img src="{{badgeUrl}}" alt="Achievement Badge" style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                </div>
+                {{/if}}
+
+                <div class="achievement-meta">
+                    {{#if pointsEarned}}
+                    <div class="meta-item">
+                        <span class="meta-value">+{{pointsEarned}}</span>
+                        <span class="meta-label">Points Earned</span>
+                    </div>
+                    {{/if}}
+
+                    {{#if totalPoints}}
+                    <div class="meta-item">
+                        <span class="meta-value">{{totalPoints}}</span>
+                        <span class="meta-label">Total Points</span>
+                    </div>
+                    {{/if}}
+
+                    {{#if level}}
+                    <div class="meta-item">
+                        <span class="meta-value">{{level}}</span>
+                        <span class="meta-label">Current Level</span>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+
+            {{#if level}}
+            <div class="progress-section">
+                <h3 style="margin-top: 0; color: #1f2937;">📈 Your Progress</h3>
+                <p>Level {{level}} Progress</p>
+                <div class="progress-bar">
+                    {{#if nextLevelPoints}}
+                    <div class="progress-fill" style="width: {{#math totalPoints '/' nextLevelPoints '*' 100}}{{/math}}%"></div>
+                    {{else}}
+                    <div class="progress-fill" style="width: 100%"></div>
+                    {{/if}}
+                </div>
+                {{#if nextLevelPoints}}
+                <p style="font-size: 14px; color: #6b7280; margin-bottom: 0;">
+                    {{#math nextLevelPoints '-' totalPoints}}{{/math}} points until Level {{#math level '+' 1}}{{/math}}
+                </p>
+                {{else}}
+                <p style="font-size: 14px; color: #6b7280; margin-bottom: 0;">
+                    Maximum level reached! 🎯
+                </p>
+                {{/if}}
+            </div>
+            {{/if}}
+
+            <div style="text-align: center;">
+                {{#if achievementLink}}
+                <a href="{{achievementLink}}" class="cta-button">View Achievement Details</a>
+                {{else}}
+                <a href="{{dashboardLink}}" class="cta-button">View Your Dashboard</a>
+                {{/if}}
+            </div>
+
+            <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #1f2937;">🚀 Keep the Momentum Going!</h3>
+                <ul style="margin-bottom: 0;">
+                    <li>Share your achievement with friends and study partners</li>
+                    <li>Set new goals to unlock even more achievements</li>
+                    <li>Use your earned points to unlock premium features</li>
+                    <li>Check out other achievements you can work towards</li>
+                </ul>
+            </div>
+
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #1f2937;">💡 Achievement Tips:</h3>
+                <p style="margin-bottom: 0;">
+                    Achievements are more than just badges - they're milestones in your learning journey. Each achievement represents
+                    progress, dedication, and growth. Keep pushing yourself, stay consistent, and celebrate every victory along the way!
+                </p>
+            </div>
+
+            <p style="text-align: center; font-style: italic; color: #6b7280; font-size: 18px;">
+                "Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill
+            </p>
+
+            <p>We're incredibly proud of your progress and dedication. Keep up the fantastic work!</p>
+
+            <p>Celebrate this moment, then get ready for your next achievement!</p>
+            <p><strong>The {{appName}} Team</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>This achievement was earned on {{achievementDate}} for your {{appName}} account.</p>
+            <p>{{appName}} &copy; {{currentYear}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

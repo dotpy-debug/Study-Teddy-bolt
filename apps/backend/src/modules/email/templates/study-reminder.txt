@@ -1,0 +1,72 @@
+{{appName}} - Study Reminder: {{taskTitle}}
+
+Hi {{name}},
+
+{{#if reminderType}}
+    {{#eq reminderType "initial"}}
+This is a friendly reminder about your upcoming study task. It's time to focus and make progress on your goals!
+    {{/eq}}
+    {{#eq reminderType "first_reminder"}}
+Just a gentle nudge - you have a study task coming up soon. Don't let it slip by!
+    {{/eq}}
+    {{#eq reminderType "final_reminder"}}
+⏰ FINAL REMINDER: This is your last reminder for this task. The deadline is approaching fast!
+    {{/eq}}
+{{else}}
+This is a friendly reminder about your upcoming study task. It's time to focus and make progress on your goals!
+{{/if}}
+
+TASK DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 {{taskTitle}}
+
+{{#if taskDescription}}
+{{taskDescription}}
+{{/if}}
+
+{{#if subject}}
+📖 Subject: {{subject}}
+{{/if}}
+
+{{#if priority}}
+🎯 Priority: {{priority}}
+{{/if}}
+
+{{#if estimatedDuration}}
+⏱️ Estimated Duration: {{estimatedDuration}} minutes
+{{/if}}
+
+📅 Due Date: {{dueDate}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{{#if taskLink}}
+👆 View Task Details: {{taskLink}}
+{{else}}
+📊 Open Dashboard: {{dashboardLink}}
+{{/if}}
+
+💡 Quick Study Tips:
+• Find a quiet, distraction-free environment
+• Break large tasks into smaller, manageable chunks
+• Use the Pomodoro technique: 25 minutes focused study, 5-minute break
+• Take notes and summarize key concepts
+• Don't forget to stay hydrated and take breaks
+
+"Success is the sum of small efforts repeated day in and day out." - Robert Collier
+
+Remember, consistency is key to academic success. Every study session brings you closer to your goals!
+
+Need help managing your tasks or want to adjust your reminder settings? Visit your dashboard at {{dashboardLink}} or contact our support team at {{supportEmail}}.
+
+Happy studying!
+
+The {{appName}} Team
+
+---
+
+You received this study reminder because you have notifications enabled for your {{appName}} account.
+
+{{appName}} © {{currentYear}}. All rights reserved.
+
+Don't want to receive these emails? Unsubscribe here: {{frontendUrl}}/unsubscribe?email={{email}}

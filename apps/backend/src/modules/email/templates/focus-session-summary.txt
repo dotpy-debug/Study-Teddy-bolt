@@ -1,0 +1,108 @@
+{{appName}} - Focus Session Complete!
+
+🎯 FOCUS SESSION COMPLETE!
+
+Great work, {{name}}! 🎉
+
+You've just completed a focused study session. Here's a summary of your achievement:
+
+SESSION DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 {{#if task}}{{task}}{{else if subject}}{{subject}}{{else}}Focus Session{{/if}}
+🎯 Session Type: {{sessionType}}
+⏰ Duration: {{sessionDuration}} minutes
+{{#if breakDuration}}🔄 Break Time: {{breakDuration}} minutes{{/if}}
+{{#if totalFocusTime}}🎯 Total Focus Time: {{totalFocusTime}} minutes{{/if}}
+📊 Session Number: {{sessionCount}}
+{{#if pointsEarned}}⭐ Points Earned: +{{pointsEarned}}{{/if}}
+📅 Completed: {{completedAt}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{{#if productivityScore}}
+📊 PRODUCTIVITY SCORE: {{productivityScore}}%
+
+{{#if productivityScore >= 90}}
+🔥 Excellent focus! You're in the zone!
+{{else if productivityScore >= 75}}
+👍 Good focus with minimal distractions
+{{else if productivityScore >= 60}}
+📈 Decent focus, room for improvement
+{{else}}
+💪 Try to minimize distractions next time
+{{/if}}
+{{/if}}
+
+{{#if distractionCount}}
+📱 DISTRACTION ANALYSIS:
+You handled {{distractionCount}} distraction(s) during this session.
+{{#if distractionCount <= 2}}
+Great self-control! 🎯
+{{else if distractionCount <= 5}}
+Not bad, but try to reduce distractions for even better focus.
+{{else}}
+Consider using a distraction-blocking app or putting your phone in another room.
+{{/if}}
+{{/if}}
+
+{{#if achievements}}
+🏆 ACHIEVEMENTS UNLOCKED:
+{{#each achievements}}
+• {{this}}
+{{/each}}
+
+{{/if}}
+
+💡 SESSION INSIGHTS:
+• Session completed at {{completedAt}}
+{{#if sessionType}}
+• Used {{sessionType}} technique for optimal focus
+{{/if}}
+{{#if sessionDuration >= 45}}
+• Extended focus session - impressive dedication! 🎯
+{{else if sessionDuration >= 25}}
+• Perfect session length for maintaining concentration
+{{else}}
+• Short but effective - every minute counts!
+{{/if}}
+{{#if pointsEarned}}
+• Earned {{pointsEarned}} points towards your next level
+{{/if}}
+
+{{#if nextSessionRecommendation}}
+🔮 NEXT SESSION RECOMMENDATION:
+{{nextSessionRecommendation}}
+{{/if}}
+
+🚀 TIPS FOR YOUR NEXT SESSION:
+{{#if sessionType == "pomodoro"}}
+• Take a proper 5-minute break before your next pomodoro
+• After 4 pomodoros, take a longer 15-30 minute break
+{{else if sessionType == "deep_work"}}
+• Deep work sessions are most effective in the morning
+• Try to batch similar tasks for maximum efficiency
+{{/if}}
+• Keep a glass of water nearby to stay hydrated
+• Adjust lighting and temperature for optimal comfort
+• Review what you accomplished and plan your next session
+{{#if distractionCount > 3}}
+• Consider using focus apps or putting devices in airplane mode
+{{/if}}
+
+"The successful warrior is the average person with laser-like focus." - Bruce Lee
+
+📊 View Detailed Statistics: {{dashboardLink}}
+
+Consistency is key to building strong study habits. Keep up the excellent work!
+
+Ready for your next focused session? 💪
+
+The {{appName}} Team
+
+---
+
+This focus session was completed on {{completedAt}} for your {{appName}} account.
+
+{{appName}} © {{currentYear}}. All rights reserved.
+
+Don't want to receive these emails? Unsubscribe here: {{frontendUrl}}/unsubscribe?email={{email}}

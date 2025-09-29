@@ -1,0 +1,159 @@
+name: 'Deploy Application'
+description: 'Deploy StudyTeddy application with multiple deployment strategies'
+
+inputs:
+  environment:
+    description: 'Target environment (staging, production, canary)'
+    required: true
+  backend-image:
+    description: 'Backend Docker image with tag'
+    required: true
+  frontend-image:
+    description: 'Frontend Docker image with tag'
+    required: true
+  strategy:
+    description: 'Deployment strategy (rolling, blue-green, canary)'
+    required: true
+    default: 'rolling'
+  traffic-split:
+    description: 'Traffic split percentage for canary deployments'
+    required: false
+    default: '10'
+  aws-region:
+    description: 'AWS region'
+    required: true
+  cluster-name:
+    description: 'EKS cluster name'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'latest'
+
+    - name: Update kubeconfig
+      shell: bash
+      run: |
+        aws eks update-kubeconfig --region ${{ inputs.aws-region }} --name ${{ inputs.cluster-name }}
+
+    - name: Deploy with Rolling Update
+      if: inputs.strategy == 'rolling'
+      shell: bash
+      run: |
+        echo "Deploying with rolling update strategy..."
+
+        # Update Kubernetes manifests
+        sed -i "s|{{BACKEND_IMAGE}}|${{ inputs.backend-image }}|g" k8s/${{ inputs.environment }}/backend-deployment.yaml
+        sed -i "s|{{FRONTEND_IMAGE}}|${{ inputs.frontend-image }}|g" k8s/${{ inputs.environment }}/frontend-deployment.yaml
+
+        # Apply configurations
+        kubectl apply -f k8s/${{ inputs.environment }}/
+
+        # Wait for rollout
+        kubectl rollout status deployment/backend-${{ inputs.environment }} -n ${{ inputs.environment }} --timeout=600s
+        kubectl rollout status deployment/frontend-${{ inputs.environment }} -n ${{ inputs.environment }} --timeout=600s
+
+    - name: Deploy with Blue-Green Strategy
+      if: inputs.strategy == 'blue-green'
+      shell: bash
+      run: |
+        echo "Deploying with blue-green strategy..."
+
+        # Determine current color
+        CURRENT_COLOR=$(kubectl get service backend-${{ inputs.environment }} -n ${{ inputs.environment }} -o jsonpath='{.spec.selector.color}' 2>/dev/null || echo "blue")
+        NEW_COLOR=$([ "$CURRENT_COLOR" = "blue" ] && echo "green" || echo "blue")
+
+        echo "Current color: $CURRENT_COLOR, New color: $NEW_COLOR"
+
+        # Update manifests with new color
+        sed -i "s|{{BACKEND_IMAGE}}|${{ inputs.backend-image }}|g" k8s/${{ inputs.environment }}/backend-deployment-$NEW_COLOR.yaml
+        sed -i "s|{{FRONTEND_IMAGE}}|${{ inputs.frontend-image }}|g" k8s/${{ inputs.environment }}/frontend-deployment-$NEW_COLOR.yaml
+        sed -i "s|{{COLOR}}|$NEW_COLOR|g" k8s/${{ inputs.environment }}/*-deployment-$NEW_COLOR.yaml
+
+        # Deploy new version
+        kubectl apply -f k8s/${{ inputs.environment }}/*-deployment-$NEW_COLOR.yaml
+
+        # Wait for new deployment
+        kubectl rollout status deployment/backend-${{ inputs.environment }}-$NEW_COLOR -n ${{ inputs.environment }} --timeout=600s
+        kubectl rollout status deployment/frontend-${{ inputs.environment }}-$NEW_COLOR -n ${{ inputs.environment }} --timeout=600s
+
+        # Health check on new deployment
+        kubectl wait --for=condition=ready pod -l app=backend-${{ inputs.environment }},color=$NEW_COLOR -n ${{ inputs.environment }} --timeout=300s
+        kubectl wait --for=condition=ready pod -l app=frontend-${{ inputs.environment }},color=$NEW_COLOR -n ${{ inputs.environment }} --timeout=300s
+
+        # Switch traffic
+        kubectl patch service backend-${{ inputs.environment }} -n ${{ inputs.environment }} -p '{"spec":{"selector":{"color":"'$NEW_COLOR'"}}}'
+        kubectl patch service frontend-${{ inputs.environment }} -n ${{ inputs.environment }} -p '{"spec":{"selector":{"color":"'$NEW_COLOR'"}}}'
+
+        # Wait a bit for traffic to stabilize
+        sleep 30
+
+        # Clean up old deployment
+        kubectl delete deployment backend-${{ inputs.environment }}-$CURRENT_COLOR -n ${{ inputs.environment }} || true
+        kubectl delete deployment frontend-${{ inputs.environment }}-$CURRENT_COLOR -n ${{ inputs.environment }} || true
+
+    - name: Deploy with Canary Strategy
+      if: inputs.strategy == 'canary'
+      shell: bash
+      run: |
+        echo "Deploying with canary strategy..."
+
+        # Update canary manifests
+        sed -i "s|{{BACKEND_IMAGE}}|${{ inputs.backend-image }}|g" k8s/${{ inputs.environment }}/backend-deployment-canary.yaml
+        sed -i "s|{{FRONTEND_IMAGE}}|${{ inputs.frontend-image }}|g" k8s/${{ inputs.environment }}/frontend-deployment-canary.yaml
+        sed -i "s|{{TRAFFIC_SPLIT}}|${{ inputs.traffic-split }}|g" k8s/${{ inputs.environment }}/istio-virtual-service.yaml
+
+        # Deploy canary version
+        kubectl apply -f k8s/${{ inputs.environment }}/*-deployment-canary.yaml
+        kubectl apply -f k8s/${{ inputs.environment }}/istio-virtual-service.yaml
+
+        # Wait for canary deployment
+        kubectl rollout status deployment/backend-${{ inputs.environment }}-canary -n ${{ inputs.environment }} --timeout=600s
+        kubectl rollout status deployment/frontend-${{ inputs.environment }}-canary -n ${{ inputs.environment }} --timeout=600s
+
+    - name: Verify deployment
+      shell: bash
+      run: |
+        echo "Verifying deployment..."
+
+        # Check pod status
+        kubectl get pods -n ${{ inputs.environment }} -l app=backend-${{ inputs.environment }}
+        kubectl get pods -n ${{ inputs.environment }} -l app=frontend-${{ inputs.environment }}
+
+        # Check service endpoints
+        kubectl get endpoints -n ${{ inputs.environment }}
+
+        # Basic connectivity test
+        kubectl run test-pod --rm -i --restart=Never --image=curlimages/curl -- \
+          curl -f http://backend-${{ inputs.environment }}.${{ inputs.environment }}.svc.cluster.local:3000/health || exit 1
+
+    - name: Update deployment annotations
+      shell: bash
+      run: |
+        # Add deployment metadata
+        kubectl annotate deployment backend-${{ inputs.environment }} -n ${{ inputs.environment }} \
+          deployment.studyteddy.com/deployed-at="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          deployment.studyteddy.com/version="${{ inputs.backend-image }}" \
+          deployment.studyteddy.com/strategy="${{ inputs.strategy }}" \
+          --overwrite
+
+        kubectl annotate deployment frontend-${{ inputs.environment }} -n ${{ inputs.environment }} \
+          deployment.studyteddy.com/deployed-at="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          deployment.studyteddy.com/version="${{ inputs.frontend-image }}" \
+          deployment.studyteddy.com/strategy="${{ inputs.strategy }}" \
+          --overwrite

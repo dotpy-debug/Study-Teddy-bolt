@@ -1,0 +1,73 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Color output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}📝 Validating commit message...${NC}"
+
+# Read the commit message
+commit_message=$(cat "$1")
+
+# Define the conventional commit pattern
+# Types: feat, fix, docs, style, refactor, test, chore, ci, build, perf
+conventional_commit_pattern="^(feat|fix|docs|style|refactor|test|chore|ci|build|perf)(\(.+\))?: .{1,50}"
+
+# Check if commit message follows conventional commits
+if echo "$commit_message" | grep -qE "$conventional_commit_pattern"; then
+  echo -e "${GREEN}✅ Commit message follows conventional commit format.${NC}"
+else
+  echo -e "${RED}❌ Invalid commit message format!${NC}"
+  echo -e "${YELLOW}"
+  echo "Commit message should follow conventional commits format:"
+  echo ""
+  echo "  <type>[optional scope]: <description>"
+  echo ""
+  echo "Types:"
+  echo "  feat:     A new feature"
+  echo "  fix:      A bug fix"
+  echo "  docs:     Documentation only changes"
+  echo "  style:    Changes that do not affect the meaning of the code"
+  echo "  refactor: A code change that neither fixes a bug nor adds a feature"
+  echo "  test:     Adding missing tests or correcting existing tests"
+  echo "  chore:    Changes to the build process or auxiliary tools"
+  echo "  ci:       Changes to CI configuration files and scripts"
+  echo "  build:    Changes that affect the build system or external dependencies"
+  echo "  perf:     A code change that improves performance"
+  echo ""
+  echo "Examples:"
+  echo "  feat: add user authentication"
+  echo "  fix: resolve memory leak in session handler"
+  echo "  docs: update API documentation"
+  echo "  feat(auth): implement OAuth integration"
+  echo "  fix(ui): correct button alignment issue"
+  echo ""
+  echo "Your commit message:"
+  echo "  '$commit_message'"
+  echo -e "${NC}"
+  exit 1
+fi
+
+# Check commit message length
+if [ ${#commit_message} -gt 72 ]; then
+  echo -e "${YELLOW}⚠️  Warning: Commit message is longer than 72 characters (${#commit_message} chars).${NC}"
+  echo -e "${YELLOW}Consider shortening the message or adding details in the body.${NC}"
+fi
+
+# Check for common issues
+if echo "$commit_message" | grep -qE "(WIP|TODO|FIXME|XXX)"; then
+  echo -e "${YELLOW}⚠️  Warning: Commit message contains WIP/TODO/FIXME markers.${NC}"
+  echo -e "${YELLOW}Consider completing the work before committing.${NC}"
+fi
+
+# Check for proper capitalization
+first_word=$(echo "$commit_message" | cut -d' ' -f2)
+if echo "$first_word" | grep -qE "^[A-Z]"; then
+  echo -e "${YELLOW}⚠️  Note: Description should start with lowercase letter.${NC}"
+fi
+
+echo -e "${GREEN}📝 Commit message validation passed!${NC}"

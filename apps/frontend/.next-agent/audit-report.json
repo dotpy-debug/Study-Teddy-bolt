@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-09-20T12:57:10.603Z",
+  "score": 25,
+  "issues": [],
+  "warnings": [
+    "Consider adding: tailwind.config.js",
+    "Potential server-side env var usage in client component: app\\api\\errors\\route.ts",
+    "Potential server-side env var usage in client component: app\\error.tsx",
+    "Potential server-side env var usage in client component: app\\global-error.tsx",
+    "Potential server-side env var usage in client component: app\\not-found.tsx",
+    "Potential server-side env var usage in client component: components\\error-boundary.tsx",
+    "Potential server-side env var usage in client component: components\\performance\\web-vitals-reporter.tsx",
+    "Potential server-side env var usage in client component: lib\\auth.ts",
+    "Potential server-side env var usage in client component: lib\\errors.ts",
+    "Potential server-side env var usage in client component: next.config.ts",
+    "Potential server-side env var usage in client component: playwright.config.ts",
+    "Potential server-side env var usage in client component: vitest.config.ts",
+    "Found 18 uses of 'any' type - consider using specific types"
+  ],
+  "suggestions": [
+    "Use more semantic HTML elements (main, nav, header, footer, section, article)",
+    "Consider adding more ARIA labels for better accessibility",
+    "Consider adding structured data for better SEO",
+    "Add robots.txt file",
+    "Consider generating a sitemap"
+  ]
+}

@@ -1,0 +1,69 @@
+{{appName}} - Achievement Unlocked: {{achievementTitle}}
+
+🏆 ACHIEVEMENT UNLOCKED! 🏆
+
+🎉 Congratulations {{name}}! You've achieved something amazing! 🎉
+
+ACHIEVEMENT DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏆 {{achievementTitle}}
+{{#if rarity}}🌟 Rarity: {{rarity}}{{/if}}
+
+{{achievementDescription}}
+
+{{#if pointsEarned}}
+✨ Points Earned: +{{pointsEarned}}
+{{/if}}
+{{#if totalPoints}}
+📊 Total Points: {{totalPoints}}
+{{/if}}
+{{#if level}}
+📈 Current Level: {{level}}
+{{/if}}
+
+Earned on: {{achievementDate}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{{#if level}}
+📈 YOUR PROGRESS:
+
+Level {{level}} Progress
+{{#if nextLevelPoints}}
+{{totalPoints}}/{{nextLevelPoints}} points to Level {{level + 1}}
+{{else}}
+Maximum level reached! 🎯
+{{/if}}
+{{/if}}
+
+{{#if achievementLink}}
+👆 View Achievement Details: {{achievementLink}}
+{{else}}
+📊 View Your Dashboard: {{dashboardLink}}
+{{/if}}
+
+🚀 KEEP THE MOMENTUM GOING!
+• Share your achievement with friends and study partners
+• Set new goals to unlock even more achievements
+• Use your earned points to unlock premium features
+• Check out other achievements you can work towards
+
+💡 Achievement Tips:
+
+Achievements are more than just badges - they're milestones in your learning journey. Each achievement represents progress, dedication, and growth. Keep pushing yourself, stay consistent, and celebrate every victory along the way!
+
+"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill
+
+We're incredibly proud of your progress and dedication. Keep up the fantastic work!
+
+Celebrate this moment, then get ready for your next achievement!
+
+The {{appName}} Team
+
+---
+
+This achievement was earned on {{achievementDate}} for your {{appName}} account.
+
+{{appName}} © {{currentYear}}. All rights reserved.
+
+Don't want to receive these emails? Unsubscribe here: {{frontendUrl}}/unsubscribe?email={{email}}

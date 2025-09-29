@@ -1,0 +1,191 @@
+# =============================================================================
+# .dockerignore for NestJS Backend (Study Teddy)
+# Optimized for smaller Docker images and better build performance
+# =============================================================================
+
+# Node.js
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.yarn
+package-lock.json
+yarn.lock
+
+# Environment files (security - never include in container)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+.env.*.local
+*.env
+
+# Build output
+dist
+build
+.turbo
+.next
+out
+
+# Coverage reports and test files
+coverage
+.nyc_output
+*.spec.ts
+*.test.ts
+*.e2e-spec.ts
+test/
+__tests__/
+jest.config.*
+.jest-cache
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*.tmp
+*.temp
+.history
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Git and version control
+.git
+.gitignore
+.gitattributes
+.gitmodules
+
+# Documentation and README files
+*.md
+!README.md
+docs/
+documentation/
+
+# Development and config files
+.prettierrc*
+.prettierignore
+.eslintrc*
+.eslintignore
+eslint.config.*
+.editorconfig
+.babelrc*
+babel.config.*
+.browserslistrc
+.stylelintrc*
+stylelint.config.*
+.commitlintrc*
+commitlint.config.*
+.huskyrc*
+.lintstagedrc*
+lint-staged.config.*
+
+# TypeScript config
+tsconfig.json
+tsconfig.*.json
+tslint.json
+
+# Logs
+logs
+*.log
+log/
+tmp/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Cache directories
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+
+# Dependency directories that shouldn't be copied
+.pnp
+.pnp.js
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Webpack
+webpack.config.js
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Kubernetes
+*.yaml
+*.yml
+k8s/
+kubernetes/
+
+# Terraform
+*.tf
+*.tfstate
+*.tfvars
+
+# Backup files
+*.backup
+*.bak
+*.swp
+*.orig
+
+# Temporary files
+.tmp/
+tmp/
+
+# Local development files
+uploads/
+storage/
+public/uploads/
+
+# Sentry
+.sentryclirc
+
+# Railway
+railway.json
+
+# Vercel
+.vercel
+
+# Misc
+*.tsbuildinfo
+.turbo
+.husky

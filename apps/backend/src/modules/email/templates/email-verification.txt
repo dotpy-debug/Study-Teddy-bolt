@@ -1,0 +1,42 @@
+{{appName}} - Verify your email address
+
+Hi {{name}},
+
+Thank you for signing up for {{appName}}! To complete your registration and start your study journey, please verify your email address.
+
+VERIFY YOUR EMAIL ADDRESS
+Click this link: {{verificationLink}}
+
+⚠️ Important: This verification link will expire in {{expiresIn}}. If you don't verify your email within this time, you'll need to request a new verification email.
+
+Security Tips:
+• Only click the verification link if you recently signed up for {{appName}}
+• The link should start with: {{frontendUrl}}
+• If you didn't sign up for {{appName}}, you can safely ignore this email
+• Never share your verification link with others
+
+Why do we verify email addresses?
+• To ensure we can send you important account notifications
+• To help you recover your account if you forget your password
+• To protect your account from unauthorized access
+• To send you study reminders and progress updates
+
+Once your email is verified, you'll be able to:
+• Access all {{appName}} features
+• Receive study reminders and notifications
+• Reset your password if needed
+• Get weekly progress summaries
+
+If you're having trouble verifying your email, please contact our support team at {{supportEmail}}.
+
+Welcome to {{appName}}!
+
+The {{appName}} Team
+
+---
+
+This verification email was sent to {{email}} because someone signed up for {{appName}} with this email address.
+
+If this wasn't you, you can safely ignore this email.
+
+{{appName}} © {{currentYear}}. All rights reserved.
