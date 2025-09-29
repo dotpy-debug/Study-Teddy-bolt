@@ -2,21 +2,11 @@
 
 import React, { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
 import {
-  Calendar,
-  Download,
-  Share2,
-  RefreshCw,
-  Maximize2,
-  Grid3X3,
   Target,
   TrendingUp,
   Clock,
   CheckCircle,
   BarChart3,
-  PieChart,
-  Eye,
-  Compare,
-  Printer
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardAction } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

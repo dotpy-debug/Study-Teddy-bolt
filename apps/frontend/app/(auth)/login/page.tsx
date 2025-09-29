@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v3";
 import Link from "next/link";
 import { Eye, EyeOff, Chrome, Github, Mail } from "lucide-react";
+import type { Route } from "next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,7 @@ function LoginForm() {
       setIsLoading(true);
       await login(data);
       showSuccess("You have been signed in successfully.", "Success");
-      router.push(callbackUrl);
+      router.push(callbackUrl as Route);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Invalid email or password. Please try again.";
       showError(errorMessage, "Error");
@@ -102,7 +103,7 @@ function LoginForm() {
       await sendEmailOTP(otpEmail);
       showSuccess("OTP sent to your email", "Success");
     } catch (error: unknown) {
-      showError(error.message || "Failed to send OTP", "Error");
+      showError(error instanceof Error ? error.message : "Failed to send OTP", "Error");
     } finally {
       setIsOtpLoading(false);
     }
@@ -117,9 +118,9 @@ function LoginForm() {
       setIsOtpLoading(true);
       await verifyEmailOTP(otpEmail, otp);
       showSuccess("Successfully signed in!", "Success");
-      router.push(callbackUrl);
+      router.push(callbackUrl as Route);
     } catch (error: unknown) {
-      showError(error.message || "Invalid OTP", "Error");
+      showError(error instanceof Error ? error.message : "Invalid OTP", "Error");
     } finally {
       setIsOtpLoading(false);
     }

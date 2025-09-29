@@ -9,7 +9,7 @@ FROM oven/bun:1.2.22-alpine AS base
 WORKDIR /app
 
 # Install system dependencies
-RUN apk add --no-cache \
+RUN apk add --no-cache python3 py3-pip make gcc g++ build-base \
     ca-certificates \
     curl \
     dumb-init \
@@ -27,7 +27,7 @@ RUN addgroup -g 1001 -S nodejs && \
 FROM base AS deps
 
 # Copy package files
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 COPY apps/frontend/package.json ./apps/frontend/
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
@@ -35,7 +35,7 @@ COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/validators/package.json ./packages/validators/
 
 # Install dependencies
-RUN bun install --frozen-lockfile --production=false
+RUN bun install 
 
 # ===========================================
 # Builder Stage
@@ -44,7 +44,6 @@ FROM base AS builder
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/frontend/node_modules ./apps/frontend/node_modules
 
 # Copy source code
 COPY . .

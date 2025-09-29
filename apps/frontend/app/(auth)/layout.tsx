@@ -4,6 +4,7 @@ import { useRedirectIfAuthenticated } from "@/hooks/use-auth";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
+import type { Route } from "next";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -105,14 +106,14 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 By continuing, you agree to our{" "}
                 <Link
-                  href="/terms"
+                  href={"/terms" as Route}
                   className="font-medium text-primary hover:underline"
                 >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
                 <Link
-                  href="/privacy"
+                  href={"/privacy" as Route}
                   className="font-medium text-primary hover:underline"
                 >
                   Privacy Policy

@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v3";
 import Link from "next/link";
+import type { Route } from "next";
 import { Eye, EyeOff, Chrome, Github, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -282,11 +283,11 @@ export default function RegisterPage() {
                   <div className="space-y-1 leading-none">
                     <FormLabel className="text-sm">
                       I agree to the{" "}
-                      <Link href="/terms" className="text-primary hover:underline">
+                      <Link href={"/terms" as Route} className="text-primary hover:underline">
                         Terms of Service
                       </Link>{" "}
                       and{" "}
-                      <Link href="/privacy" className="text-primary hover:underline">
+                      <Link href={"/privacy" as Route} className="text-primary hover:underline">
                         Privacy Policy
                       </Link>
                     </FormLabel>

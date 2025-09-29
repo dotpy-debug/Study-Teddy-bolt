@@ -14,7 +14,7 @@ import {
   CalendarIcon,
   ClockIcon,
   TargetIcon,
-  FireIcon,
+  FlameIcon,
   TrophyIcon
 } from "lucide-react";
 import { useSubjectAnalytics } from "../hooks/useSubjects";
@@ -157,7 +157,7 @@ export const SubjectProgress = ({ subjectId }: SubjectProgressProps) => {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
-              <FireIcon className="h-4 w-4" />
+              <FlameIcon className="h-4 w-4" />
               Study Streak
             </CardDescription>
           </CardHeader>
