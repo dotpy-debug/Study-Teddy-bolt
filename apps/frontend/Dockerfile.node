@@ -1,15 +1,16 @@
 # ===========================================
-# Study Teddy Frontend Dockerfile (Next.js)
+# Study Teddy Frontend Dockerfile (Next.js with Node.js)
 # ===========================================
 
-# Base image with Node.js and Bun
-FROM oven/bun:1.2.22-alpine AS base
+# Base image with Node.js
+FROM node:20-alpine AS base
 
 # Set working directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apk add --no-cache python3 py3-pip make gcc g++ build-base \
+RUN apk add --no-cache \
+    python3 py3-pip make gcc g++ build-base \
     ca-certificates \
     curl \
     dumb-init \
@@ -27,18 +28,18 @@ RUN addgroup -g 1001 -S nodejs && \
 FROM base AS deps
 
 # Copy package files
-COPY package.json bun.lock ./
+COPY package.json bun.lockb* ./
 COPY apps/frontend/package.json ./apps/frontend/
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/validators/package.json ./packages/validators/
 
-# Install dependencies (skip optional native deps that fail)
+# Install dependencies using npm
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV SKIP_NATIVE_BUILD=true
-RUN bun install --ignore-optional || bun install --no-optional || bun install 
+RUN npm install --legacy-peer-deps
 
 # ===========================================
 # Builder Stage
@@ -52,7 +53,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build shared packages
-RUN bun run build:packages
+RUN npm run build:packages
 
 # Set build-time environment variables
 ARG NODE_ENV=production
@@ -77,13 +78,19 @@ ENV NEXT_PUBLIC_ENABLE_ANALYTICS=$NEXT_PUBLIC_ENABLE_ANALYTICS
 
 # Build frontend application
 WORKDIR /app/apps/frontend
-# Use bun to run next build directly
-RUN bun run next build
+RUN npm run build
 
 # ===========================================
 # Production Stage
 # ===========================================
-FROM base AS production
+FROM node:20-alpine AS production
+
+# Install dumb-init
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
 # Set NODE_ENV
 ENV NODE_ENV=production
@@ -93,6 +100,9 @@ ENV TZ=UTC
 
 # Disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Set working directory
+WORKDIR /app
 
 # Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
