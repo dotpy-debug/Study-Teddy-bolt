@@ -124,15 +124,10 @@ export class UserPathMonitoringService {
 
     // Log step details
     if (!success && error) {
-      this.logger.error(
-        `Step failed in path ${userPath.name}: ${stepName}`,
-        error,
-      );
+      this.logger.error(`Step failed in path ${userPath.name}: ${stepName}`, error);
       this.handleStepError(userPath, step, error);
     } else {
-      this.logger.debug(
-        `Step completed in path ${userPath.name}: ${stepName} (${duration}ms)`,
-      );
+      this.logger.debug(`Step completed in path ${userPath.name}: ${stepName} (${duration}ms)`);
     }
 
     // Check for step performance issues
@@ -142,11 +137,7 @@ export class UserPathMonitoringService {
   /**
    * Complete a user path
    */
-  completePath(
-    pathId: string,
-    success: boolean = true,
-    metadata?: Record<string, any>,
-  ): void {
+  completePath(pathId: string, success: boolean = true, metadata?: Record<string, any>): void {
     const userPath = this.activePaths.get(pathId);
     if (!userPath) {
       this.logger.warn(`User path not found: ${pathId}`);
@@ -261,9 +252,7 @@ export class UserPathMonitoringService {
     // Check if this is a critical step
     const template = this.pathTemplates.get(userPath.name);
     if (template?.criticalSteps?.includes(step.name)) {
-      this.logger.error(
-        `Critical step failed in path ${userPath.name}: ${step.name}`,
-      );
+      this.logger.error(`Critical step failed in path ${userPath.name}: ${step.name}`);
 
       // Send immediate alert for critical step failures
       this.sentryService.captureMessage(
@@ -276,10 +265,7 @@ export class UserPathMonitoringService {
   /**
    * Analyze step performance
    */
-  private analyzeStepPerformance(
-    userPath: BackendUserPath,
-    step: BackendUserPathStep,
-  ): void {
+  private analyzeStepPerformance(userPath: BackendUserPath, step: BackendUserPathStep): void {
     const template = this.pathTemplates.get(userPath.name);
     const expectedDuration = template?.stepThresholds?.[step.name];
 
@@ -312,10 +298,7 @@ export class UserPathMonitoringService {
         `Slow user path: ${userPath.name} took ${userPath.totalDuration}ms (expected < ${expectedDuration}ms)`,
       );
 
-      this.sentryService.captureMessage(
-        `Slow user path detected: ${userPath.name}`,
-        'warning',
-      );
+      this.sentryService.captureMessage(`Slow user path detected: ${userPath.name}`, 'warning');
     }
 
     // Calculate step distribution
@@ -454,9 +437,7 @@ export class UserPathMonitoringService {
       criticalSteps: ['upload_to_storage', 'save_metadata'],
     });
 
-    this.logger.log(
-      `Initialized ${this.pathTemplates.size} user path templates`,
-    );
+    this.logger.log(`Initialized ${this.pathTemplates.size} user path templates`);
   }
 
   /**
@@ -496,8 +477,7 @@ export class UserPathMonitoringService {
       // Find longest running path
       if (
         !stats.longestRunningPath ||
-        Date.now() - path.startTime >
-          Date.now() - stats.longestRunningPath.startTime
+        Date.now() - path.startTime > Date.now() - stats.longestRunningPath.startTime
       ) {
         stats.longestRunningPath = path;
       }
@@ -532,16 +512,11 @@ interface PathTemplate {
  * Decorator for automatic user path monitoring
  */
 export function MonitorUserPath(pathName: string) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const userPathService = this
-        .userPathMonitoringService as UserPathMonitoringService;
+      const userPathService = this.userPathMonitoringService as UserPathMonitoringService;
 
       if (!userPathService) {
         return await originalMethod.apply(this, args);

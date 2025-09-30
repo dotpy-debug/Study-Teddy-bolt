@@ -4,12 +4,7 @@ import { faker } from '@faker-js/faker';
 export interface MockAIChat {
   id: string;
   userId: string;
-  actionType:
-    | 'chat'
-    | 'study_plan'
-    | 'practice_questions'
-    | 'summary'
-    | 'explanation';
+  actionType: 'chat' | 'study_plan' | 'practice_questions' | 'summary' | 'explanation';
   prompt: string;
   response: string;
   model: string;
@@ -49,9 +44,7 @@ export class AIChatFactory {
       promptTokens,
       completionTokens,
       totalTokens: promptTokens + completionTokens,
-      costInCents: faker.number
-        .float({ min: 0.01, max: 5.0, fractionDigits: 2 })
-        .toString(),
+      costInCents: faker.number.float({ min: 0.01, max: 5.0, fractionDigits: 2 }).toString(),
       metadata: {
         processingTime: faker.number.int({ min: 500, max: 5000 }),
         cacheHit: faker.datatype.boolean(),
@@ -64,10 +57,7 @@ export class AIChatFactory {
     return { ...baseChat, ...overrides };
   }
 
-  static createMany(
-    count: number,
-    overrides?: Partial<MockAIChat>,
-  ): MockAIChat[] {
+  static createMany(count: number, overrides?: Partial<MockAIChat>): MockAIChat[] {
     return Array.from({ length: count }, () => this.create(overrides));
   }
 
@@ -153,9 +143,7 @@ export class AIChatFactory {
       promptTokens,
       completionTokens,
       totalTokens: promptTokens + completionTokens,
-      costInCents: faker.number
-        .float({ min: 10.0, max: 50.0, fractionDigits: 2 })
-        .toString(),
+      costInCents: faker.number.float({ min: 10.0, max: 50.0, fractionDigits: 2 }).toString(),
       prompt: faker.lorem.paragraphs(10),
       response: faker.lorem.paragraphs(15),
       ...overrides,
@@ -170,9 +158,7 @@ export class AIChatFactory {
       promptTokens,
       completionTokens,
       totalTokens: promptTokens + completionTokens,
-      costInCents: faker.number
-        .float({ min: 0.01, max: 0.5, fractionDigits: 2 })
-        .toString(),
+      costInCents: faker.number.float({ min: 0.01, max: 0.5, fractionDigits: 2 }).toString(),
       prompt: faker.lorem.sentence(),
       response: faker.lorem.paragraph(),
       ...overrides,

@@ -121,9 +121,7 @@ export class ResendEmailService {
 
     this.logger.debug(`Sending ${emails.length} bulk emails`);
 
-    const results = await Promise.allSettled(
-      emails.map((email) => this.sendEmail(email)),
-    );
+    const results = await Promise.allSettled(emails.map((email) => this.sendEmail(email)));
 
     return results.map((result, index) => {
       if (result.status === 'fulfilled') {

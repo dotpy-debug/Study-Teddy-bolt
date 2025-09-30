@@ -53,8 +53,7 @@ export class TasksController {
   @Get()
   @ApiOperation({
     summary: 'Get user tasks',
-    description:
-      'Retrieve all tasks for the authenticated user with optional filtering',
+    description: 'Retrieve all tasks for the authenticated user with optional filtering',
   })
   @ApiQuery({ type: TaskQueryDto, required: false })
   @ApiResponse({
@@ -80,10 +79,7 @@ export class TasksController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getTasks(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query() query: TaskQueryDto,
-  ) {
+  async getTasks(@CurrentUser() user: AuthenticatedUser, @Query() query: TaskQueryDto) {
     // Map query to options format
     const options = {
       searchTerm: query.search,
@@ -133,10 +129,7 @@ export class TasksController {
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Task not found' })
   @ApiForbiddenResponse({ description: 'Access denied to this task' })
-  async getTask(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  async getTask(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.tasksService.getTaskById(id, user.userId);
   }
 
@@ -151,10 +144,7 @@ export class TasksController {
   })
   @ApiBadRequestResponse({ description: 'Invalid task data' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
-  async createTask(
-    @Body() createTaskDto: CreateTaskDto,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  async createTask(@Body() createTaskDto: CreateTaskDto, @CurrentUser() user: AuthenticatedUser) {
     return this.tasksService.createTask(user.userId, createTaskDto);
   }
 
@@ -203,10 +193,7 @@ export class TasksController {
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Task not found' })
   @ApiForbiddenResponse({ description: 'Access denied to this task' })
-  async deleteTask(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  async deleteTask(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.tasksService.deleteTask(id, user.userId);
   }
 
@@ -272,10 +259,7 @@ export class TasksController {
     @Body() batchDeleteDto: BatchDeleteTasksDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.tasksService.batchDeleteTasks(
-      user.userId,
-      batchDeleteDto.taskIds,
-    );
+    return this.tasksService.batchDeleteTasks(user.userId, batchDeleteDto.taskIds);
   }
 
   @Get('status/:status')
@@ -293,10 +277,7 @@ export class TasksController {
     description: 'Tasks retrieved successfully',
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
-  async getTasksByStatus(
-    @Param('status') status: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  async getTasksByStatus(@Param('status') status: string, @CurrentUser() user: AuthenticatedUser) {
     return this.tasksService.getTasksByStatus(user.userId, status);
   }
 
@@ -324,11 +305,7 @@ export class TasksController {
     @Body() progressDto: UpdateTaskProgressDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.tasksService.updateTaskProgress(
-      id,
-      user.userId,
-      progressDto.progressPercentage,
-    );
+    return this.tasksService.updateTaskProgress(id, user.userId, progressDto.progressPercentage);
   }
 
   @Post('parse')
@@ -373,10 +350,7 @@ export class TasksController {
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const parsed = this.taskParserService.parseTaskInput(
-      body.input,
-      body.availableSubjects,
-    );
+    const parsed = this.taskParserService.parseTaskInput(body.input, body.availableSubjects);
     const createTaskDto = this.taskParserService.convertToCreateTaskDto(parsed);
 
     return {
@@ -404,10 +378,7 @@ export class TasksController {
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const parsed = this.taskParserService.parseTaskInput(
-      body.input,
-      body.availableSubjects,
-    );
+    const parsed = this.taskParserService.parseTaskInput(body.input, body.availableSubjects);
     const createTaskDto = this.taskParserService.convertToCreateTaskDto(parsed);
 
     // Set AI generated flag since this was parsed
@@ -430,8 +401,7 @@ export class TasksController {
   @Get('parse/suggestions')
   @ApiOperation({
     summary: 'Get auto-completion suggestions',
-    description:
-      'Get suggestions for auto-completing natural language task input',
+    description: 'Get suggestions for auto-completing natural language task input',
   })
   @ApiResponse({
     status: 200,
@@ -462,10 +432,7 @@ export class TasksController {
       }
     }
 
-    const suggestions = this.taskParserService.getSuggestions(
-      input,
-      availableSubjects,
-    );
+    const suggestions = this.taskParserService.getSuggestions(input, availableSubjects);
 
     return { suggestions };
   }

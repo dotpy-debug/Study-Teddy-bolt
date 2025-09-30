@@ -6,12 +6,7 @@ export interface StudyReminderJob {
   userId: string;
   taskId?: string;
   subjectId?: string;
-  reminderType:
-    | 'daily'
-    | 'task_due'
-    | 'break_reminder'
-    | 'study_session'
-    | 'weekly_review';
+  reminderType: 'daily' | 'task_due' | 'break_reminder' | 'study_session' | 'weekly_review';
   scheduledFor: Date;
   message: string;
   data?: Record<string, any>;
@@ -41,21 +36,14 @@ export class StudyReminderProcessor extends WorkerHost {
     } = job.data;
 
     try {
-      this.logger.log(
-        `Processing study reminder: ${reminderType} for user ${userId}`,
-      );
+      this.logger.log(`Processing study reminder: ${reminderType} for user ${userId}`);
 
       // Check if reminder is still valid (not too late)
       const now = new Date();
       const reminderTime = new Date(scheduledFor);
 
-      if (
-        reminderTime < now &&
-        now.getTime() - reminderTime.getTime() > 24 * 60 * 60 * 1000
-      ) {
-        this.logger.warn(
-          `Study reminder ${reminderType} is too old, skipping for user ${userId}`,
-        );
+      if (reminderTime < now && now.getTime() - reminderTime.getTime() > 24 * 60 * 60 * 1000) {
+        this.logger.warn(`Study reminder ${reminderType} is too old, skipping for user ${userId}`);
         return { skipped: true, reason: 'Too old' };
       }
 
@@ -65,34 +53,19 @@ export class StudyReminderProcessor extends WorkerHost {
           await this.processDailyReminder(userId, message, data || {});
           break;
         case 'task_due':
-          await this.processTaskDueReminder(
-            userId,
-            taskId || '',
-            message,
-            data || {},
-          );
+          await this.processTaskDueReminder(userId, taskId || '', message, data || {});
           break;
         case 'break_reminder':
           await this.processBreakReminder(userId, message, data || {});
           break;
         case 'study_session':
-          await this.processStudySessionReminder(
-            userId,
-            subjectId || '',
-            message,
-            data || {},
-          );
+          await this.processStudySessionReminder(userId, subjectId || '', message, data || {});
           break;
         case 'weekly_review':
           await this.processWeeklyReviewReminder(userId, message, data || {});
           break;
         default:
-          await this.processGenericReminder(
-            userId,
-            reminderType,
-            message,
-            data || {},
-          );
+          await this.processGenericReminder(userId, reminderType, message, data || {});
       }
 
       // Schedule next reminder if recurring
@@ -100,9 +73,7 @@ export class StudyReminderProcessor extends WorkerHost {
         await this.scheduleNextRecurringReminder(job.data);
       }
 
-      this.logger.log(
-        `Study reminder ${reminderType} processed successfully for user ${userId}`,
-      );
+      this.logger.log(`Study reminder ${reminderType} processed successfully for user ${userId}`);
       return {
         success: true,
         userId,
@@ -125,9 +96,7 @@ export class StudyReminderProcessor extends WorkerHost {
     message: string,
     data: Record<string, any>,
   ): Promise<void> {
-    this.logger.debug(
-      `Processing daily reminder for user ${userId}: ${message}`,
-    );
+    this.logger.debug(`Processing daily reminder for user ${userId}: ${message}`);
 
     // Placeholder: would check user's study schedule and send personalized reminder
     // Could include today's tasks, recommended study time, etc.
@@ -160,9 +129,7 @@ export class StudyReminderProcessor extends WorkerHost {
     message: string,
     data: Record<string, any>,
   ): Promise<void> {
-    this.logger.debug(
-      `Processing break reminder for user ${userId}: ${message}`,
-    );
+    this.logger.debug(`Processing break reminder for user ${userId}: ${message}`);
 
     // Placeholder: would remind user to take a break during long study sessions
     await this.sendStudyReminder(userId, 'Time for a Break!', message, {
@@ -194,9 +161,7 @@ export class StudyReminderProcessor extends WorkerHost {
     message: string,
     data: Record<string, any>,
   ): Promise<void> {
-    this.logger.debug(
-      `Processing weekly review reminder for user ${userId}: ${message}`,
-    );
+    this.logger.debug(`Processing weekly review reminder for user ${userId}: ${message}`);
 
     // Placeholder: would remind user to review their weekly progress
     await this.sendStudyReminder(userId, 'Weekly Review Time', message, {
@@ -244,18 +209,14 @@ export class StudyReminderProcessor extends WorkerHost {
     // });
   }
 
-  private async scheduleNextRecurringReminder(
-    reminderData: StudyReminderJob,
-  ): Promise<void> {
+  private async scheduleNextRecurringReminder(reminderData: StudyReminderJob): Promise<void> {
     const { recurringPattern } = reminderData;
 
     if (!recurringPattern) {
       return;
     }
 
-    this.logger.debug(
-      `Scheduling next recurring reminder for user ${reminderData.userId}`,
-    );
+    this.logger.debug(`Scheduling next recurring reminder for user ${reminderData.userId}`);
 
     let nextReminderDate: Date;
     const currentDate = new Date(reminderData.scheduledFor);
@@ -274,9 +235,7 @@ export class StudyReminderProcessor extends WorkerHost {
         nextReminderDate.setMonth(nextReminderDate.getMonth() + 1);
         break;
       default:
-        this.logger.warn(
-          `Unknown recurring frequency: ${recurringPattern.frequency}`,
-        );
+        this.logger.warn(`Unknown recurring frequency: ${recurringPattern.frequency}`);
         return;
     }
 
@@ -294,9 +253,7 @@ export class StudyReminderProcessor extends WorkerHost {
     //   delay: nextReminderDate.getTime() - Date.now()
     // });
 
-    this.logger.debug(
-      `Next recurring reminder scheduled for ${nextReminderDate.toISOString()}`,
-    );
+    this.logger.debug(`Next recurring reminder scheduled for ${nextReminderDate.toISOString()}`);
   }
 
   @OnWorkerEvent('completed')

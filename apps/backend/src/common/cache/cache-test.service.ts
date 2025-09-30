@@ -29,18 +29,13 @@ export class CacheTestService {
       await this.cacheService.set(testKey, testValue, 60); // 1 minute TTL
       const retrievedValue = await this.cacheService.get(testKey);
 
-      const test1Passed =
-        JSON.stringify(retrievedValue) === JSON.stringify(testValue);
-      this.logger.log(
-        `Test 1 (Basic Set/Get): ${test1Passed ? 'PASSED' : 'FAILED'}`,
-      );
+      const test1Passed = JSON.stringify(retrievedValue) === JSON.stringify(testValue);
+      this.logger.log(`Test 1 (Basic Set/Get): ${test1Passed ? 'PASSED' : 'FAILED'}`);
 
       // Test 2: Cache miss
       const missValue = await this.cacheService.get('nonexistent:key');
       const test2Passed = missValue === null;
-      this.logger.log(
-        `Test 2 (Cache Miss): ${test2Passed ? 'PASSED' : 'FAILED'}`,
-      );
+      this.logger.log(`Test 2 (Cache Miss): ${test2Passed ? 'PASSED' : 'FAILED'}`);
 
       // Test 3: Cache warm (should return cached value on second call)
       const warmKey = 'test:warm';
@@ -58,25 +53,18 @@ export class CacheTestService {
       const result2 = await this.cacheService.warm(warmKey, dataFunction, 60);
 
       const test3Passed = result1.callNumber === 1 && result2.callNumber === 1;
-      this.logger.log(
-        `Test 3 (Cache Warm): ${test3Passed ? 'PASSED' : 'FAILED'}`,
-      );
+      this.logger.log(`Test 3 (Cache Warm): ${test3Passed ? 'PASSED' : 'FAILED'}`);
 
       // Test 4: Cache delete
       await this.cacheService.del(testKey);
       const deletedValue = await this.cacheService.get(testKey);
       const test4Passed = deletedValue === null;
-      this.logger.log(
-        `Test 4 (Cache Delete): ${test4Passed ? 'PASSED' : 'FAILED'}`,
-      );
+      this.logger.log(`Test 4 (Cache Delete): ${test4Passed ? 'PASSED' : 'FAILED'}`);
 
       // Test 5: Cache stats
       const stats = this.cacheService.getStats();
-      const test5Passed =
-        typeof stats.hits === 'number' && typeof stats.misses === 'number';
-      this.logger.log(
-        `Test 5 (Cache Stats): ${test5Passed ? 'PASSED' : 'FAILED'}`,
-      );
+      const test5Passed = typeof stats.hits === 'number' && typeof stats.misses === 'number';
+      this.logger.log(`Test 5 (Cache Stats): ${test5Passed ? 'PASSED' : 'FAILED'}`);
       this.logger.log(`Cache Stats: ${JSON.stringify(stats)}`);
 
       const allTestsPassed =
@@ -143,31 +131,15 @@ export class CacheTestService {
 
     // Test without cache
     const noCacheStart = Date.now();
-    await Promise.all([
-      simulateStatsQuery(),
-      simulateStreakQuery(),
-      simulateWeeklyQuery(),
-    ]);
+    await Promise.all([simulateStatsQuery(), simulateStreakQuery(), simulateWeeklyQuery()]);
     const noCacheTime = Date.now() - noCacheStart;
 
     // Test with cache
     const cacheStart = Date.now();
     const [stats, streak, weekly] = await Promise.all([
-      this.cacheService.warm(
-        `dashboard_stats:${userId}`,
-        simulateStatsQuery,
-        300,
-      ),
-      this.cacheService.warm(
-        `dashboard_streak:${userId}`,
-        simulateStreakQuery,
-        600,
-      ),
-      this.cacheService.warm(
-        `dashboard_weekly:${userId}:2024-01-01`,
-        simulateWeeklyQuery,
-        1800,
-      ),
+      this.cacheService.warm(`dashboard_stats:${userId}`, simulateStatsQuery, 300),
+      this.cacheService.warm(`dashboard_streak:${userId}`, simulateStreakQuery, 600),
+      this.cacheService.warm(`dashboard_weekly:${userId}:2024-01-01`, simulateWeeklyQuery, 1800),
     ]);
     const cacheTime = Date.now() - cacheStart;
 

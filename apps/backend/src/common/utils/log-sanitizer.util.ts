@@ -68,9 +68,7 @@ export class LogSanitizer {
       } else {
         // Still mask long values that might contain tokens
         sanitized[key] =
-          typeof value === 'string' && value.length > 100
-            ? this.maskValue(value)
-            : value;
+          typeof value === 'string' && value.length > 100 ? this.maskValue(value) : value;
       }
     }
 
@@ -153,10 +151,7 @@ export class LogSanitizer {
         }
       }
 
-      return (
-        urlObj.pathname +
-        (sanitizedParams.toString() ? `?${sanitizedParams.toString()}` : '')
-      );
+      return urlObj.pathname + (sanitizedParams.toString() ? `?${sanitizedParams.toString()}` : '');
     } catch {
       // If URL parsing fails, just return the pathname part
       return url.split('?')[0] + (url.includes('?') ? '?[SANITIZED]' : '');
@@ -184,9 +179,7 @@ export class LogSanitizer {
       url: this.sanitizeUrl(req.url),
       method: req.method,
       indicators,
-      requestHash: this.createHash(
-        `${req.method}:${req.url}:${req.get('User-Agent')}`,
-      ),
+      requestHash: this.createHash(`${req.method}:${req.url}:${req.get('User-Agent')}`),
       timestamp: new Date().toISOString(),
     };
   }
@@ -287,10 +280,6 @@ export class LogSanitizer {
    * Creates a hash for correlation without exposing data
    */
   private static createHash(data: string): string {
-    return crypto
-      .createHash('sha256')
-      .update(data)
-      .digest('hex')
-      .substring(0, 8); // Short hash for correlation
+    return crypto.createHash('sha256').update(data).digest('hex').substring(0, 8); // Short hash for correlation
   }
 }

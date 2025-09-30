@@ -58,8 +58,7 @@ export class GoalsController {
   @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 goals per minute
   @ApiOperation({
     summary: 'Create a new goal',
-    description:
-      'Create a new study goal with optional milestones and sharing settings',
+    description: 'Create a new study goal with optional milestones and sharing settings',
   })
   @ApiCreatedResponse({
     description: 'Goal created successfully',
@@ -109,10 +108,7 @@ export class GoalsController {
   @ApiBadRequestResponse({ description: 'Invalid goal data' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
-  async createGoal(
-    @Body() createGoalDto: CreateGoalDto,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async createGoal(@Body() createGoalDto: CreateGoalDto, @CurrentUser() user: BetterAuthUser) {
     return this.goalsService.createGoal(user.id, createGoalDto);
   }
 
@@ -120,8 +116,7 @@ export class GoalsController {
   @Throttle({ default: { limit: 60, ttl: 60000 } }) // 60 requests per minute
   @ApiOperation({
     summary: 'Get user goals',
-    description:
-      'Retrieve goals for the authenticated user with filtering and pagination',
+    description: 'Retrieve goals for the authenticated user with filtering and pagination',
   })
   @ApiQuery({ type: GoalQueryDto, required: false })
   @ApiOkResponse({
@@ -168,10 +163,7 @@ export class GoalsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getGoals(
-    @CurrentUser() user: BetterAuthUser,
-    @Query() query: GoalQueryDto,
-  ) {
+  async getGoals(@CurrentUser() user: BetterAuthUser, @Query() query: GoalQueryDto) {
     return this.goalsService.getGoals(user.id, query);
   }
 
@@ -179,8 +171,7 @@ export class GoalsController {
   @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute
   @ApiOperation({
     summary: 'Get shared goals',
-    description:
-      'Retrieve goals that have been shared with the authenticated user',
+    description: 'Retrieve goals that have been shared with the authenticated user',
   })
   @ApiOkResponse({
     description: 'Shared goals retrieved successfully',
@@ -212,8 +203,7 @@ export class GoalsController {
   @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
   @ApiOperation({
     summary: 'Get goal analytics',
-    description:
-      'Retrieve comprehensive analytics and insights about user goals',
+    description: 'Retrieve comprehensive analytics and insights about user goals',
   })
   @ApiQuery({ type: GoalAnalyticsQueryDto, required: false })
   @ApiOkResponse({
@@ -267,10 +257,7 @@ export class GoalsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getAnalytics(
-    @CurrentUser() user: BetterAuthUser,
-    @Query() query: GoalAnalyticsQueryDto,
-  ) {
+  async getAnalytics(@CurrentUser() user: BetterAuthUser, @Query() query: GoalAnalyticsQueryDto) {
     return this.goalsService.getAnalytics(user.id, query);
   }
 
@@ -278,8 +265,7 @@ export class GoalsController {
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @ApiOperation({
     summary: 'Get AI-powered goal suggestions',
-    description:
-      'Get personalized goal suggestions based on user history and preferences',
+    description: 'Get personalized goal suggestions based on user history and preferences',
   })
   @ApiOkResponse({
     description: 'Goal suggestions generated successfully',
@@ -423,8 +409,7 @@ export class GoalsController {
   @Throttle({ default: { limit: 60, ttl: 60000 } }) // 60 requests per minute
   @ApiOperation({
     summary: 'Get goal by ID',
-    description:
-      'Retrieve a specific goal with all details including milestones and progress',
+    description: 'Retrieve a specific goal with all details including milestones and progress',
   })
   @ApiParam({
     name: 'id',
@@ -461,10 +446,7 @@ export class GoalsController {
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Goal not found' })
   @ApiForbiddenResponse({ description: 'Access denied to this goal' })
-  async getGoalById(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async getGoalById(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: BetterAuthUser) {
     return this.goalsService.getGoalById(id, user.id);
   }
 
@@ -531,10 +513,7 @@ export class GoalsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Goal not found' })
-  async deleteGoal(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async deleteGoal(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: BetterAuthUser) {
     return this.goalsService.deleteGoal(id, user.id);
   }
 
@@ -542,8 +521,7 @@ export class GoalsController {
   @Throttle({ default: { limit: 50, ttl: 60000 } }) // 50 progress updates per minute
   @ApiOperation({
     summary: 'Add progress to goal',
-    description:
-      'Add a progress entry to a goal, updating the overall progress',
+    description: 'Add a progress entry to a goal, updating the overall progress',
   })
   @ApiParam({
     name: 'id',

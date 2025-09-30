@@ -1,8 +1,8 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarConnection } from '@/components/calendar/CalendarConnection';
-import { WeeklyPlanner } from '@/components/calendar/WeeklyPlanner';
+import { CalendarConnection } from '../components/calendar/CalendarConnection';
+import { WeeklyPlanner } from '../components/calendar/WeeklyPlanner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Settings, CalendarDays } from 'lucide-react';
 

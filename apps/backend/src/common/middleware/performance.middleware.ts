@@ -64,11 +64,7 @@ export class PerformanceMiddleware implements NestMiddleware {
     next();
   }
 
-  private trackRequestMetrics(
-    req: PerformanceRequest,
-    res: Response,
-    duration: number,
-  ): void {
+  private trackRequestMetrics(req: PerformanceRequest, res: Response, duration: number): void {
     const userId = (req as any).user?.id;
 
     // Track with metrics provider
@@ -120,11 +116,7 @@ export class PerformanceMiddleware implements NestMiddleware {
     }
   }
 
-  private logRequestCompletion(
-    req: PerformanceRequest,
-    res: Response,
-    duration: number,
-  ): void {
+  private logRequestCompletion(req: PerformanceRequest, res: Response, duration: number): void {
     const logLevel = this.getLogLevel(res.statusCode, duration);
     const logMessage = `${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`;
 
@@ -231,11 +223,7 @@ export class PerformanceMiddleware implements NestMiddleware {
  * Performance monitoring decorator for methods
  */
 export function TrackMethodPerformance(operationName?: string) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;
     const methodName = propertyKey;
@@ -272,15 +260,8 @@ export function TrackMethodPerformance(operationName?: string) {
 /**
  * Database performance tracking decorator
  */
-export function TrackDatabasePerformance(
-  tableName?: string,
-  operation?: string,
-) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+export function TrackDatabasePerformance(tableName?: string, operation?: string) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;
     const methodName = propertyKey;
@@ -306,9 +287,7 @@ export function TrackDatabasePerformance(
 
         // Log slow database operations
         if (duration > 500) {
-          logger.warn(
-            `Slow database operation: ${tableName}.${operation} took ${duration}ms`,
-          );
+          logger.warn(`Slow database operation: ${tableName}.${operation} took ${duration}ms`);
         }
 
         return result;
@@ -329,15 +308,8 @@ export function TrackDatabasePerformance(
 /**
  * AI operation performance tracking decorator
  */
-export function TrackAIPerformance(
-  operation: string,
-  provider: string = 'openai',
-) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+export function TrackAIPerformance(operation: string, provider: string = 'openai') {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;
     const methodName = propertyKey;
@@ -366,9 +338,7 @@ export function TrackAIPerformance(
 
         // Alert on very slow AI operations
         if (duration > 30000) {
-          logger.warn(
-            `Very slow AI operation: ${operation} took ${duration}ms`,
-          );
+          logger.warn(`Very slow AI operation: ${operation} took ${duration}ms`);
         }
 
         return result;
@@ -377,18 +347,10 @@ export function TrackAIPerformance(
 
         // Track failed AI operation
         if (this.metricsProvider) {
-          this.metricsProvider.trackAIOperation(
-            operation,
-            provider,
-            duration,
-            false,
-          );
+          this.metricsProvider.trackAIOperation(operation, provider, duration, false);
         }
 
-        logger.error(
-          `AI operation failed: ${operation} after ${duration}ms:`,
-          error,
-        );
+        logger.error(`AI operation failed: ${operation} after ${duration}ms:`, error);
         throw error;
       }
     };

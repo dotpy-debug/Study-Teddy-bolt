@@ -1,26 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDrizzle } from '../../db/drizzle.provider';
 import { DrizzleDB } from '../../db/drizzle.types';
-import {
-  eq,
-  and,
-  sql,
-  gte,
-  lte,
-  desc,
-  asc,
-  count,
-  isNull,
-  or,
-} from 'drizzle-orm';
-import {
-  users,
-  tasks,
-  subjects,
-  focusSessions,
-  goals,
-  aiChats,
-} from '../../db/schema';
+import { eq, and, sql, gte, lte, desc, asc, count, isNull, or } from 'drizzle-orm';
+import { users, tasks, subjects, focusSessions, goals, aiChats } from '../../db/schema';
 import { OpenAIService } from '../ai/openai.service';
 
 export interface NextBestAction {
@@ -92,15 +74,9 @@ export class NextBestActionService {
   /**
    * Get multiple action recommendations
    */
-  async getActionRecommendations(
-    userId: string,
-    limit: number = 3,
-  ): Promise<NextBestAction[]> {
+  async getActionRecommendations(userId: string, limit: number = 3): Promise<NextBestAction[]> {
     const userContext = await this.buildUserContext(userId);
-    const recommendations = await this.generateMultipleRecommendations(
-      userContext,
-      limit,
-    );
+    const recommendations = await this.generateMultipleRecommendations(userContext, limit);
     return recommendations;
   }
 
@@ -109,11 +85,7 @@ export class NextBestActionService {
    */
   private async buildUserContext(userId: string): Promise<UserContext> {
     const now = new Date();
-    const todayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayEnd = new Date(todayStart);
     todayEnd.setDate(todayStart.getDate() + 1);
 
@@ -155,9 +127,7 @@ export class NextBestActionService {
   /**
    * Generate a single NBA recommendation using AI and rules
    */
-  private async generateRecommendation(
-    context: UserContext,
-  ): Promise<NextBestAction> {
+  private async generateRecommendation(context: UserContext): Promise<NextBestAction> {
     // Rule-based recommendations first
     const ruleBasedAction = this.getRuleBasedRecommendation(context);
 
@@ -197,9 +167,7 @@ export class NextBestActionService {
   /**
    * Rule-based recommendation engine
    */
-  private getRuleBasedRecommendation(
-    context: UserContext,
-  ): NextBestAction | null {
+  private getRuleBasedRecommendation(context: UserContext): NextBestAction | null {
     const now = context.currentTime;
     const hour = now.getHours();
 
@@ -222,10 +190,8 @@ export class NextBestActionService {
           relatedSubjectId: task.subjectName,
           deadline: task.dueDate,
         },
-        reasoning:
-          'This task has an approaching deadline and should be prioritized.',
-        impact:
-          'Completing this task on time will maintain your on-time completion rate.',
+        reasoning: 'This task has an approaching deadline and should be prioritized.',
+        impact: 'Completing this task on time will maintain your on-time completion rate.',
         createdAt: now,
       };
     }
@@ -233,15 +199,13 @@ export class NextBestActionService {
     // Check if it's been too long since last study session (> 24 hours)
     if (context.recentActivity.lastStudySession) {
       const hoursSinceLastSession =
-        (now.getTime() - context.recentActivity.lastStudySession.getTime()) /
-        (1000 * 60 * 60);
+        (now.getTime() - context.recentActivity.lastStudySession.getTime()) / (1000 * 60 * 60);
 
       if (hoursSinceLastSession > 24) {
         return {
           id: `nba-study-${Date.now()}`,
           title: 'Resume Study Routine',
-          description:
-            "It's been over 24 hours since your last study session. Get back on track!",
+          description: "It's been over 24 hours since your last study session. Get back on track!",
           action: 'Start a 25-minute focus session',
           priority: 'high',
           category: 'study',
@@ -249,8 +213,7 @@ export class NextBestActionService {
             timeEstimate: 25,
           },
           reasoning: 'Regular study habits are key to maintaining progress.',
-          impact:
-            'Studying now will maintain your streak and reinforce learning.',
+          impact: 'Studying now will maintain your streak and reinforce learning.',
           createdAt: now,
         };
       }
@@ -272,8 +235,7 @@ export class NextBestActionService {
           context: {
             timeEstimate: context.studyPatterns.averageSessionDuration,
           },
-          reasoning:
-            'You perform best at this time based on your historical data.',
+          reasoning: 'You perform best at this time based on your historical data.',
           impact: 'Studying during peak hours increases focus and retention.',
           createdAt: now,
         };
@@ -283,16 +245,14 @@ export class NextBestActionService {
     // Check if user has been studying for too long (> 2 hours without break)
     if (context.recentActivity.studyHoursToday > 2) {
       const timeSinceLastSession = context.recentActivity.lastStudySession
-        ? (now.getTime() - context.recentActivity.lastStudySession.getTime()) /
-          (1000 * 60)
+        ? (now.getTime() - context.recentActivity.lastStudySession.getTime()) / (1000 * 60)
         : 0;
 
       if (timeSinceLastSession < 30) {
         return {
           id: `nba-break-${Date.now()}`,
           title: 'Take a Break',
-          description:
-            "You've been studying hard. Take a 15-minute break to recharge.",
+          description: "You've been studying hard. Take a 15-minute break to recharge.",
           action: 'Take a short break',
           priority: 'medium',
           category: 'break',
@@ -312,8 +272,7 @@ export class NextBestActionService {
 
     const upcomingUnstartedTasks = context.upcomingDeadlines.filter(
       (task) =>
-        task.dueDate <= weekFromNow &&
-        task.dueDate.getTime() - now.getTime() > 24 * 60 * 60 * 1000,
+        task.dueDate <= weekFromNow && task.dueDate.getTime() - now.getTime() > 24 * 60 * 60 * 1000,
     );
 
     if (upcomingUnstartedTasks.length > 0) {
@@ -329,8 +288,7 @@ export class NextBestActionService {
           relatedTaskId: task.taskId,
           deadline: task.dueDate,
         },
-        reasoning:
-          'Starting early ensures quality completion without last-minute stress.',
+        reasoning: 'Starting early ensures quality completion without last-minute stress.',
         impact: 'Early start improves task quality and reduces stress.',
         createdAt: now,
       };
@@ -350,8 +308,7 @@ export class NextBestActionService {
           timeEstimate: 25,
         },
         reasoning: 'Your recent focus scores indicate room for improvement.',
-        impact:
-          'Better focus techniques lead to more effective study sessions.',
+        impact: 'Better focus techniques lead to more effective study sessions.',
         createdAt: now,
       };
     }
@@ -361,8 +318,7 @@ export class NextBestActionService {
       return {
         id: `nba-review-${Date.now()}`,
         title: 'Daily Review',
-        description:
-          'Review your tasks and plan your study schedule for today.',
+        description: 'Review your tasks and plan your study schedule for today.',
         action: 'Review and plan',
         priority: 'low',
         category: 'review',
@@ -381,9 +337,7 @@ export class NextBestActionService {
   /**
    * Get all rule-based recommendations
    */
-  private getAllRuleBasedRecommendations(
-    context: UserContext,
-  ): NextBestAction[] {
+  private getAllRuleBasedRecommendations(context: UserContext): NextBestAction[] {
     const recommendations: NextBestAction[] = [];
     const now = context.currentTime;
 
@@ -421,8 +375,7 @@ export class NextBestActionService {
       recommendations.push({
         id: `nba-completion-${Date.now()}`,
         title: 'Boost Task Completion',
-        description:
-          'Your completion rate is low. Focus on finishing pending tasks.',
+        description: 'Your completion rate is low. Focus on finishing pending tasks.',
         action: 'Complete a pending task',
         priority: 'medium',
         category: 'task',
@@ -439,9 +392,7 @@ export class NextBestActionService {
   /**
    * Get AI-powered recommendation
    */
-  private async getAIRecommendation(
-    context: UserContext,
-  ): Promise<NextBestAction> {
+  private async getAIRecommendation(context: UserContext): Promise<NextBestAction> {
     const prompt = this.buildAIPrompt(context);
 
     try {
@@ -525,10 +476,7 @@ Provide ${count} specific recommendations, each with:
   /**
    * Parse AI response into NextBestAction
    */
-  private parseAIResponse(
-    response: string,
-    context: UserContext,
-  ): NextBestAction {
+  private parseAIResponse(response: string, context: UserContext): NextBestAction {
     // Simple parsing - in production, use structured output
     const lines = response.split('\n');
     const title =
@@ -569,10 +517,7 @@ Provide ${count} specific recommendations, each with:
   /**
    * Parse multiple AI responses
    */
-  private parseMultipleAIResponses(
-    response: string,
-    context: UserContext,
-  ): NextBestAction[] {
+  private parseMultipleAIResponses(response: string, context: UserContext): NextBestAction[] {
     // Simple parsing - would be more sophisticated in production
     const recommendations: NextBestAction[] = [];
     const blocks = response.split(/\d+\.\s/);
@@ -604,8 +549,7 @@ Provide ${count} specific recommendations, each with:
     return {
       id: `nba-default-${Date.now()}`,
       title: 'Review Your Progress',
-      description:
-        'Take a moment to review your tasks and plan your next study session.',
+      description: 'Take a moment to review your tasks and plan your next study session.',
       action: 'Open task list',
       priority: 'low',
       category: 'review',
@@ -642,11 +586,7 @@ Provide ${count} specific recommendations, each with:
     return result[0];
   }
 
-  private async getTodayStats(
-    userId: string,
-    todayStart: Date,
-    todayEnd: Date,
-  ) {
+  private async getTodayStats(userId: string, todayStart: Date, todayEnd: Date) {
     const [studyStats, taskStats] = await Promise.all([
       this.db
         .select({
@@ -752,29 +692,18 @@ Provide ${count} specific recommendations, each with:
           avgScore: sql<number>`AVG(${focusSessions.focusScore})`,
         })
         .from(focusSessions)
-        .where(
-          and(
-            eq(focusSessions.userId, userId),
-            gte(focusSessions.startTime, thirtyDaysAgo),
-          ),
-        ),
+        .where(and(eq(focusSessions.userId, userId), gte(focusSessions.startTime, thirtyDaysAgo))),
       this.db
         .select({
           total: count(tasks.id),
-          completed: count(
-            sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`,
-          ),
+          completed: count(sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`),
         })
         .from(tasks)
-        .where(
-          and(eq(tasks.userId, userId), gte(tasks.createdAt, thirtyDaysAgo)),
-        ),
+        .where(and(eq(tasks.userId, userId), gte(tasks.createdAt, thirtyDaysAgo))),
       this.db
         .select({
           total: count(tasks.id),
-          onTime: count(
-            sql`CASE WHEN ${tasks.completedAt} <= ${tasks.dueDate} THEN 1 END`,
-          ),
+          onTime: count(sql`CASE WHEN ${tasks.completedAt} <= ${tasks.dueDate} THEN 1 END`),
         })
         .from(tasks)
         .where(

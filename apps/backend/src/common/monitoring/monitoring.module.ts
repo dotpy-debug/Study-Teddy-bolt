@@ -16,11 +16,6 @@ import { DbModule } from '../../db/db.module';
     DatabaseMonitorService,
     UptimeMonitorService,
   ],
-  exports: [
-    PerformanceService,
-    ErrorTrackingService,
-    DatabaseMonitorService,
-    UptimeMonitorService,
-  ],
+  exports: [PerformanceService, ErrorTrackingService, DatabaseMonitorService, UptimeMonitorService],
 })
 export class MonitoringModule {}

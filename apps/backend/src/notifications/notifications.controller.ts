@@ -35,10 +35,7 @@ import {
   QueryNotificationsDto,
 } from './dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
-import {
-  CurrentUser,
-  type AuthenticatedUser,
-} from '../common/decorators/current-user.decorator';
+import { CurrentUser, type AuthenticatedUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Notifications')
 @ApiBearerAuth('JWT')
@@ -89,8 +86,7 @@ export class NotificationsController {
   @Get()
   @ApiOperation({
     summary: 'Get user notifications',
-    description:
-      'Retrieve all notifications for the authenticated user with optional filtering',
+    description: 'Retrieve all notifications for the authenticated user with optional filtering',
   })
   @ApiQuery({ type: QueryNotificationsDto, required: false })
   @ApiResponse({
@@ -130,18 +126,14 @@ export class NotificationsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async findAll(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query() query: QueryNotificationsDto,
-  ) {
+  async findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: QueryNotificationsDto) {
     return this.notificationsService.findAll(user.userId, query);
   }
 
   @Get('unread-count')
   @ApiOperation({
     summary: 'Get unread notification count',
-    description:
-      'Get the count of unread notifications for the authenticated user',
+    description: 'Get the count of unread notifications for the authenticated user',
   })
   @ApiResponse({
     status: 200,
@@ -215,10 +207,7 @@ export class NotificationsController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() updatePreferencesDto: UpdatePreferencesDto,
   ) {
-    return this.notificationsService.updatePreferences(
-      user.userId,
-      updatePreferencesDto,
-    );
+    return this.notificationsService.updatePreferences(user.userId, updatePreferencesDto);
   }
 
   @Get(':id')
@@ -238,10 +227,7 @@ export class NotificationsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Notification not found' })
-  async findOne(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async findOne(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.notificationsService.findOne(id, user.userId);
   }
 
@@ -269,11 +255,7 @@ export class NotificationsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
   ) {
-    return this.notificationsService.update(
-      id,
-      user.userId,
-      updateNotificationDto,
-    );
+    return this.notificationsService.update(id, user.userId, updateNotificationDto);
   }
 
   @Patch(':id/read')
@@ -293,18 +275,14 @@ export class NotificationsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Notification not found' })
-  async markAsRead(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async markAsRead(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.notificationsService.markAsRead(id, user.userId);
   }
 
   @Post('mark-all-read')
   @ApiOperation({
     summary: 'Mark all notifications as read',
-    description:
-      'Mark all unread notifications as read for the authenticated user',
+    description: 'Mark all unread notifications as read for the authenticated user',
   })
   @ApiResponse({
     status: 200,
@@ -341,10 +319,7 @@ export class NotificationsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Notification not found' })
-  async dismiss(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async dismiss(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.notificationsService.dismiss(id, user.userId);
   }
 
@@ -363,10 +338,7 @@ export class NotificationsController {
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiNotFoundResponse({ description: 'Notification not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async delete(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     await this.notificationsService.delete(id, user.userId);
   }
 

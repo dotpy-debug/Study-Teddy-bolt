@@ -56,8 +56,7 @@ export class EmailProcessor extends WorkerHost {
       });
 
       // Update the subject in the delivery log
-      const deliveryLog =
-        await this.emailDeliveryService.getDeliveryLog(deliveryLogId);
+      const deliveryLog = await this.emailDeliveryService.getDeliveryLog(deliveryLogId);
       if (deliveryLog) {
         await this.emailDeliveryService.updateDeliveryStatus(deliveryLogId, {
           status: 'pending',
@@ -195,9 +194,7 @@ export class EmailProcessor extends WorkerHost {
           achievementIcon: emailData.achievementIcon || '🏆',
           achievementType: emailData.achievementType,
           relatedStats: this.formatAchievementStats(emailData.relatedData),
-          celebrationMessage: this.generateCelebrationMessage(
-            emailData.achievementType,
-          ),
+          celebrationMessage: this.generateCelebrationMessage(emailData.achievementType),
           achievementsUrl: `${baseData.dashboardUrl}/achievements`,
         };
 
@@ -268,19 +265,13 @@ export class EmailProcessor extends WorkerHost {
 
   private generateCelebrationMessage(achievementType: string): string {
     const messages = {
-      goal_completed:
-        "🎉 Congratulations! You've successfully completed your goal.",
-      streak_milestone:
-        '🔥 Amazing! Your consistency is paying off with this streak milestone.',
-      focus_milestone:
-        '🎯 Fantastic! Your focus and dedication have earned you this milestone.',
-      task_completion_streak:
-        '✅ Outstanding! Your task completion streak shows real progress.',
+      goal_completed: "🎉 Congratulations! You've successfully completed your goal.",
+      streak_milestone: '🔥 Amazing! Your consistency is paying off with this streak milestone.',
+      focus_milestone: '🎯 Fantastic! Your focus and dedication have earned you this milestone.',
+      task_completion_streak: '✅ Outstanding! Your task completion streak shows real progress.',
     };
 
-    return (
-      messages[achievementType] || '🏆 Congratulations on your achievement!'
-    );
+    return messages[achievementType] || '🏆 Congratulations on your achievement!';
   }
 
   private prepareWeeklyDigestData(emailData: any, baseData: any): any {

@@ -112,8 +112,7 @@ export class CreateTaskDto {
   })
   @IsOptional()
   @IsEnum(TaskStatusEnum, {
-    message:
-      'Status must be one of: pending, in_progress, completed, cancelled',
+    message: 'Status must be one of: pending, in_progress, completed, cancelled',
   })
   status?: TaskStatusEnum;
 
@@ -234,8 +233,7 @@ export class UpdateTaskDto {
   })
   @IsOptional()
   @IsEnum(TaskStatusEnum, {
-    message:
-      'Status must be one of: pending, in_progress, completed, cancelled',
+    message: 'Status must be one of: pending, in_progress, completed, cancelled',
   })
   status?: TaskStatusEnum;
 
@@ -338,8 +336,7 @@ export class TaskQueryDto {
   @IsArray({ message: 'Status must be an array' })
   @IsEnum(TaskStatusEnum, {
     each: true,
-    message:
-      'Each status must be one of: pending, in_progress, completed, cancelled',
+    message: 'Each status must be one of: pending, in_progress, completed, cancelled',
   })
   status?: TaskStatusEnum[];
 
@@ -349,10 +346,7 @@ export class TaskQueryDto {
     format: 'date-time',
   })
   @IsOptional()
-  @IsDateString(
-    {},
-    { message: 'Due date from must be a valid ISO date string' },
-  )
+  @IsDateString({}, { message: 'Due date from must be a valid ISO date string' })
   dueDateFrom?: string;
 
   @ApiProperty({
@@ -413,10 +407,7 @@ export class BatchUpdateTasksDto {
   @ApiProperty({
     description: 'Array of task IDs to update',
     type: [String],
-    example: [
-      '123e4567-e89b-12d3-a456-426614174000',
-      '123e4567-e89b-12d3-a456-426614174001',
-    ],
+    example: ['123e4567-e89b-12d3-a456-426614174000', '123e4567-e89b-12d3-a456-426614174001'],
   })
   @IsArray({ message: 'Task IDs must be an array' })
   @IsUUID(4, { each: true, message: 'Each task ID must be a valid UUID' })
@@ -436,10 +427,7 @@ export class BatchDeleteTasksDto {
   @ApiProperty({
     description: 'Array of task IDs to delete',
     type: [String],
-    example: [
-      '123e4567-e89b-12d3-a456-426614174000',
-      '123e4567-e89b-12d3-a456-426614174001',
-    ],
+    example: ['123e4567-e89b-12d3-a456-426614174000', '123e4567-e89b-12d3-a456-426614174001'],
   })
   @IsArray({ message: 'Task IDs must be an array' })
   @IsUUID(4, { each: true, message: 'Each task ID must be a valid UUID' })

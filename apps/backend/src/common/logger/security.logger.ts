@@ -24,8 +24,7 @@ export class SecurityLogger {
   private readonly isProduction: boolean;
 
   constructor(private configService: ConfigService) {
-    this.isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
+    this.isProduction = this.configService.get<string>('NODE_ENV') === 'production';
   }
 
   logSecurityEvent(event: Omit<SecurityEvent, 'timestamp'>): void {
@@ -67,11 +66,7 @@ export class SecurityLogger {
     void this.storeSecurityEvent(sanitizedEvent);
   }
 
-  logAuthenticationFailure(
-    userId: string | null,
-    ip: string,
-    reason: string,
-  ): void {
+  logAuthenticationFailure(userId: string | null, ip: string, reason: string): void {
     this.logSecurityEvent({
       type: 'authentication',
       severity: 'medium',
@@ -84,12 +79,7 @@ export class SecurityLogger {
     });
   }
 
-  logAuthorizationFailure(
-    userId: string,
-    ip: string,
-    endpoint: string,
-    reason: string,
-  ): void {
+  logAuthorizationFailure(userId: string, ip: string, endpoint: string, reason: string): void {
     this.logSecurityEvent({
       type: 'authorization',
       severity: 'high',
@@ -122,11 +112,7 @@ export class SecurityLogger {
     });
   }
 
-  logRateLimitExceeded(
-    userId: string | undefined,
-    ip: string,
-    endpoint: string,
-  ): void {
+  logRateLimitExceeded(userId: string | undefined, ip: string, endpoint: string): void {
     this.logSecurityEvent({
       type: 'rate_limit',
       severity: 'medium',
@@ -189,12 +175,8 @@ export class SecurityLogger {
     return {
       ...event,
       ip: event.ip ? LogSanitizer['maskIpAddress'](event.ip) : undefined,
-      userAgent: event.userAgent
-        ? this.sanitizeUserAgent(event.userAgent)
-        : undefined,
-      endpoint: event.endpoint
-        ? LogSanitizer.sanitizeUrl(event.endpoint)
-        : undefined,
+      userAgent: event.userAgent ? this.sanitizeUserAgent(event.userAgent) : undefined,
+      endpoint: event.endpoint ? LogSanitizer.sanitizeUrl(event.endpoint) : undefined,
       details: this.sanitizeObject(event.details),
     };
   }
@@ -226,28 +208,20 @@ export class SecurityLogger {
       .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
 
     // Truncate very long user agents that might contain sensitive data
-    return sanitized.length > 200
-      ? sanitized.substring(0, 200) + '...'
-      : sanitized;
+    return sanitized.length > 200 ? sanitized.substring(0, 200) + '...' : sanitized;
   }
 
   /**
    * Sanitizes an object to remove sensitive data
    */
-  private sanitizeObject(
-    obj: Record<string, unknown>,
-  ): Record<string, unknown> {
+  private sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
     if (!obj || typeof obj !== 'object') return obj;
 
     const sanitized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       if (typeof value === 'string') {
         sanitized[key] = this.sanitizeString(value);
-      } else if (
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-      ) {
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         sanitized[key] = this.sanitizeObject(value as Record<string, unknown>);
       } else {
         sanitized[key] = value;
@@ -269,9 +243,7 @@ export class SecurityLogger {
 
       if (typeof error === 'object' && error !== null) {
         const sanitized: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(
-          error as Record<string, unknown>,
-        )) {
+        for (const [key, value] of Object.entries(error as Record<string, unknown>)) {
           if (typeof value === 'string') {
             sanitized[key] = this.sanitizeString(value);
           } else {

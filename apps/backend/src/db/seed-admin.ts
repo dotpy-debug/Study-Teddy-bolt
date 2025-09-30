@@ -95,8 +95,7 @@ async function seedAdmin() {
       id: uuidv4(),
       userId: adminUser.id,
       title: 'Welcome to Study Teddy!',
-      description:
-        'Explore the features and start organizing your study schedule.',
+      description: 'Explore the features and start organizing your study schedule.',
       priority: 'high',
       status: 'pending',
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now

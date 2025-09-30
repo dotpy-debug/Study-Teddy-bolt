@@ -161,10 +161,7 @@ export class TutorService {
     });
 
     // Parse the AI response
-    const parsedResponse = await this.parseExplanationResponse(
-      aiResponse.content,
-      request,
-    );
+    const parsedResponse = await this.parseExplanationResponse(aiResponse.content, request);
 
     // Cache the response
     await this.aiCacheService.cacheResponse(
@@ -250,10 +247,7 @@ export class TutorService {
     });
 
     // Parse the AI response
-    const parsedResponse = await this.parseAnswerCheckResponse(
-      aiResponse.content,
-      request,
-    );
+    const parsedResponse = await this.parseAnswerCheckResponse(aiResponse.content, request);
 
     // Cache the response (shorter TTL for answer checking)
     await this.aiCacheService.cacheResponse(
@@ -334,8 +328,7 @@ OUTPUT FORMAT - Return ONLY valid JSON in this exact structure:
     // Add context-specific guidance
     if (request.context?.preferredStyle) {
       return (
-        basePrompt +
-        `\n\nSTYLE: Use ${request.context.preferredStyle} approach to explanations`
+        basePrompt + `\n\nSTYLE: Use ${request.context.preferredStyle} approach to explanations`
       );
     }
 
@@ -435,21 +428,18 @@ SUBJECT: ${request.subject}`;
       this.validateExplanationResponse(parsed);
 
       // Generate IDs for practice questions
-      const enhancedQuestions = parsed.practiceQuestions.map(
-        (q: any, index: number) => ({
-          ...q,
-          id: q.id || `q${index + 1}`,
-          hints: q.hints || [],
-          tags: q.tags || [originalRequest.subject.toLowerCase()],
-          estimatedTime: q.estimatedTime || 5,
-        }),
-      );
+      const enhancedQuestions = parsed.practiceQuestions.map((q: any, index: number) => ({
+        ...q,
+        id: q.id || `q${index + 1}`,
+        hints: q.hints || [],
+        tags: q.tags || [originalRequest.subject.toLowerCase()],
+        estimatedTime: q.estimatedTime || 5,
+      }));
 
       return {
         explanation: parsed.explanation,
         practiceQuestions: enhancedQuestions,
-        studyTips:
-          parsed.studyTips || this.generateDefaultStudyTips(originalRequest),
+        studyTips: parsed.studyTips || this.generateDefaultStudyTips(originalRequest),
       };
     } catch (error) {
       this.logger.error('Failed to parse tutor explanation response:', error);
@@ -482,9 +472,7 @@ SUBJECT: ${request.subject}`;
         correctAnswer: parsed.correctAnswer || 'Answer not available',
         explanation: parsed.explanation || 'Explanation not available',
         hints: parsed.hints || [],
-        nextSteps: parsed.nextSteps || [
-          'Review the material and practice more',
-        ],
+        nextSteps: parsed.nextSteps || ['Review the material and practice more'],
       };
     } catch (error) {
       this.logger.error('Failed to parse answer check response:', error);
@@ -511,31 +499,22 @@ SUBJECT: ${request.subject}`;
       throw new Error('Invalid response: explanation.concept is required');
     }
 
-    if (
-      !response.practiceQuestions ||
-      !Array.isArray(response.practiceQuestions)
-    ) {
+    if (!response.practiceQuestions || !Array.isArray(response.practiceQuestions)) {
       throw new Error('Invalid response: practiceQuestions must be an array');
     }
 
     if (response.practiceQuestions.length !== 3) {
-      throw new Error(
-        'Invalid response: must have exactly 3 practice questions',
-      );
+      throw new Error('Invalid response: must have exactly 3 practice questions');
     }
 
     for (const question of response.practiceQuestions) {
       if (!question.question || !question.type || !question.difficulty) {
-        throw new Error(
-          'Invalid question: question, type, and difficulty are required',
-        );
+        throw new Error('Invalid question: question, type, and difficulty are required');
       }
     }
   }
 
-  private generateDefaultStudyTips(
-    request: TutorRequest,
-  ): TutorResponse['studyTips'] {
+  private generateDefaultStudyTips(request: TutorRequest): TutorResponse['studyTips'] {
     return {
       memorization: [
         'Create flashcards for key terms',
@@ -555,9 +534,7 @@ SUBJECT: ${request.subject}`;
     };
   }
 
-  private generateFallbackExplanation(
-    request: TutorRequest,
-  ): Omit<TutorResponse, 'metadata'> {
+  private generateFallbackExplanation(request: TutorRequest): Omit<TutorResponse, 'metadata'> {
     return {
       explanation: {
         concept: request.concept,
@@ -574,10 +551,7 @@ SUBJECT: ${request.subject}`;
           },
         ],
         analogies: [`Think of ${request.concept} like...`],
-        commonMistakes: [
-          'Not understanding the fundamentals',
-          'Rushing through examples',
-        ],
+        commonMistakes: ['Not understanding the fundamentals', 'Rushing through examples'],
         prerequisites: ['Basic understanding of the subject'],
         relatedConcepts: ['Related topics in the field'],
       },
@@ -589,10 +563,7 @@ SUBJECT: ${request.subject}`;
           difficulty: 'easy',
           correctAnswer: 'Review the definition and key points',
           explanation: 'This tests basic understanding',
-          hints: [
-            'Think about the main definition',
-            'Consider the key characteristics',
-          ],
+          hints: ['Think about the main definition', 'Consider the key characteristics'],
           estimatedTime: 5,
           tags: [request.subject.toLowerCase()],
         },
@@ -603,10 +574,7 @@ SUBJECT: ${request.subject}`;
           difficulty: 'medium',
           correctAnswer: 'Application depends on specific context',
           explanation: 'This tests application understanding',
-          hints: [
-            'Think of real-world examples',
-            'Consider step-by-step process',
-          ],
+          hints: ['Think of real-world examples', 'Consider step-by-step process'],
           estimatedTime: 10,
           tags: [request.subject.toLowerCase(), 'application'],
         },
@@ -617,10 +585,7 @@ SUBJECT: ${request.subject}`;
           difficulty: 'hard',
           correctAnswer: 'Detailed comparison with examples',
           explanation: 'This tests deeper understanding',
-          hints: [
-            'Identify similarities and differences',
-            'Use specific examples',
-          ],
+          hints: ['Identify similarities and differences', 'Use specific examples'],
           estimatedTime: 15,
           tags: [request.subject.toLowerCase(), 'analysis'],
         },
@@ -629,9 +594,7 @@ SUBJECT: ${request.subject}`;
     };
   }
 
-  private calculateExplanationConfidence(
-    response: Omit<TutorResponse, 'metadata'>,
-  ): number {
+  private calculateExplanationConfidence(response: Omit<TutorResponse, 'metadata'>): number {
     let confidence = 0.7; // Base confidence
 
     // Check explanation quality
@@ -645,10 +608,7 @@ SUBJECT: ${request.subject}`;
     return Math.min(confidence, 1.0);
   }
 
-  private formatCachedTutorResponse(
-    cached: any,
-    startTime: number,
-  ): TutorResponse {
+  private formatCachedTutorResponse(cached: any, startTime: number): TutorResponse {
     return {
       explanation: cached.explanation || {},
       practiceQuestions: cached.practiceQuestions || [],
@@ -667,10 +627,7 @@ SUBJECT: ${request.subject}`;
     };
   }
 
-  private formatCachedAnswerResponse(
-    cached: any,
-    startTime: number,
-  ): AnswerCheckResponse {
+  private formatCachedAnswerResponse(cached: any, startTime: number): AnswerCheckResponse {
     return {
       isCorrect: cached.isCorrect || false,
       score: cached.score || 0,

@@ -63,9 +63,7 @@ export class GoalsService {
 
       // If created from template, increment usage
       if (createGoalDto.templateId) {
-        await this.goalsRepository.incrementTemplateUsage(
-          createGoalDto.templateId,
-        );
+        await this.goalsRepository.incrementTemplateUsage(createGoalDto.templateId);
       }
 
       // Create recurring goal instances if needed
@@ -90,11 +88,7 @@ export class GoalsService {
   }
 
   async getGoals(userId: string, query: GoalQueryDto) {
-    const cacheKey = this.cacheService.generateKey(
-      'user_goals',
-      userId,
-      JSON.stringify(query),
-    );
+    const cacheKey = this.cacheService.generateKey('user_goals', userId, JSON.stringify(query));
 
     return await this.cacheService.warm(
       cacheKey,
@@ -134,22 +128,14 @@ export class GoalsService {
     }
 
     // Validate dates if provided
-    if (
-      updateGoalDto.startDate ||
-      updateGoalDto.endDate ||
-      updateGoalDto.customEndDate
-    ) {
+    if (updateGoalDto.startDate || updateGoalDto.endDate || updateGoalDto.customEndDate) {
       this.validateGoalDates({
         ...existingGoal,
         ...updateGoalDto,
       } as CreateGoalDto);
     }
 
-    const updatedGoal = await this.goalsRepository.update(
-      id,
-      userId,
-      updateGoalDto,
-    );
+    const updatedGoal = await this.goalsRepository.update(id, userId, updateGoalDto);
 
     // Invalidate cache
     await this.invalidateUserGoalsCache(userId);
@@ -174,11 +160,7 @@ export class GoalsService {
     return { message: 'Goal deleted successfully' };
   }
 
-  async addProgress(
-    goalId: string,
-    userId: string,
-    progressDto: GoalProgressDto,
-  ) {
+  async addProgress(goalId: string, userId: string, progressDto: GoalProgressDto) {
     const goal = await this.goalsRepository.findById(goalId, userId);
 
     if (!goal) {
@@ -189,11 +171,7 @@ export class GoalsService {
       throw new BadRequestException('Cannot add progress to completed goal');
     }
 
-    const progressEntry = await this.goalsRepository.addProgress(
-      goalId,
-      userId,
-      progressDto,
-    );
+    const progressEntry = await this.goalsRepository.addProgress(goalId, userId, progressDto);
 
     // Check for milestone completions
     await this.checkMilestoneCompletions(goalId);
@@ -213,23 +191,15 @@ export class GoalsService {
     }
 
     if (goal.sharingType === 'private') {
-      throw new BadRequestException(
-        'This goal is private and cannot be shared',
-      );
+      throw new BadRequestException('This goal is private and cannot be shared');
     }
 
-    const sharing = await this.goalsRepository.shareGoal(
-      goalId,
-      userId,
-      shareDto,
-    );
+    const sharing = await this.goalsRepository.shareGoal(goalId, userId, shareDto);
 
     // TODO: Send notification to shared user
     // await this.notificationService.sendGoalSharingNotification(shareDto.sharedWithUserId, goal, shareDto.inviteMessage);
 
-    this.logger.log(
-      `Goal shared: ${goalId} with user: ${shareDto.sharedWithUserId}`,
-    );
+    this.logger.log(`Goal shared: ${goalId} with user: ${shareDto.sharedWithUserId}`);
     return sharing;
   }
 
@@ -241,11 +211,7 @@ export class GoalsService {
     // Verify user has access to this goal
     await this.getGoalById(goalId, userId);
 
-    const comment = await this.goalsRepository.addComment(
-      goalId,
-      userId,
-      commentDto,
-    );
+    const comment = await this.goalsRepository.addComment(goalId, userId, commentDto);
 
     this.logger.log(`Comment added to goal: ${goalId} by user: ${userId}`);
     return comment;
@@ -258,31 +224,21 @@ export class GoalsService {
     return await this.goalsRepository.getComments(goalId, limit, offset);
   }
 
-  async addReminder(
-    goalId: string,
-    userId: string,
-    reminderDto: GoalReminderDto,
-  ) {
+  async addReminder(goalId: string, userId: string, reminderDto: GoalReminderDto) {
     const goal = await this.goalsRepository.findById(goalId, userId);
 
     if (!goal) {
       throw new NotFoundException('Goal not found');
     }
 
-    const reminder = await this.goalsRepository.addReminder(
-      goalId,
-      reminderDto,
-    );
+    const reminder = await this.goalsRepository.addReminder(goalId, reminderDto);
 
     this.logger.log(`Reminder added to goal: ${goalId} for user: ${userId}`);
     return reminder;
   }
 
   async createTemplate(userId: string, templateDto: CreateGoalTemplateDto) {
-    const template = await this.goalsRepository.createTemplate(
-      userId,
-      templateDto,
-    );
+    const template = await this.goalsRepository.createTemplate(userId, templateDto);
 
     this.logger.log(`Goal template created: ${template.id} by user: ${userId}`);
     return template;
@@ -298,31 +254,19 @@ export class GoalsService {
     return await this.cacheService.warm(
       cacheKey,
       async () => {
-        return await this.goalsRepository.getTemplates(
-          isPublic,
-          userId,
-          limit,
-          offset,
-        );
+        return await this.goalsRepository.getTemplates(isPublic, userId, limit, offset);
       },
       3600, // 1 hour cache for templates
     );
   }
 
   async getAnalytics(userId: string, query: GoalAnalyticsQueryDto) {
-    const cacheKey = this.cacheService.generateKey(
-      'goal_analytics',
-      userId,
-      JSON.stringify(query),
-    );
+    const cacheKey = this.cacheService.generateKey('goal_analytics', userId, JSON.stringify(query));
 
     return await this.cacheService.warm(
       cacheKey,
       async () => {
-        const analytics = await this.goalsRepository.getGoalAnalytics(
-          userId,
-          query,
-        );
+        const analytics = await this.goalsRepository.getGoalAnalytics(userId, query);
 
         // Add additional insights
         const overdueGoals = await this.goalsRepository.getOverdueGoals(userId);
@@ -334,10 +278,7 @@ export class GoalsService {
             overdueGoals: overdueGoals.length,
             currentStreak: this.calculateCurrentStreak(streaks),
             longestStreak: this.calculateLongestStreak(streaks),
-            recommendations: await this.generateRecommendations(
-              userId,
-              analytics,
-            ),
+            recommendations: await this.generateRecommendations(userId, analytics),
           },
         };
       },
@@ -357,24 +298,15 @@ export class GoalsService {
       const analytics = await this.goalsRepository.getGoalAnalytics(userId, {});
 
       // Build AI prompt for goal suggestions
-      const prompt = this.buildSuggestionPrompt(
-        userGoals.goals,
-        analytics,
-        suggestionDto,
-      );
+      const prompt = this.buildSuggestionPrompt(userGoals.goals, analytics, suggestionDto);
 
       // Get AI suggestions
-      const aiResponse = await this.aiService.askQuestion(
-        { message: prompt },
-        userId,
-      );
+      const aiResponse = await this.aiService.askQuestion({ message: prompt }, userId);
 
       // Parse AI response into structured suggestions
       const suggestions = this.parseAISuggestions(aiResponse.response);
 
-      this.logger.log(
-        `Generated ${suggestions.length} goal suggestions for user: ${userId}`,
-      );
+      this.logger.log(`Generated ${suggestions.length} goal suggestions for user: ${userId}`);
       return suggestions;
     } catch (error) {
       this.logger.error('Error generating goal suggestions:', error);
@@ -428,16 +360,12 @@ export class GoalsService {
     // Allow past start dates for existing goals
     if (startDate < new Date(now.getTime() - 24 * 60 * 60 * 1000)) {
       // More than 1 day in the past
-      throw new BadRequestException(
-        'Start date cannot be more than 1 day in the past',
-      );
+      throw new BadRequestException('Start date cannot be more than 1 day in the past');
     }
 
     if (goalDto.timeframe === GoalTimeframeEnum.CUSTOM) {
       if (!goalDto.customEndDate) {
-        throw new BadRequestException(
-          'Custom end date is required for custom timeframe',
-        );
+        throw new BadRequestException('Custom end date is required for custom timeframe');
       }
 
       const customEndDate = new Date(goalDto.customEndDate);
@@ -454,15 +382,10 @@ export class GoalsService {
     }
   }
 
-  private async createRecurringGoal(
-    userId: string,
-    createGoalDto: CreateGoalDto,
-  ) {
+  private async createRecurringGoal(userId: string, createGoalDto: CreateGoalDto) {
     const { recurrencePattern } = createGoalDto;
     if (!recurrencePattern) {
-      throw new BadRequestException(
-        'Recurrence pattern is required for recurring goals',
-      );
+      throw new BadRequestException('Recurrence pattern is required for recurring goals');
     }
 
     // Create the main recurring goal (template)
@@ -566,16 +489,13 @@ export class GoalsService {
     for (const milestone of milestones) {
       if (!milestone.isCompleted) {
         const milestoneProgress =
-          (parseFloat(milestone.targetValue) / parseFloat(goal.targetValue)) *
-          100;
+          (parseFloat(milestone.targetValue) / parseFloat(goal.targetValue)) * 100;
 
         if (currentProgress >= milestoneProgress) {
           await this.goalsRepository.updateMilestone(milestone.id, true);
 
           // TODO: Send milestone completion notification
-          this.logger.log(
-            `Milestone completed: ${milestone.id} for goal: ${goalId}`,
-          );
+          this.logger.log(`Milestone completed: ${milestone.id} for goal: ${goalId}`);
         }
       }
     }
@@ -586,8 +506,7 @@ export class GoalsService {
 
     // Sort by completion date (most recent first)
     const sortedGoals = completedGoals.sort(
-      (a, b) =>
-        new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
+      (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
     );
 
     let streak = 0;
@@ -651,10 +570,7 @@ export class GoalsService {
     return Math.max(longestStreak, currentStreak);
   }
 
-  private async generateRecommendations(
-    userId: string,
-    analytics: any,
-  ): Promise<string[]> {
+  private async generateRecommendations(userId: string, analytics: any): Promise<string[]> {
     const recommendations = [];
 
     // Based on completion rate
@@ -775,8 +691,7 @@ Focus on goals that:
         targetValue: 2,
         unit: 'hours',
         difficulty: 'medium',
-        reasoning:
-          'Building a daily study habit is fundamental for academic success',
+        reasoning: 'Building a daily study habit is fundamental for academic success',
         milestones: [
           {
             title: 'Complete 1 hour',

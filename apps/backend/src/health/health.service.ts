@@ -20,8 +20,7 @@ export class HealthService {
       ]);
 
       const isHealthy =
-        databaseStatus.status === 'fulfilled' &&
-        openaiStatus.status === 'fulfilled';
+        databaseStatus.status === 'fulfilled' && openaiStatus.status === 'fulfilled';
 
       const response = {
         status: isHealthy ? 'ok' : 'error',
@@ -30,12 +29,8 @@ export class HealthService {
         version: process.env.npm_package_version || '1.0.0',
         environment: this.configService.get('NODE_ENV', 'development'),
         services: {
-          database:
-            databaseStatus.status === 'fulfilled'
-              ? 'connected'
-              : 'disconnected',
-          openai:
-            openaiStatus.status === 'fulfilled' ? 'available' : 'unavailable',
+          database: databaseStatus.status === 'fulfilled' ? 'connected' : 'disconnected',
+          openai: openaiStatus.status === 'fulfilled' ? 'available' : 'unavailable',
         },
       };
 

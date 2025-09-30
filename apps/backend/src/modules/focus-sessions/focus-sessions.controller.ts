@@ -30,28 +30,19 @@ export class FocusSessionsController {
 
   @Post('start')
   @ApiOperation({ summary: 'Start a new focus session' })
-  async startSession(
-    @CurrentUser() userId: string,
-    @Body() dto: StartFocusSessionDto,
-  ) {
+  async startSession(@CurrentUser() userId: string, @Body() dto: StartFocusSessionDto) {
     return this.focusSessionsService.startSession(userId, dto);
   }
 
   @Post('stop')
   @ApiOperation({ summary: 'Stop the current focus session' })
-  async stopSession(
-    @CurrentUser() userId: string,
-    @Body() dto: StopFocusSessionDto,
-  ) {
+  async stopSession(@CurrentUser() userId: string, @Body() dto: StopFocusSessionDto) {
     return this.focusSessionsService.stopSession(userId, dto);
   }
 
   @Post('schedule')
   @ApiOperation({ summary: 'Schedule a future focus session' })
-  async scheduleSession(
-    @CurrentUser() userId: string,
-    @Body() dto: ScheduleFocusSessionDto,
-  ) {
+  async scheduleSession(@CurrentUser() userId: string, @Body() dto: ScheduleFocusSessionDto) {
     return this.focusSessionsService.scheduleSession(userId, dto);
   }
 
@@ -63,28 +54,19 @@ export class FocusSessionsController {
 
   @Get('scheduled')
   @ApiOperation({ summary: 'Get all scheduled focus sessions' })
-  async getScheduledSessions(
-    @CurrentUser() userId: string,
-    @Query() query: FocusSessionQueryDto,
-  ) {
+  async getScheduledSessions(@CurrentUser() userId: string, @Query() query: FocusSessionQueryDto) {
     return this.focusSessionsService.getScheduledSessions(userId, query);
   }
 
   @Get('history')
   @ApiOperation({ summary: 'Get focus session history' })
-  async getSessionHistory(
-    @CurrentUser() userId: string,
-    @Query() query: FocusSessionQueryDto,
-  ) {
+  async getSessionHistory(@CurrentUser() userId: string, @Query() query: FocusSessionQueryDto) {
     return this.focusSessionsService.getSessionHistory(userId, query);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific focus session' })
-  async getSession(
-    @CurrentUser() userId: string,
-    @Param('id') sessionId: string,
-  ) {
+  async getSession(@CurrentUser() userId: string, @Param('id') sessionId: string) {
     return this.focusSessionsService.getSession(userId, sessionId);
   }
 
@@ -100,10 +82,7 @@ export class FocusSessionsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Cancel a scheduled focus session' })
-  async cancelSession(
-    @CurrentUser() userId: string,
-    @Param('id') sessionId: string,
-  ) {
+  async cancelSession(@CurrentUser() userId: string, @Param('id') sessionId: string) {
     return this.focusSessionsService.cancelSession(userId, sessionId);
   }
 
@@ -114,10 +93,6 @@ export class FocusSessionsController {
     @Param('id') sessionId: string,
     @Body() dto: { minutes: number },
   ) {
-    return this.focusSessionsService.extendSession(
-      userId,
-      sessionId,
-      dto.minutes,
-    );
+    return this.focusSessionsService.extendSession(userId, sessionId, dto.minutes);
   }
 }

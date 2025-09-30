@@ -134,10 +134,7 @@ export class AIProviderService {
     this.logger.log(`Initialized client for provider: ${config.provider}`);
   }
 
-  async executeRequest(
-    provider: AIProvider,
-    request: AIRequest,
-  ): Promise<AIResponse> {
+  async executeRequest(provider: AIProvider, request: AIRequest): Promise<AIResponse> {
     const client = this.providers.get(provider);
     const config = this.configs.get(provider);
 
@@ -178,10 +175,7 @@ export class AIProviderService {
         responseTimeMs: responseTime,
       };
     } catch (error) {
-      this.logger.error(
-        `Error executing request with provider ${provider}:`,
-        error,
-      );
+      this.logger.error(`Error executing request with provider ${provider}:`, error);
       throw error;
     }
   }

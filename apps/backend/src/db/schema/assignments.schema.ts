@@ -1,23 +1,9 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  integer,
-  pgEnum,
-  index,
-  jsonb,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, integer, pgEnum, index, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users.schema';
 import { subjects } from './subjects.schema';
 
-export const priorityEnum = pgEnum('priority', [
-  'low',
-  'medium',
-  'high',
-  'urgent',
-]);
+export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high', 'urgent']);
 export const assignmentStatusEnum = pgEnum('assignment_status', [
   'todo',
   'in_progress',
@@ -74,9 +60,7 @@ export const assignmentAttachments = pgTable(
     uploadedAt: timestamp('uploaded_at').defaultNow().notNull(),
   },
   (table) => ({
-    assignmentIdIdx: index('assignment_attachments_assignment_id_idx').on(
-      table.assignmentId,
-    ),
+    assignmentIdIdx: index('assignment_attachments_assignment_id_idx').on(table.assignmentId),
   }),
 );
 
@@ -92,12 +76,9 @@ export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
   attachments: many(assignmentAttachments),
 }));
 
-export const assignmentAttachmentsRelations = relations(
-  assignmentAttachments,
-  ({ one }) => ({
-    assignment: one(assignments, {
-      fields: [assignmentAttachments.assignmentId],
-      references: [assignments.id],
-    }),
+export const assignmentAttachmentsRelations = relations(assignmentAttachments, ({ one }) => ({
+  assignment: one(assignments, {
+    fields: [assignmentAttachments.assignmentId],
+    references: [assignments.id],
   }),
-);
+}));

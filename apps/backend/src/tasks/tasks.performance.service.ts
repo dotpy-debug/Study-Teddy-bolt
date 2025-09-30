@@ -34,9 +34,7 @@ export class TasksPerformanceService {
   /**
    * Optimized task listing with intelligent caching and minimal data transfer
    */
-  async getTasksOptimized(
-    options: TaskQueryOptions,
-  ): Promise<TaskListResponse> {
+  async getTasksOptimized(options: TaskQueryOptions): Promise<TaskListResponse> {
     const startTime = Date.now();
     const {
       userId,
@@ -72,11 +70,7 @@ export class TasksPerformanceService {
 
       // Add date-based filters
       const now = new Date();
-      const todayStart = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-      );
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
 
@@ -91,14 +85,10 @@ export class TasksPerformanceService {
           );
           break;
         case 'upcoming':
-          whereConditions.push(
-            and(gte(tasks.dueDate, todayEnd), eq(tasks.status, 'pending')),
-          );
+          whereConditions.push(and(gte(tasks.dueDate, todayEnd), eq(tasks.status, 'pending')));
           break;
         case 'overdue':
-          whereConditions.push(
-            and(lte(tasks.dueDate, now), eq(tasks.status, 'pending')),
-          );
+          whereConditions.push(and(lte(tasks.dueDate, now), eq(tasks.status, 'pending')));
           break;
         case 'completed':
           whereConditions.push(eq(tasks.status, 'completed'));
@@ -159,10 +149,7 @@ export class TasksPerformanceService {
         .where(and(...whereConditions));
 
       // Execute both queries in parallel
-      const [tasksResult, countResult] = await Promise.all([
-        tasksQuery,
-        countQuery,
-      ]);
+      const [tasksResult, countResult] = await Promise.all([tasksQuery, countQuery]);
 
       const totalCount = countResult[0]?.count || 0;
       const totalPages = Math.ceil(totalCount / limit);
@@ -202,11 +189,7 @@ export class TasksPerformanceService {
 
     try {
       const now = new Date();
-      const todayStart = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-      );
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
 
@@ -243,10 +226,7 @@ export class TasksPerformanceService {
       return counts;
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.logger.error(
-        `Task counts query failed after ${duration}ms`,
-        error.stack,
-      );
+      this.logger.error(`Task counts query failed after ${duration}ms`, error.stack);
       throw error;
     }
   }
@@ -254,10 +234,7 @@ export class TasksPerformanceService {
   /**
    * Optimized task creation with minimal database round trips
    */
-  async createTaskOptimized(
-    userId: string,
-    taskData: Partial<Task>,
-  ): Promise<Task> {
+  async createTaskOptimized(userId: string, taskData: Partial<Task>): Promise<Task> {
     const startTime = Date.now();
 
     try {
@@ -277,10 +254,7 @@ export class TasksPerformanceService {
       return newTask[0];
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.logger.error(
-        `Task creation failed after ${duration}ms`,
-        error.stack,
-      );
+      this.logger.error(`Task creation failed after ${duration}ms`, error.stack);
       throw error;
     }
   }
@@ -303,18 +277,13 @@ export class TasksPerformanceService {
           updatedAt: new Date(),
           ...(status === 'completed' && { completedAt: new Date() }),
         })
-        .where(
-          and(eq(tasks.userId, userId), sql`${tasks.id} = ANY(${taskIds})`),
-        );
+        .where(and(eq(tasks.userId, userId), sql`${tasks.id} = ANY(${taskIds})`));
 
       const duration = Date.now() - startTime;
       this.logger.log(`Bulk updated ${taskIds.length} tasks in ${duration}ms`);
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.logger.error(
-        `Bulk task update failed after ${duration}ms`,
-        error.stack,
-      );
+      this.logger.error(`Bulk task update failed after ${duration}ms`, error.stack);
       throw error;
     }
   }
@@ -322,11 +291,7 @@ export class TasksPerformanceService {
   /**
    * Get tasks with intelligent prefetching for calendar views
    */
-  async getTasksForDateRange(
-    userId: string,
-    startDate: Date,
-    endDate: Date,
-  ): Promise<Task[]> {
+  async getTasksForDateRange(userId: string, startDate: Date, endDate: Date): Promise<Task[]> {
     const startTime = Date.now();
 
     try {
@@ -335,18 +300,12 @@ export class TasksPerformanceService {
         .from(tasks)
         .leftJoin(subjects, eq(tasks.subjectId, subjects.id))
         .where(
-          and(
-            eq(tasks.userId, userId),
-            gte(tasks.dueDate, startDate),
-            lte(tasks.dueDate, endDate),
-          ),
+          and(eq(tasks.userId, userId), gte(tasks.dueDate, startDate), lte(tasks.dueDate, endDate)),
         )
         .orderBy(asc(tasks.dueDate));
 
       const duration = Date.now() - startTime;
-      this.logger.log(
-        `Date range query executed in ${duration}ms - ${result.length} tasks`,
-      );
+      this.logger.log(`Date range query executed in ${duration}ms - ${result.length} tasks`);
 
       return result.map((row) => ({
         ...row.tasks,
@@ -354,10 +313,7 @@ export class TasksPerformanceService {
       })) as Task[];
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.logger.error(
-        `Date range query failed after ${duration}ms`,
-        error.stack,
-      );
+      this.logger.error(`Date range query failed after ${duration}ms`, error.stack);
       throw error;
     }
   }

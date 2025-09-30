@@ -19,9 +19,7 @@ export class AnalyticsProcessor extends WorkerHost {
 
     try {
       // Log the analytics event processing
-      this.logger.log(
-        `Processing analytics event: ${event} for user ${userId}`,
-      );
+      this.logger.log(`Processing analytics event: ${event} for user ${userId}`);
 
       // Placeholder implementation - would integrate with analytics service
       switch (event) {
@@ -50,9 +48,7 @@ export class AnalyticsProcessor extends WorkerHost {
           await this.processGenericEvent(userId, event, data);
       }
 
-      this.logger.log(
-        `Analytics event ${event} processed successfully for user ${userId}`,
-      );
+      this.logger.log(`Analytics event ${event} processed successfully for user ${userId}`);
       return {
         success: true,
         userId,
@@ -61,10 +57,7 @@ export class AnalyticsProcessor extends WorkerHost {
         timestamp: timestamp || new Date(),
       };
     } catch (error) {
-      this.logger.error(
-        `Failed to process analytics event ${event} for user ${userId}:`,
-        error,
-      );
+      this.logger.error(`Failed to process analytics event ${event} for user ${userId}:`, error);
       throw error;
     }
   }
@@ -73,10 +66,7 @@ export class AnalyticsProcessor extends WorkerHost {
     userId: string,
     data: Record<string, any>,
   ): Promise<void> {
-    this.logger.debug(
-      `Processing study session started for user ${userId}`,
-      data,
-    );
+    this.logger.debug(`Processing study session started for user ${userId}`, data);
     // Placeholder: would track study session metrics
   }
 
@@ -84,49 +74,31 @@ export class AnalyticsProcessor extends WorkerHost {
     userId: string,
     data: Record<string, any>,
   ): Promise<void> {
-    this.logger.debug(
-      `Processing study session completed for user ${userId}`,
-      data,
-    );
+    this.logger.debug(`Processing study session completed for user ${userId}`, data);
     // Placeholder: would calculate session duration, productivity metrics
   }
 
-  private async processTaskCreated(
-    userId: string,
-    data: Record<string, any>,
-  ): Promise<void> {
+  private async processTaskCreated(userId: string, data: Record<string, any>): Promise<void> {
     this.logger.debug(`Processing task created for user ${userId}`, data);
     // Placeholder: would track task creation patterns
   }
 
-  private async processTaskCompleted(
-    userId: string,
-    data: Record<string, any>,
-  ): Promise<void> {
+  private async processTaskCompleted(userId: string, data: Record<string, any>): Promise<void> {
     this.logger.debug(`Processing task completed for user ${userId}`, data);
     // Placeholder: would track task completion rates, time to completion
   }
 
-  private async processAiQuestionAsked(
-    userId: string,
-    data: Record<string, any>,
-  ): Promise<void> {
+  private async processAiQuestionAsked(userId: string, data: Record<string, any>): Promise<void> {
     this.logger.debug(`Processing AI question asked for user ${userId}`, data);
     // Placeholder: would track AI usage patterns, question categories
   }
 
-  private async processUserLogin(
-    userId: string,
-    data: Record<string, any>,
-  ): Promise<void> {
+  private async processUserLogin(userId: string, data: Record<string, any>): Promise<void> {
     this.logger.debug(`Processing user login for user ${userId}`, data);
     // Placeholder: would track login patterns, device information
   }
 
-  private async processFeatureUsed(
-    userId: string,
-    data: Record<string, any>,
-  ): Promise<void> {
+  private async processFeatureUsed(userId: string, data: Record<string, any>): Promise<void> {
     this.logger.debug(`Processing feature used for user ${userId}`, data);
     // Placeholder: would track feature adoption and usage patterns
   }
@@ -136,10 +108,7 @@ export class AnalyticsProcessor extends WorkerHost {
     event: string,
     data: Record<string, any>,
   ): Promise<void> {
-    this.logger.debug(
-      `Processing generic analytics event ${event} for user ${userId}`,
-      data,
-    );
+    this.logger.debug(`Processing generic analytics event ${event} for user ${userId}`, data);
     // Placeholder: would handle any other analytics events
   }
 

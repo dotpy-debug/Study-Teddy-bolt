@@ -13,12 +13,8 @@ export class TestModuleHelper {
   static createMockJwtService() {
     return {
       sign: jest.fn().mockReturnValue('mock-jwt-token'),
-      verify: jest
-        .fn()
-        .mockReturnValue({ sub: 'user-id', email: 'test@example.com' }),
-      decode: jest
-        .fn()
-        .mockReturnValue({ sub: 'user-id', email: 'test@example.com' }),
+      verify: jest.fn().mockReturnValue({ sub: 'user-id', email: 'test@example.com' }),
+      decode: jest.fn().mockReturnValue({ sub: 'user-id', email: 'test@example.com' }),
     };
   }
 
@@ -78,14 +74,10 @@ export class TestModuleHelper {
       set: jest.fn().mockResolvedValue(true),
       del: jest.fn().mockResolvedValue(true),
       delPattern: jest.fn().mockResolvedValue(true),
-      generateKey: jest.fn(
-        (prefix: string, ...args: any[]) => `${prefix}:${args.join(':')}`,
-      ),
-      warm: jest
-        .fn()
-        .mockImplementation(async (key: string, factory: () => any) => {
-          return await factory();
-        }),
+      generateKey: jest.fn((prefix: string, ...args: any[]) => `${prefix}:${args.join(':')}`),
+      warm: jest.fn().mockImplementation(async (key: string, factory: () => any) => {
+        return await factory();
+      }),
     };
   }
 
@@ -141,11 +133,9 @@ export class TestModuleHelper {
    */
   static createMockQueryOptimizerService() {
     return {
-      executeWithMetrics: jest
-        .fn()
-        .mockImplementation(async (queryFn: () => any) => {
-          return await queryFn();
-        }),
+      executeWithMetrics: jest.fn().mockImplementation(async (queryFn: () => any) => {
+        return await queryFn();
+      }),
     };
   }
 

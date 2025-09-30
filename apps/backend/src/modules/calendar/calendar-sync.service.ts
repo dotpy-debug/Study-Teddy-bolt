@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { google, calendar_v3 } from 'googleapis';
 import { DrizzleService } from '../../db/drizzle.service';
 import {
@@ -57,10 +52,7 @@ export class CalendarSyncService {
   /**
    * Perform a full sync for a user's calendar
    */
-  async performFullSync(
-    userId: string,
-    calendarAccountId?: string,
-  ): Promise<SyncResult> {
+  async performFullSync(userId: string, calendarAccountId?: string): Promise<SyncResult> {
     const startTime = Date.now();
     this.logger.log(`Starting full sync for user ${userId}`);
 
@@ -76,24 +68,14 @@ export class CalendarSyncService {
 
     try {
       // Get user's calendar mappings
-      const mappings = await this.getUserCalendarMappings(
-        userId,
-        calendarAccountId,
-      );
+      const mappings = await this.getUserCalendarMappings(userId, calendarAccountId);
 
       for (const mapping of mappings) {
         if (!mapping.syncEnabled) continue;
 
         try {
-          const calendar = await this.getAuthenticatedCalendar(
-            userId,
-            mapping.calendarAccountId,
-          );
-          const mapResult = await this.syncCalendarMapping(
-            calendar,
-            mapping,
-            'full',
-          );
+          const calendar = await this.getAuthenticatedCalendar(userId, mapping.calendarAccountId);
+          const mapResult = await this.syncCalendarMapping(calendar, mapping, 'full');
 
           result.eventsProcessed += mapResult.eventsProcessed;
           result.eventsCreated += mapResult.eventsCreated;
@@ -101,10 +83,7 @@ export class CalendarSyncService {
           result.eventsDeleted += mapResult.eventsDeleted;
           result.conflictsDetected += mapResult.conflictsDetected;
         } catch (error) {
-          this.logger.error(
-            `Error syncing calendar ${mapping.googleCalendarId}:`,
-            error,
-          );
+          this.logger.error(`Error syncing calendar ${mapping.googleCalendarId}:`, error);
           result.errorsEncountered++;
         }
       }
@@ -124,10 +103,7 @@ export class CalendarSyncService {
   /**
    * Perform an incremental sync for a user's calendar
    */
-  async performIncrementalSync(
-    userId: string,
-    calendarAccountId?: string,
-  ): Promise<SyncResult> {
+  async performIncrementalSync(userId: string, calendarAccountId?: string): Promise<SyncResult> {
     const startTime = Date.now();
     this.logger.log(`Starting incremental sync for user ${userId}`);
 
@@ -142,24 +118,14 @@ export class CalendarSyncService {
     };
 
     try {
-      const mappings = await this.getUserCalendarMappings(
-        userId,
-        calendarAccountId,
-      );
+      const mappings = await this.getUserCalendarMappings(userId, calendarAccountId);
 
       for (const mapping of mappings) {
         if (!mapping.syncEnabled) continue;
 
         try {
-          const calendar = await this.getAuthenticatedCalendar(
-            userId,
-            mapping.calendarAccountId,
-          );
-          const mapResult = await this.syncCalendarMapping(
-            calendar,
-            mapping,
-            'incremental',
-          );
+          const calendar = await this.getAuthenticatedCalendar(userId, mapping.calendarAccountId);
+          const mapResult = await this.syncCalendarMapping(calendar, mapping, 'incremental');
 
           result.eventsProcessed += mapResult.eventsProcessed;
           result.eventsCreated += mapResult.eventsCreated;
@@ -167,10 +133,7 @@ export class CalendarSyncService {
           result.eventsDeleted += mapResult.eventsDeleted;
           result.conflictsDetected += mapResult.conflictsDetected;
         } catch (error) {
-          this.logger.error(
-            `Error syncing calendar ${mapping.googleCalendarId}:`,
-            error,
-          );
+          this.logger.error(`Error syncing calendar ${mapping.googleCalendarId}:`, error);
           result.errorsEncountered++;
         }
       }
@@ -216,10 +179,7 @@ export class CalendarSyncService {
         .where(
           and(
             eq(calendarEvents.userId, userId),
-            or(
-              eq(calendarEvents.id, eventId),
-              eq(calendarEvents.googleEventId, eventId),
-            ),
+            or(eq(calendarEvents.id, eventId), eq(calendarEvents.googleEventId, eventId)),
           ),
         )
         .limit(1);
@@ -229,10 +189,7 @@ export class CalendarSyncService {
       }
 
       const event = existingEvent[0];
-      const mapping = await this.getCalendarMapping(
-        userId,
-        event.googleCalendarId!,
-      );
+      const mapping = await this.getCalendarMapping(userId, event.googleCalendarId!);
 
       if (!mapping) {
         throw new NotFoundException(
@@ -240,10 +197,7 @@ export class CalendarSyncService {
         );
       }
 
-      const calendar = await this.getAuthenticatedCalendar(
-        userId,
-        mapping.calendarAccountId,
-      );
+      const calendar = await this.getAuthenticatedCalendar(userId, mapping.calendarAccountId);
 
       // Fetch the latest version from Google
       const googleEvent = await calendar.events.get({
@@ -252,11 +206,7 @@ export class CalendarSyncService {
       });
 
       if (googleEvent.data) {
-        const syncResult = await this.processCalendarEvent(
-          googleEvent.data,
-          mapping,
-          calendar,
-        );
+        const syncResult = await this.processCalendarEvent(googleEvent.data, mapping, calendar);
         result.eventsUpdated = syncResult.updated ? 1 : 0;
         result.conflictsDetected = syncResult.conflictDetected ? 1 : 0;
       }
@@ -264,10 +214,7 @@ export class CalendarSyncService {
       result.syncDuration = Date.now() - startTime;
       return result;
     } catch (error) {
-      this.logger.error(
-        `Single event sync failed for event ${eventId}:`,
-        error,
-      );
+      this.logger.error(`Single event sync failed for event ${eventId}:`, error);
       result.errorsEncountered++;
       result.syncDuration = Date.now() - startTime;
       throw error;
@@ -283,9 +230,7 @@ export class CalendarSyncService {
     webhookData: any,
   ): Promise<SyncResult> {
     const startTime = Date.now();
-    this.logger.log(
-      `Processing webhook update for user ${userId}, calendar ${calendarAccountId}`,
-    );
+    this.logger.log(`Processing webhook update for user ${userId}, calendar ${calendarAccountId}`);
 
     const result: SyncResult = {
       eventsProcessed: 0,
@@ -314,15 +259,8 @@ export class CalendarSyncService {
         throw new NotFoundException('Calendar mapping not found');
       }
 
-      const calendar = await this.getAuthenticatedCalendar(
-        userId,
-        calendarAccountId,
-      );
-      const mapResult = await this.syncCalendarMapping(
-        calendar,
-        mapping[0],
-        'incremental',
-      );
+      const calendar = await this.getAuthenticatedCalendar(userId, calendarAccountId);
+      const mapResult = await this.syncCalendarMapping(calendar, mapping[0], 'incremental');
 
       result.eventsProcessed = mapResult.eventsProcessed;
       result.eventsCreated = mapResult.eventsCreated;
@@ -344,9 +282,7 @@ export class CalendarSyncService {
    * Refresh user's OAuth token
    */
   async refreshUserToken(userId: string, googleEmail: string): Promise<void> {
-    this.logger.log(
-      `Refreshing token for user ${userId}, email ${googleEmail}`,
-    );
+    this.logger.log(`Refreshing token for user ${userId}, email ${googleEmail}`);
 
     const tokenRecord = await this.drizzle.db
       .select()
@@ -373,9 +309,7 @@ export class CalendarSyncService {
       const { credentials } = await this.oauth2Client.refreshAccessToken();
 
       if (!credentials.access_token || !credentials.expiry_date) {
-        throw new Error(
-          'Failed to refresh token: Invalid credentials received',
-        );
+        throw new Error('Failed to refresh token: Invalid credentials received');
       }
 
       // Update the token in the database
@@ -415,13 +349,8 @@ export class CalendarSyncService {
   /**
    * Resolve conflicts between local and remote events
    */
-  async resolveConflicts(
-    userId: string,
-    conflicts: ConflictResolution[],
-  ): Promise<void> {
-    this.logger.log(
-      `Resolving ${conflicts.length} conflicts for user ${userId}`,
-    );
+  async resolveConflicts(userId: string, conflicts: ConflictResolution[]): Promise<void> {
+    this.logger.log(`Resolving ${conflicts.length} conflicts for user ${userId}`);
 
     for (const conflict of conflicts) {
       try {
@@ -432,9 +361,7 @@ export class CalendarSyncService {
           .limit(1);
 
         if (event.length === 0) {
-          this.logger.warn(
-            `Event ${conflict.eventId} not found for conflict resolution`,
-          );
+          this.logger.warn(`Event ${conflict.eventId} not found for conflict resolution`);
           continue;
         }
 
@@ -451,9 +378,7 @@ export class CalendarSyncService {
             resolvedData = conflict.resolvedVersion;
             break;
           default:
-            throw new BadRequestException(
-              `Invalid conflict resolution: ${conflict.resolution}`,
-            );
+            throw new BadRequestException(`Invalid conflict resolution: ${conflict.resolution}`);
         }
 
         // Update the event with resolved data
@@ -477,10 +402,7 @@ export class CalendarSyncService {
           `Resolved conflict for event ${conflict.eventId} using ${conflict.resolution}`,
         );
       } catch (error) {
-        this.logger.error(
-          `Failed to resolve conflict for event ${conflict.eventId}:`,
-          error,
-        );
+        this.logger.error(`Failed to resolve conflict for event ${conflict.eventId}:`, error);
       }
     }
   }
@@ -535,9 +457,7 @@ export class CalendarSyncService {
     const whereConditions = [eq(calendarMappings.userId, userId)];
 
     if (calendarAccountId) {
-      whereConditions.push(
-        eq(calendarMappings.calendarAccountId, calendarAccountId),
-      );
+      whereConditions.push(eq(calendarMappings.calendarAccountId, calendarAccountId));
     }
 
     return this.drizzle.db
@@ -623,11 +543,7 @@ export class CalendarSyncService {
         // Process each event
         for (const event of events) {
           try {
-            const eventResult = await this.processCalendarEvent(
-              event,
-              mapping,
-              calendar,
-            );
+            const eventResult = await this.processCalendarEvent(event, mapping, calendar);
             if (eventResult.created) result.eventsCreated++;
             if (eventResult.updated) result.eventsUpdated++;
             if (eventResult.deleted) result.eventsDeleted++;
@@ -658,10 +574,7 @@ export class CalendarSyncService {
 
       return result;
     } catch (error) {
-      this.logger.error(
-        `Error syncing calendar ${mapping.googleCalendarId}:`,
-        error,
-      );
+      this.logger.error(`Error syncing calendar ${mapping.googleCalendarId}:`, error);
       throw error;
     }
   }
@@ -792,9 +705,7 @@ export class CalendarSyncService {
       googleSequence: googleEvent.sequence || 0,
       googleEtag: googleEvent.etag || null,
       isRecurring: !!googleEvent.recurrence,
-      recurrenceRule: googleEvent.recurrence
-        ? googleEvent.recurrence.join('\n')
-        : null,
+      recurrenceRule: googleEvent.recurrence ? googleEvent.recurrence.join('\n') : null,
       attendees: this.mapAttendees(googleEvent.attendees),
       useDefaultReminders: googleEvent.reminders?.useDefault ?? true,
       overrideReminders: this.mapReminders(googleEvent.reminders?.overrides),
@@ -813,9 +724,7 @@ export class CalendarSyncService {
   /**
    * Map Google Calendar event status to local status
    */
-  private mapGoogleStatus(
-    status?: string,
-  ): 'tentative' | 'confirmed' | 'cancelled' {
+  private mapGoogleStatus(status?: string): 'tentative' | 'confirmed' | 'cancelled' {
     switch (status) {
       case 'tentative':
         return 'tentative';
@@ -943,19 +852,13 @@ export class CalendarSyncService {
       sequence: googleEvent.sequence,
     };
 
-    return crypto
-      .createHash('sha256')
-      .update(JSON.stringify(hashData))
-      .digest('hex');
+    return crypto.createHash('sha256').update(JSON.stringify(hashData)).digest('hex');
   }
 
   /**
    * Handle deleted events
    */
-  private async handleDeletedEvent(
-    googleEventId: string,
-    userId: string,
-  ): Promise<void> {
+  private async handleDeletedEvent(googleEventId: string, userId: string): Promise<void> {
     await this.drizzle.db
       .update(calendarEvents)
       .set({
@@ -963,10 +866,7 @@ export class CalendarSyncService {
         updatedAt: new Date(),
       })
       .where(
-        and(
-          eq(calendarEvents.userId, userId),
-          eq(calendarEvents.googleEventId, googleEventId),
-        ),
+        and(eq(calendarEvents.userId, userId), eq(calendarEvents.googleEventId, googleEventId)),
       );
   }
 
@@ -1034,10 +934,7 @@ export class CalendarSyncService {
 
       this.logger.log(`Created task for study event: ${eventData.title}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to create task for event ${eventData.title}:`,
-        error,
-      );
+      this.logger.error(`Failed to create task for event ${eventData.title}:`, error);
     }
   }
 }

@@ -74,10 +74,7 @@ export class ScheduledEmailProcessor extends WorkerHost {
 
     try {
       // Check if email should be sent based on preferences
-      const shouldSend = await this.shouldSendScheduledEmail(
-        email.to,
-        scheduleData,
-      );
+      const shouldSend = await this.shouldSendScheduledEmail(email.to, scheduleData);
       if (!shouldSend.allowed) {
         this.logger.log(`Skipping scheduled email: ${shouldSend.reason}`, {
           scheduleId,
@@ -85,14 +82,9 @@ export class ScheduledEmailProcessor extends WorkerHost {
         });
 
         // If cancelled due to unsubscribe and cancelOnUnsubscribe is true, remove the schedule
-        if (
-          shouldSend.reason?.includes('unsubscribed') &&
-          scheduleData.cancelOnUnsubscribe
-        ) {
+        if (shouldSend.reason?.includes('unsubscribed') && scheduleData.cancelOnUnsubscribe) {
           await this.cancelRecurringSchedule(scheduleId);
-          this.logger.log(
-            `Cancelled recurring schedule due to unsubscribe: ${scheduleId}`,
-          );
+          this.logger.log(`Cancelled recurring schedule due to unsubscribe: ${scheduleId}`);
         }
 
         return;
@@ -149,10 +141,7 @@ export class ScheduledEmailProcessor extends WorkerHost {
         });
 
         // Schedule next occurrence if recurring
-        if (
-          scheduleData.scheduleType === 'recurring' &&
-          scheduleData.recurrence
-        ) {
+        if (scheduleData.scheduleType === 'recurring' && scheduleData.recurrence) {
           await this.scheduleNextOccurrence(scheduleData);
         }
       } else {
@@ -187,8 +176,7 @@ export class ScheduledEmailProcessor extends WorkerHost {
   ): Promise<{ allowed: boolean; reason?: string }> {
     try {
       // Check if user has unsubscribed
-      const preferences =
-        await this.notificationPreferencesService.getEmailPreferences(email);
+      const preferences = await this.notificationPreferencesService.getEmailPreferences(email);
       if (!preferences.emailEnabled) {
         return {
           allowed: false,
@@ -199,11 +187,10 @@ export class ScheduledEmailProcessor extends WorkerHost {
       // Check category preferences if email has tags
       if (scheduleData.email.tags?.length) {
         for (const tag of scheduleData.email.tags) {
-          const categoryAllowed =
-            await this.notificationPreferencesService.isCategoryAllowed(
-              email,
-              tag,
-            );
+          const categoryAllowed = await this.notificationPreferencesService.isCategoryAllowed(
+            email,
+            tag,
+          );
           if (!categoryAllowed) {
             return { allowed: false, reason: `Category '${tag}' is disabled` };
           }
@@ -212,20 +199,17 @@ export class ScheduledEmailProcessor extends WorkerHost {
 
       // Check if should skip due to unread emails
       if (scheduleData.skipIfUnread) {
-        const hasUnreadEmails =
-          await this.emailDeliveryService.hasUnreadEmails(email);
+        const hasUnreadEmails = await this.emailDeliveryService.hasUnreadEmails(email);
         if (hasUnreadEmails) {
           return { allowed: false, reason: 'Skipping due to unread emails' };
         }
       }
 
       // Check quiet hours
-      const isQuietHours =
-        await this.notificationPreferencesService.isQuietHours(email);
+      const isQuietHours = await this.notificationPreferencesService.isQuietHours(email);
       if (isQuietHours) {
         // Reschedule for after quiet hours
-        const nextAllowedTime =
-          await this.notificationPreferencesService.getNextAllowedTime(email);
+        const nextAllowedTime = await this.notificationPreferencesService.getNextAllowedTime(email);
         if (nextAllowedTime > new Date()) {
           await this.rescheduleEmail(scheduleData, nextAllowedTime);
           return { allowed: false, reason: 'Rescheduled due to quiet hours' };
@@ -234,9 +218,7 @@ export class ScheduledEmailProcessor extends WorkerHost {
 
       return { allowed: true };
     } catch (error) {
-      this.logger.warn(
-        `Failed to check scheduled email preferences for ${email}, allowing send`,
-      );
+      this.logger.warn(`Failed to check scheduled email preferences for ${email}, allowing send`);
       return { allowed: true };
     }
   }
@@ -248,10 +230,7 @@ export class ScheduledEmailProcessor extends WorkerHost {
 
     if (email.template) {
       // Use template
-      const template = await this.emailTemplateService.generateTemplate(
-        email.template,
-        context,
-      );
+      const template = await this.emailTemplateService.generateTemplate(email.template, context);
       return {
         subject: this.interpolateString(email.subject, context),
         html: template.html,
@@ -261,51 +240,34 @@ export class ScheduledEmailProcessor extends WorkerHost {
       // Use provided HTML/text with interpolation
       return {
         subject: this.interpolateString(email.subject, context),
-        html: email.html
-          ? this.interpolateString(email.html, context)
-          : undefined,
-        text: email.text
-          ? this.interpolateString(email.text, context)
-          : undefined,
+        html: email.html ? this.interpolateString(email.html, context) : undefined,
+        text: email.text ? this.interpolateString(email.text, context) : undefined,
       };
     }
   }
 
-  private interpolateString(
-    template: string,
-    context: Record<string, any>,
-  ): string {
+  private interpolateString(template: string, context: Record<string, any>): string {
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       return context[key] !== undefined ? String(context[key]) : match;
     });
   }
 
-  private async scheduleNextOccurrence(
-    scheduleData: ScheduledEmailJobData,
-  ): Promise<void> {
+  private async scheduleNextOccurrence(scheduleData: ScheduledEmailJobData): Promise<void> {
     const { recurrence, timezone = 'UTC' } = scheduleData;
     if (!recurrence) return;
 
     try {
       const currentTime = new Date(scheduleData.scheduledAt);
-      const nextTime = this.calculateNextOccurrence(
-        currentTime,
-        recurrence,
-        timezone,
-      );
+      const nextTime = this.calculateNextOccurrence(currentTime, recurrence, timezone);
 
       if (!nextTime) {
-        this.logger.log(
-          `No more occurrences for schedule: ${scheduleData.scheduleId}`,
-        );
+        this.logger.log(`No more occurrences for schedule: ${scheduleData.scheduleId}`);
         return;
       }
 
       // Check if we've reached the end date or max occurrences
       if (recurrence.endDate && nextTime > new Date(recurrence.endDate)) {
-        this.logger.log(
-          `Schedule reached end date: ${scheduleData.scheduleId}`,
-        );
+        this.logger.log(`Schedule reached end date: ${scheduleData.scheduleId}`);
         return;
       }
 
@@ -316,19 +278,13 @@ export class ScheduledEmailProcessor extends WorkerHost {
         scheduledAt: nextTime.toISOString(),
       });
 
-      this.logger.debug(
-        `Scheduled next occurrence for: ${scheduleData.scheduleId}`,
-        {
-          nextTime: nextTime.toISOString(),
-        },
-      );
+      this.logger.debug(`Scheduled next occurrence for: ${scheduleData.scheduleId}`, {
+        nextTime: nextTime.toISOString(),
+      });
     } catch (error) {
-      this.logger.error(
-        `Failed to schedule next occurrence: ${scheduleData.scheduleId}`,
-        {
-          error: error.message,
-        },
-      );
+      this.logger.error(`Failed to schedule next occurrence: ${scheduleData.scheduleId}`, {
+        error: error.message,
+      });
     }
   }
 
@@ -384,9 +340,7 @@ export class ScheduledEmailProcessor extends WorkerHost {
     return nextTime;
   }
 
-  private async createNextScheduledJob(
-    scheduleData: ScheduledEmailJobData,
-  ): Promise<void> {
+  private async createNextScheduledJob(scheduleData: ScheduledEmailJobData): Promise<void> {
     // This would typically involve queueing the next job
     // Implementation depends on how the email queue service handles scheduling
     // For now, we'll log the intent
@@ -396,10 +350,7 @@ export class ScheduledEmailProcessor extends WorkerHost {
     });
   }
 
-  private async rescheduleEmail(
-    scheduleData: ScheduledEmailJobData,
-    newTime: Date,
-  ): Promise<void> {
+  private async rescheduleEmail(scheduleData: ScheduledEmailJobData, newTime: Date): Promise<void> {
     // Reschedule the email for the new time
     this.logger.debug('Would reschedule email', {
       scheduleId: scheduleData.scheduleId,

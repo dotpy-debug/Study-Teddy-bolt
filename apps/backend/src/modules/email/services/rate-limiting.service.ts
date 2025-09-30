@@ -1,10 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  RateLimitConfig,
-  EmailError,
-  EmailErrorCode,
-} from '../types/email.types';
+import { RateLimitConfig, EmailError, EmailErrorCode } from '../types/email.types';
 
 interface RateLimitData {
   count: number;
@@ -35,10 +31,7 @@ export class RateLimitingService {
       hourlyLimit: this.configService.get<number>('EMAIL_HOURLY_LIMIT', 100),
       dailyLimit: this.configService.get<number>('EMAIL_DAILY_LIMIT', 1000),
       burstLimit: this.configService.get<number>('EMAIL_BURST_LIMIT', 10),
-      burstWindowMs: this.configService.get<number>(
-        'EMAIL_BURST_WINDOW_MS',
-        60000,
-      ), // 1 minute
+      burstWindowMs: this.configService.get<number>('EMAIL_BURST_WINDOW_MS', 60000), // 1 minute
     };
 
     this.logger.log(
@@ -111,9 +104,7 @@ export class RateLimitingService {
       burst: {
         current: burstData?.count || 0,
         limit: this.rateLimitConfig.burstLimit,
-        resetTime:
-          burstData?.resetTime ||
-          Date.now() + this.rateLimitConfig.burstWindowMs,
+        resetTime: burstData?.resetTime || Date.now() + this.rateLimitConfig.burstWindowMs,
       },
       global: {
         hourly: this.globalHourlyCount,
@@ -201,14 +192,8 @@ export class RateLimitingService {
   private async checkGlobalRateLimits(): Promise<void> {
     this.resetGlobalCountersIfNeeded();
 
-    const globalHourlyLimit = this.configService.get<number>(
-      'EMAIL_GLOBAL_HOURLY_LIMIT',
-      10000,
-    );
-    const globalDailyLimit = this.configService.get<number>(
-      'EMAIL_GLOBAL_DAILY_LIMIT',
-      50000,
-    );
+    const globalHourlyLimit = this.configService.get<number>('EMAIL_GLOBAL_HOURLY_LIMIT', 10000);
+    const globalDailyLimit = this.configService.get<number>('EMAIL_GLOBAL_DAILY_LIMIT', 50000);
 
     if (this.globalHourlyCount >= globalHourlyLimit) {
       throw this.createRateLimitError(
@@ -296,10 +281,7 @@ export class RateLimitingService {
     this.resetGlobalCountersIfNeeded();
   }
 
-  private resetExpiredCountersForStorage(
-    storage: Map<string, RateLimitData>,
-    now: number,
-  ): void {
+  private resetExpiredCountersForStorage(storage: Map<string, RateLimitData>, now: number): void {
     for (const [email, data] of storage.entries()) {
       if (now >= data.resetTime) {
         storage.delete(email);
@@ -323,9 +305,7 @@ export class RateLimitingService {
     }
   }
 
-  private getStorageForType(
-    type: 'hourly' | 'daily' | 'burst',
-  ): Map<string, RateLimitData> {
+  private getStorageForType(type: 'hourly' | 'daily' | 'burst'): Map<string, RateLimitData> {
     switch (type) {
       case 'hourly':
         return this.hourlyLimits;

@@ -20,10 +20,7 @@ export class QueryOptimizerService {
   /**
    * Execute a query with performance monitoring
    */
-  async executeWithMetrics<T>(
-    queryFn: () => Promise<T>,
-    queryName: string,
-  ): Promise<T> {
+  async executeWithMetrics<T>(queryFn: () => Promise<T>, queryName: string): Promise<T> {
     const startTime = performance.now();
 
     try {
@@ -32,9 +29,7 @@ export class QueryOptimizerService {
 
       // Log slow queries
       if (executionTime > this.slowQueryThreshold) {
-        this.logger.warn(
-          `Slow query detected: ${queryName} took ${executionTime.toFixed(2)}ms`,
-        );
+        this.logger.warn(`Slow query detected: ${queryName} took ${executionTime.toFixed(2)}ms`);
       }
 
       // Store metrics
@@ -53,10 +48,7 @@ export class QueryOptimizerService {
       return result;
     } catch (error) {
       const executionTime = performance.now() - startTime;
-      this.logger.error(
-        `Query failed: ${queryName} after ${executionTime.toFixed(2)}ms`,
-        error,
-      );
+      this.logger.error(`Query failed: ${queryName} after ${executionTime.toFixed(2)}ms`, error);
       throw error;
     }
   }
@@ -68,9 +60,7 @@ export class QueryOptimizerService {
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-    const recentMetrics = this.performanceMetrics.filter(
-      (metric) => metric.timestamp > oneHourAgo,
-    );
+    const recentMetrics = this.performanceMetrics.filter((metric) => metric.timestamp > oneHourAgo);
 
     const averageExecutionTime =
       recentMetrics.length > 0
@@ -180,13 +170,8 @@ export class QueryOptimizerService {
 
     // Check for large tables without proper indexing
     tableSizes.forEach((table) => {
-      const tableIndexes = indexStats.filter(
-        (idx) => idx.tablename === table.tablename,
-      );
-      const totalScans = tableIndexes.reduce(
-        (sum, idx) => sum + (idx.idx_scan || 0),
-        0,
-      );
+      const tableIndexes = indexStats.filter((idx) => idx.tablename === table.tablename);
+      const totalScans = tableIndexes.reduce((sum, idx) => sum + (idx.idx_scan || 0), 0);
 
       if (table.size_bytes > 1000000 && totalScans < 100) {
         // 1MB+ table with low index usage
@@ -268,8 +253,7 @@ export class QueryOptimizerService {
       optimizations.push({
         query: 'tasks_by_user_and_status',
         analysis: tasksByUserAndStatus,
-        suggestion:
-          'Consider composite index on (user_id, completed, due_date)',
+        suggestion: 'Consider composite index on (user_id, completed, due_date)',
       });
 
       optimizations.push({
@@ -281,8 +265,7 @@ export class QueryOptimizerService {
       optimizations.push({
         query: 'session_analytics',
         analysis: sessionAnalytics,
-        suggestion:
-          'Consider composite index on (user_id, date) for dashboard queries',
+        suggestion: 'Consider composite index on (user_id, date) for dashboard queries',
       });
 
       return optimizations;

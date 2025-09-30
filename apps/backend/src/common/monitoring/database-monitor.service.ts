@@ -58,12 +58,7 @@ export class DatabaseMonitorService {
   ) {}
 
   // Record query execution
-  recordQuery(
-    query: string,
-    duration: number,
-    success: boolean,
-    parameters?: any[],
-  ) {
+  recordQuery(query: string, duration: number, success: boolean, parameters?: any[]) {
     this.queryMetrics.total++;
     this.queryMetrics.times.push(duration);
 
@@ -79,9 +74,7 @@ export class DatabaseMonitorService {
         query: this.sanitizeQuery(query),
         duration,
         timestamp: new Date(),
-        parameters: parameters
-          ? this.sanitizeParameters(parameters)
-          : undefined,
+        parameters: parameters ? this.sanitizeParameters(parameters) : undefined,
       });
 
       // Keep only recent slow queries
@@ -104,12 +97,11 @@ export class DatabaseMonitorService {
   // Get database metrics
   async getDatabaseMetrics(): Promise<DatabaseMetrics> {
     try {
-      const [connectionStats, tableStats, performanceStats] =
-        await Promise.allSettled([
-          this.getConnectionStats(),
-          this.getTableStats(),
-          this.getPerformanceStats(),
-        ]);
+      const [connectionStats, tableStats, performanceStats] = await Promise.allSettled([
+        this.getConnectionStats(),
+        this.getTableStats(),
+        this.getPerformanceStats(),
+      ]);
 
       const averageTime =
         this.queryMetrics.times.length > 0
@@ -142,9 +134,7 @@ export class DatabaseMonitorService {
 
   // Get slow queries
   getSlowQueries(limit: number = 10): SlowQuery[] {
-    return this.slowQueries
-      .sort((a, b) => b.duration - a.duration)
-      .slice(0, limit);
+    return this.slowQueries.sort((a, b) => b.duration - a.duration).slice(0, limit);
   }
 
   // Check database health
@@ -159,14 +149,10 @@ export class DatabaseMonitorService {
       const maxActiveConnections = 80; // 80% of pool
 
       const slowQueryRate =
-        metrics.queries.total > 0
-          ? metrics.queries.slow / metrics.queries.total
-          : 0;
+        metrics.queries.total > 0 ? metrics.queries.slow / metrics.queries.total : 0;
 
       const failureRate =
-        metrics.queries.total > 0
-          ? metrics.queries.failed / metrics.queries.total
-          : 0;
+        metrics.queries.total > 0 ? metrics.queries.failed / metrics.queries.total : 0;
 
       const connectionUsage =
         metrics.connectionPool.total > 0
@@ -256,8 +242,7 @@ export class DatabaseMonitorService {
       `);
 
       return {
-        cacheHitRatio:
-          parseFloat(String(cacheStats[0]?.cache_hit_ratio || 0)) || 0,
+        cacheHitRatio: parseFloat(String(cacheStats[0]?.cache_hit_ratio || 0)) || 0,
         indexUsage: parseFloat(String(indexStats[0]?.index_usage || 0)) || 0,
         lockWaits: 0, // Would get from pg_stat_database
       };

@@ -5,10 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 export interface CORSSecurityConfig {
   origins:
     | string[]
-    | ((
-        origin: string,
-        callback: (err: Error | null, allow?: boolean) => void,
-      ) => void);
+    | ((origin: string, callback: (err: Error | null, allow?: boolean) => void) => void);
   methods: string[];
   allowedHeaders: string[];
   exposedHeaders: string[];
@@ -65,10 +62,8 @@ export class CORSSecurityMiddleware implements NestMiddleware {
   }
 
   private initializeConfig(): CORSSecurityConfig {
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
-    const isDevelopment =
-      this.configService.get<string>('NODE_ENV') === 'development';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const isDevelopment = this.configService.get<string>('NODE_ENV') === 'development';
 
     return {
       origins: this.parseOrigins(),
@@ -88,22 +83,10 @@ export class CORSSecurityMiddleware implements NestMiddleware {
         )
         .split(','),
       credentials: this.configService.get<boolean>('CORS_CREDENTIALS', true),
-      maxAge: this.configService.get<number>(
-        'CORS_MAX_AGE',
-        isProduction ? 86400 : 300,
-      ), // 24h in prod, 5min in dev
-      preflightContinue: this.configService.get<boolean>(
-        'CORS_PREFLIGHT_CONTINUE',
-        false,
-      ),
-      optionsSuccessStatus: this.configService.get<number>(
-        'CORS_OPTIONS_SUCCESS_STATUS',
-        204,
-      ),
-      strictOriginCheck: this.configService.get<boolean>(
-        'CORS_STRICT_ORIGIN_CHECK',
-        isProduction,
-      ),
+      maxAge: this.configService.get<number>('CORS_MAX_AGE', isProduction ? 86400 : 300), // 24h in prod, 5min in dev
+      preflightContinue: this.configService.get<boolean>('CORS_PREFLIGHT_CONTINUE', false),
+      optionsSuccessStatus: this.configService.get<number>('CORS_OPTIONS_SUCCESS_STATUS', 204),
+      strictOriginCheck: this.configService.get<boolean>('CORS_STRICT_ORIGIN_CHECK', isProduction),
       dynamicOriginValidation: this.configService.get<boolean>(
         'CORS_DYNAMIC_ORIGIN_VALIDATION',
         true,
@@ -117,10 +100,7 @@ export class CORSSecurityMiddleware implements NestMiddleware {
         .split(',')
         .filter(Boolean),
       subdomainMatching: {
-        enabled: this.configService.get<boolean>(
-          'CORS_SUBDOMAIN_MATCHING',
-          false,
-        ),
+        enabled: this.configService.get<boolean>('CORS_SUBDOMAIN_MATCHING', false),
         domains: this.configService
           .get<string>('CORS_SUBDOMAIN_DOMAINS', '')
           .split(',')
@@ -132,10 +112,7 @@ export class CORSSecurityMiddleware implements NestMiddleware {
 
   private parseOrigins():
     | string[]
-    | ((
-        origin: string,
-        callback: (err: Error | null, allow?: boolean) => void,
-      ) => void) {
+    | ((origin: string, callback: (err: Error | null, allow?: boolean) => void) => void) {
     const originsConfig = this.configService.get<string>('CORS_ORIGINS', '');
 
     if (this.config?.developmentMode) {
@@ -152,10 +129,7 @@ export class CORSSecurityMiddleware implements NestMiddleware {
     }
 
     if (this.config?.dynamicOriginValidation) {
-      return (
-        origin: string,
-        callback: (err: Error | null, allow?: boolean) => void,
-      ) => {
+      return (origin: string, callback: (err: Error | null, allow?: boolean) => void) => {
         this.validateOriginDynamically(origin, callback);
       };
     }
@@ -272,10 +246,7 @@ export class CORSSecurityMiddleware implements NestMiddleware {
       ];
 
       const isSuspicious = suspiciousPatterns.some((pattern) => {
-        if (
-          pattern.source.includes('localhost') &&
-          this.config.developmentMode
-        ) {
+        if (pattern.source.includes('localhost') && this.config.developmentMode) {
           return false; // Allow localhost in development
         }
         return pattern.test(url.hostname);
@@ -313,21 +284,14 @@ export class CORSSecurityMiddleware implements NestMiddleware {
     callback(null, false);
   }
 
-  private handlePreflightRequest(
-    req: Request,
-    res: Response,
-    origin?: string,
-  ): void {
+  private handlePreflightRequest(req: Request, res: Response, origin?: string): void {
     // Set CORS headers for preflight
     this.setCORSHeaders(res, origin);
 
     // Handle Access-Control-Request-Method
     const requestMethod = req.headers['access-control-request-method'];
     if (requestMethod && this.config.methods.includes(requestMethod)) {
-      res.setHeader(
-        'Access-Control-Allow-Methods',
-        this.config.methods.join(','),
-      );
+      res.setHeader('Access-Control-Allow-Methods', this.config.methods.join(','));
     }
 
     // Handle Access-Control-Request-Headers
@@ -341,10 +305,7 @@ export class CORSSecurityMiddleware implements NestMiddleware {
       );
 
       if (allowedRequestHeaders.length > 0) {
-        res.setHeader(
-          'Access-Control-Allow-Headers',
-          allowedRequestHeaders.join(','),
-        );
+        res.setHeader('Access-Control-Allow-Headers', allowedRequestHeaders.join(','));
       }
     }
 
@@ -354,20 +315,13 @@ export class CORSSecurityMiddleware implements NestMiddleware {
     res.status(this.config.optionsSuccessStatus).end();
   }
 
-  private handleActualRequest(
-    req: Request,
-    res: Response,
-    origin?: string,
-  ): void {
+  private handleActualRequest(req: Request, res: Response, origin?: string): void {
     // Set CORS headers for actual request
     this.setCORSHeaders(res, origin);
 
     // Set exposed headers
     if (this.config.exposedHeaders.length > 0) {
-      res.setHeader(
-        'Access-Control-Expose-Headers',
-        this.config.exposedHeaders.join(','),
-      );
+      res.setHeader('Access-Control-Expose-Headers', this.config.exposedHeaders.join(','));
     }
   }
 

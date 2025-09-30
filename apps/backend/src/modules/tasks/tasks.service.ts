@@ -1,18 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DrizzleService } from '../../db/drizzle.service';
 import { tasks, subjects } from '../../db/schema';
-import {
-  eq,
-  and,
-  desc,
-  asc,
-  gte,
-  lte,
-  ilike,
-  or,
-  inArray,
-  count,
-} from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte, ilike, or, inArray, count } from 'drizzle-orm';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { CacheService } from '../../common/cache/cache.service';
 import { QueryOptimizerService } from '../../common/performance/query-optimizer.service';
@@ -45,9 +34,7 @@ export class TasksService {
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      conditions.push(
-        and(gte(tasks.dueDate, startOfDay), lte(tasks.dueDate, endOfDay)),
-      );
+      conditions.push(and(gte(tasks.dueDate, startOfDay), lte(tasks.dueDate, endOfDay)));
     }
 
     return this.queryOptimizerService.executeWithMetrics(
@@ -226,8 +213,7 @@ export class TasksService {
     }
 
     // Toggle the status between completed and pending
-    const newStatus =
-      currentTask.status === 'completed' ? 'pending' : 'completed';
+    const newStatus = currentTask.status === 'completed' ? 'pending' : 'completed';
     const updateData: any = {
       status: newStatus,
       updatedAt: new Date(),
@@ -289,11 +275,7 @@ export class TasksService {
   }
 
   // Batch operations
-  async batchUpdateTasks(
-    userId: string,
-    taskIds: string[],
-    updateData: Partial<UpdateTaskDto>,
-  ) {
+  async batchUpdateTasks(userId: string, taskIds: string[], updateData: Partial<UpdateTaskDto>) {
     const updatedTasks = [];
 
     for (const taskId of taskIds) {
@@ -384,10 +366,7 @@ export class TasksService {
 
     if (searchTerm) {
       conditions.push(
-        or(
-          ilike(tasks.title, `%${searchTerm}%`),
-          ilike(tasks.description, `%${searchTerm}%`),
-        ),
+        or(ilike(tasks.title, `%${searchTerm}%`), ilike(tasks.description, `%${searchTerm}%`)),
       );
     }
 
@@ -498,11 +477,7 @@ export class TasksService {
     );
   }
 
-  async updateTaskProgress(
-    taskId: string,
-    userId: string,
-    progressPercentage: number,
-  ) {
+  async updateTaskProgress(taskId: string, userId: string, progressPercentage: number) {
     const [updated] = await this.drizzleService.db
       .update(tasks)
       .set({
@@ -533,10 +508,7 @@ export class TasksService {
       await this.cacheService.delPattern(`dashboard_weekly:${userId}`);
       this.logger.debug(`Invalidated dashboard cache for user: ${userId}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to invalidate dashboard cache for user ${userId}:`,
-        error,
-      );
+      this.logger.error(`Failed to invalidate dashboard cache for user ${userId}:`, error);
     }
   }
 }

@@ -1,12 +1,4 @@
-import {
-  IsOptional,
-  IsUUID,
-  IsEnum,
-  IsDateString,
-  IsNumber,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsOptional, IsUUID, IsEnum, IsDateString, IsNumber, Min, Max } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { FocusType } from './start-focus-session.dto';

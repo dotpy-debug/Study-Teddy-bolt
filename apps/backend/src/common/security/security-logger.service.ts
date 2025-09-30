@@ -80,10 +80,7 @@ export class SecurityLoggerService {
   private readonly logger = new Logger(SecurityLoggerService.name);
   private readonly config: LoggingConfig;
   private readonly logLevels: Map<string, SecurityLogLevel> = new Map();
-  private readonly eventCounters: Map<
-    string,
-    { count: number; windowStart: Date }
-  > = new Map();
+  private readonly eventCounters: Map<string, { count: number; windowStart: Date }> = new Map();
 
   constructor(
     private readonly configService: ConfigService,
@@ -200,11 +197,7 @@ export class SecurityLoggerService {
    * Log authorization events
    */
   async logAuthorizationEvent(
-    event:
-      | 'access_granted'
-      | 'access_denied'
-      | 'permission_escalation'
-      | 'role_change',
+    event: 'access_granted' | 'access_denied' | 'permission_escalation' | 'role_change',
     details: {
       userId?: string;
       resource?: string;
@@ -243,10 +236,7 @@ export class SecurityLoggerService {
    * Log input validation events
    */
   async logInputValidationEvent(
-    event:
-      | 'validation_failure'
-      | 'sanitization_applied'
-      | 'malicious_input_detected',
+    event: 'validation_failure' | 'sanitization_applied' | 'malicious_input_detected',
     details: {
       userId?: string;
       endpoint?: string;
@@ -259,9 +249,7 @@ export class SecurityLoggerService {
   ): Promise<void> {
     await this.logSecurityEvent({
       level:
-        details.threatLevel === 'critical' || details.threatLevel === 'high'
-          ? 'error'
-          : 'warn',
+        details.threatLevel === 'critical' || details.threatLevel === 'high' ? 'error' : 'warn',
       category: 'input_validation',
       event,
       description: `Input validation event: ${event}`,
@@ -387,18 +375,11 @@ export class SecurityLoggerService {
       operation?: string;
       success?: boolean;
       errorMessage?: string;
-      dataClassification?:
-        | 'public'
-        | 'internal'
-        | 'confidential'
-        | 'restricted';
+      dataClassification?: 'public' | 'internal' | 'confidential' | 'restricted';
     },
   ): Promise<void> {
     await this.logSecurityEvent({
-      level:
-        details.success === false || event === 'data_breach_detected'
-          ? 'error'
-          : 'info',
+      level: details.success === false || event === 'data_breach_detected' ? 'error' : 'info',
       category: 'data_protection',
       event,
       description: `Data protection event: ${event}`,
@@ -425,41 +406,18 @@ export class SecurityLoggerService {
    */
   private initializeConfig(): LoggingConfig {
     return {
-      enableSecurityLogging: this.configService.get<boolean>(
-        'SECURITY_LOGGING_ENABLED',
-        true,
-      ),
+      enableSecurityLogging: this.configService.get<boolean>('SECURITY_LOGGING_ENABLED', true),
       enableSensitiveDataMasking: this.configService.get<boolean>(
         'SECURITY_LOG_MASK_SENSITIVE',
         true,
       ),
-      enableEncryptedLogging: this.configService.get<boolean>(
-        'SECURITY_LOG_ENCRYPTION',
-        false,
-      ),
-      logLevel: this.configService.get<SecurityLogLevel['level']>(
-        'SECURITY_LOG_LEVEL',
-        'info',
-      ),
-      maxLogEntrySize: this.configService.get<number>(
-        'SECURITY_LOG_MAX_SIZE',
-        10000,
-      ),
-      retentionDays: this.configService.get<number>(
-        'SECURITY_LOG_RETENTION_DAYS',
-        90,
-      ),
-      enableRemoteLogging: this.configService.get<boolean>(
-        'SECURITY_LOG_REMOTE_ENABLED',
-        false,
-      ),
-      remoteLogEndpoint: this.configService.get<string>(
-        'SECURITY_LOG_REMOTE_ENDPOINT',
-      ),
-      enableRealTimeAlerts: this.configService.get<boolean>(
-        'SECURITY_ALERTS_ENABLED',
-        true,
-      ),
+      enableEncryptedLogging: this.configService.get<boolean>('SECURITY_LOG_ENCRYPTION', false),
+      logLevel: this.configService.get<SecurityLogLevel['level']>('SECURITY_LOG_LEVEL', 'info'),
+      maxLogEntrySize: this.configService.get<number>('SECURITY_LOG_MAX_SIZE', 10000),
+      retentionDays: this.configService.get<number>('SECURITY_LOG_RETENTION_DAYS', 90),
+      enableRemoteLogging: this.configService.get<boolean>('SECURITY_LOG_REMOTE_ENABLED', false),
+      remoteLogEndpoint: this.configService.get<string>('SECURITY_LOG_REMOTE_ENDPOINT'),
+      enableRealTimeAlerts: this.configService.get<boolean>('SECURITY_ALERTS_ENABLED', true),
       alertThresholds: {
         authentication: { count: 5, timeWindow: 5 },
         authorization: { count: 10, timeWindow: 5 },
@@ -494,37 +452,27 @@ export class SecurityLoggerService {
     return eventLevel.priority >= configLevel.priority;
   }
 
-  private async sanitizeSecurityEvent(
-    event: SecurityEvent,
-  ): Promise<SecurityEvent> {
+  private async sanitizeSecurityEvent(event: SecurityEvent): Promise<SecurityEvent> {
     const sanitized = { ...event };
 
     if (this.config.enableSensitiveDataMasking) {
       // Sanitize user data
       if (sanitized.user?.email) {
-        sanitized.user.email = this.sanitizationService.sanitizeEmail(
-          sanitized.user.email,
-        );
+        sanitized.user.email = this.sanitizationService.sanitizeEmail(sanitized.user.email);
       }
 
       // Sanitize request data
       if (sanitized.request?.body) {
-        sanitized.request.body = this.encryptionService.maskSensitiveData(
-          sanitized.request.body,
-        );
+        sanitized.request.body = this.encryptionService.maskSensitiveData(sanitized.request.body);
       }
 
       if (sanitized.request?.query) {
-        sanitized.request.query = this.encryptionService.maskSensitiveData(
-          sanitized.request.query,
-        );
+        sanitized.request.query = this.encryptionService.maskSensitiveData(sanitized.request.query);
       }
 
       // Sanitize metadata
       if (sanitized.metadata) {
-        sanitized.metadata = this.encryptionService.maskSensitiveData(
-          sanitized.metadata,
-        );
+        sanitized.metadata = this.encryptionService.maskSensitiveData(sanitized.metadata);
       }
     }
 
@@ -543,9 +491,7 @@ export class SecurityLoggerService {
 
     const key = `${event.category}:${event.user?.id || 'anonymous'}`;
     const now = new Date();
-    const windowStart = new Date(
-      now.getTime() - threshold.timeWindow * 60 * 1000,
-    );
+    const windowStart = new Date(now.getTime() - threshold.timeWindow * 60 * 1000);
 
     let counter = this.eventCounters.get(key);
     if (!counter || counter.windowStart < windowStart) {
@@ -560,11 +506,7 @@ export class SecurityLoggerService {
     }
   }
 
-  private triggerSecurityAlert(
-    event: SecurityEvent,
-    count: number,
-    threshold: any,
-  ): void {
+  private triggerSecurityAlert(event: SecurityEvent, count: number, threshold: any): void {
     this.logger.error('Security alert triggered', {
       category: event.category,
       eventCount: count,
@@ -584,8 +526,7 @@ export class SecurityLoggerService {
     // Limit log entry size
     const truncatedMessage =
       logMessage.length > this.config.maxLogEntrySize
-        ? logMessage.substring(0, this.config.maxLogEntrySize) +
-          '...[TRUNCATED]'
+        ? logMessage.substring(0, this.config.maxLogEntrySize) + '...[TRUNCATED]'
         : logMessage;
 
     // Log based on severity level

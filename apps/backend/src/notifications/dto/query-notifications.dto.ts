@@ -1,17 +1,7 @@
-import {
-  IsOptional,
-  IsBoolean,
-  IsEnum,
-  IsNumber,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsOptional, IsBoolean, IsEnum, IsNumber, Min, Max } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  NotificationType,
-  NotificationPriority,
-} from './create-notification.dto';
+import { NotificationType, NotificationPriority } from './create-notification.dto';
 
 export class QueryNotificationsDto {
   @ApiProperty({

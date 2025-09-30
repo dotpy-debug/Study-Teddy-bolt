@@ -45,9 +45,7 @@ export class EmailProcessor extends WorkerHost {
       throw new Error(result.error || 'Email sending failed');
     }
 
-    this.logger.log(
-      `Single email sent successfully. Job ${job.id}, Email ID: ${result.emailId}`,
-    );
+    this.logger.log(`Single email sent successfully. Job ${job.id}, Email ID: ${result.emailId}`);
     return result;
   }
 

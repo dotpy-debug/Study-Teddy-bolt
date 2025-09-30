@@ -25,11 +25,7 @@ export class ResponseCacheService {
   /**
    * Generate cache key with proper prefixing and user isolation
    */
-  private generateCacheKey(
-    baseKey: string,
-    userId?: string,
-    params?: Record<string, any>,
-  ): string {
+  private generateCacheKey(baseKey: string, userId?: string, params?: Record<string, any>): string {
     const userPrefix = userId ? `user:${userId}` : 'global';
     const paramString = params ? this.serializeParams(params) : '';
     return `cache:${userPrefix}:${baseKey}${paramString ? `:${paramString}` : ''}`;
@@ -57,11 +53,7 @@ export class ResponseCacheService {
   /**
    * Get cached response with metadata validation
    */
-  async get<T>(
-    key: string,
-    userId?: string,
-    params?: Record<string, any>,
-  ): Promise<T | null> {
+  async get<T>(key: string, userId?: string, params?: Record<string, any>): Promise<T | null> {
     try {
       const cacheKey = this.generateCacheKey(key, userId, params);
       const startTime = Date.now();
@@ -76,8 +68,7 @@ export class ResponseCacheService {
       if (cachedData) {
         // Validate cache freshness
         const now = Date.now();
-        const expiresAt =
-          cachedData.metadata.timestamp + cachedData.metadata.ttl * 1000;
+        const expiresAt = cachedData.metadata.timestamp + cachedData.metadata.ttl * 1000;
 
         if (now > expiresAt) {
           // Cache expired, remove it
@@ -171,10 +162,7 @@ export class ResponseCacheService {
         `Cache invalidated ${invalidatedCount} entries in ${duration}ms for tags: ${tags.join(', ')}`,
       );
     } catch (error) {
-      this.logger.error(
-        `Cache invalidation error for tags ${tags.join(', ')}:`,
-        error.stack,
-      );
+      this.logger.error(`Cache invalidation error for tags ${tags.join(', ')}:`, error.stack);
     }
   }
 
@@ -185,35 +173,23 @@ export class ResponseCacheService {
     try {
       await this.invalidateByTags([`user:${userId}`]);
     } catch (error) {
-      this.logger.error(
-        `Cache invalidation error for user ${userId}:`,
-        error.stack,
-      );
+      this.logger.error(`Cache invalidation error for user ${userId}:`, error.stack);
     }
   }
 
   /**
    * Add cache key to tag indexes for efficient invalidation
    */
-  private async addToTagIndexes(
-    cacheKey: string,
-    tags: string[],
-    ttl: number,
-  ): Promise<void> {
+  private async addToTagIndexes(cacheKey: string, tags: string[], ttl: number): Promise<void> {
     try {
       for (const tag of tags) {
         const tagIndexKey = `tag:${tag}`;
-        const existingKeys =
-          (await this.cacheManager.get<string[]>(tagIndexKey)) || [];
+        const existingKeys = (await this.cacheManager.get<string[]>(tagIndexKey)) || [];
 
         if (!existingKeys.includes(cacheKey)) {
           existingKeys.push(cacheKey);
           // Tag indexes have longer TTL to ensure proper cleanup
-          await this.cacheManager.set(
-            tagIndexKey,
-            existingKeys,
-            (ttl + 60) * 1000,
-          );
+          await this.cacheManager.set(tagIndexKey, existingKeys, (ttl + 60) * 1000);
         }
       }
     } catch (error) {
@@ -268,16 +244,11 @@ export class ResponseCacheService {
  * Decorator for automatic response caching
  */
 export function CacheResponse(options: CacheOptions & { key: string }) {
-  return function (
-    target: any,
-    propertyName: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const cacheService: ResponseCacheService =
-        this.cacheService || this.responseCache;
+      const cacheService: ResponseCacheService = this.cacheService || this.responseCache;
 
       if (!cacheService) {
         // Fallback to original method if cache service not available
@@ -285,8 +256,7 @@ export function CacheResponse(options: CacheOptions & { key: string }) {
       }
 
       // Extract userId from context/args if available
-      const userId =
-        this.extractUserId?.(args) || args.find((arg) => arg?.userId)?.userId;
+      const userId = this.extractUserId?.(args) || args.find((arg) => arg?.userId)?.userId;
       const params = this.extractCacheParams?.(args) || {};
 
       // Try to get from cache first

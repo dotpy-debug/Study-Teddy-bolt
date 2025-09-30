@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DrizzleService } from '@/db/drizzle.service';
 import { calendarAccounts, tasks, focusSessions } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -21,11 +16,7 @@ import {
   CalendarEventDto,
   CalendarAccountResponseDto,
 } from './dto';
-import {
-  CalendarTokens,
-  CalendarEvent,
-  TimeSlot,
-} from './interfaces/calendar.interfaces';
+import { CalendarTokens, CalendarEvent, TimeSlot } from './interfaces/calendar.interfaces';
 
 @Injectable()
 export class CalendarService {
@@ -58,9 +49,7 @@ export class CalendarService {
       const tokens = await this.googleOAuthService.getTokensFromCode(dto.code);
 
       // Get user info
-      const userInfo = await this.googleOAuthService.getUserInfo(
-        tokens.accessToken,
-      );
+      const userInfo = await this.googleOAuthService.getUserInfo(tokens.accessToken);
 
       // Check if account already exists
       const existingAccount = await this.drizzle.db
@@ -80,11 +69,8 @@ export class CalendarService {
           .update(calendarAccounts)
           .set({
             accessToken: tokens.accessToken,
-            refreshToken:
-              tokens.refreshToken || existingAccount[0].refreshToken,
-            tokenExpiresAt: tokens.expiryDate
-              ? new Date(tokens.expiryDate)
-              : null,
+            refreshToken: tokens.refreshToken || existingAccount[0].refreshToken,
+            tokenExpiresAt: tokens.expiryDate ? new Date(tokens.expiryDate) : null,
             syncEnabled: true,
             syncError: null,
             updatedAt: new Date(),
@@ -108,9 +94,7 @@ export class CalendarService {
           accountName: userInfo.name,
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
-          tokenExpiresAt: tokens.expiryDate
-            ? new Date(tokens.expiryDate)
-            : null,
+          tokenExpiresAt: tokens.expiryDate ? new Date(tokens.expiryDate) : null,
           syncEnabled: true,
           isPrimary: false, // Will be set to true if it's the first account
         })
@@ -145,23 +129,15 @@ export class CalendarService {
       return this.mapToResponseDto(newAccount);
     } catch (error) {
       this.logger.error(`Failed to connect calendar: ${error.message}`);
-      throw new BadRequestException(
-        `Failed to connect calendar: ${error.message}`,
-      );
+      throw new BadRequestException(`Failed to connect calendar: ${error.message}`);
     }
   }
 
   /**
    * Disconnect calendar account
    */
-  async disconnectCalendar(
-    userId: string,
-    dto: DisconnectCalendarDto,
-  ): Promise<void> {
-    const account = await this.getCalendarAccount(
-      userId,
-      dto.calendarAccountId,
-    );
+  async disconnectCalendar(userId: string, dto: DisconnectCalendarDto): Promise<void> {
+    const account = await this.getCalendarAccount(userId, dto.calendarAccountId);
 
     // Revoke tokens
     try {
@@ -175,17 +151,13 @@ export class CalendarService {
       .delete(calendarAccounts)
       .where(eq(calendarAccounts.id, dto.calendarAccountId));
 
-    this.logger.debug(
-      `Disconnected calendar account ${dto.calendarAccountId} for user ${userId}`,
-    );
+    this.logger.debug(`Disconnected calendar account ${dto.calendarAccountId} for user ${userId}`);
   }
 
   /**
    * Get user's calendar accounts
    */
-  async getCalendarAccounts(
-    userId: string,
-  ): Promise<CalendarAccountResponseDto[]> {
+  async getCalendarAccounts(userId: string): Promise<CalendarAccountResponseDto[]> {
     const accounts = await this.drizzle.db
       .select()
       .from(calendarAccounts)
@@ -197,10 +169,7 @@ export class CalendarService {
   /**
    * Schedule a study session
    */
-  async scheduleSession(
-    userId: string,
-    dto: ScheduleSessionDto,
-  ): Promise<CalendarEventDto> {
+  async scheduleSession(userId: string, dto: ScheduleSessionDto): Promise<CalendarEventDto> {
     // Get task
     const [task] = await this.drizzle.db
       .select()
@@ -229,9 +198,7 @@ export class CalendarService {
         tokens,
         new Date(dto.startTime),
         Math.ceil(
-          (new Date(dto.endTime).getTime() -
-            new Date(dto.startTime).getTime()) /
-            (60 * 1000),
+          (new Date(dto.endTime).getTime() - new Date(dto.startTime).getTime()) / (60 * 1000),
         ),
       );
 
@@ -278,10 +245,7 @@ export class CalendarService {
       },
     };
 
-    const createdEvent = await this.googleCalendarService.createEvent(
-      tokens,
-      event,
-    );
+    const createdEvent = await this.googleCalendarService.createEvent(tokens, event);
 
     // Create focus session record
     const [focusSession] = await this.drizzle.db
@@ -293,9 +257,7 @@ export class CalendarService {
         startTime: new Date(dto.startTime),
         endTime: new Date(dto.endTime),
         durationMinutes: Math.ceil(
-          (new Date(dto.endTime).getTime() -
-            new Date(dto.startTime).getTime()) /
-            (60 * 1000),
+          (new Date(dto.endTime).getTime() - new Date(dto.startTime).getTime()) / (60 * 1000),
         ),
       })
       .returning();
@@ -315,17 +277,10 @@ export class CalendarService {
 
     // Check for conflicts if time is being changed
     if (dto.startTime || dto.endTime) {
-      const existingEvent = await this.googleCalendarService.getEvent(
-        tokens,
-        dto.eventId,
-      );
+      const existingEvent = await this.googleCalendarService.getEvent(tokens, dto.eventId);
 
-      const newStart =
-        dto.startTime ||
-        existingEvent.start?.dateTime ||
-        existingEvent.start?.date;
-      const newEnd =
-        dto.endTime || existingEvent.end?.dateTime || existingEvent.end?.date;
+      const newStart = dto.startTime || existingEvent.start?.dateTime || existingEvent.start?.date;
+      const newEnd = dto.endTime || existingEvent.end?.dateTime || existingEvent.end?.date;
 
       const conflicts = await this.schedulingService.checkConflicts(
         tokens,
@@ -371,10 +326,7 @@ export class CalendarService {
   /**
    * Delete scheduled session
    */
-  async deleteScheduledSession(
-    userId: string,
-    dto: DeleteScheduledSessionDto,
-  ): Promise<void> {
+  async deleteScheduledSession(userId: string, dto: DeleteScheduledSessionDto): Promise<void> {
     const account = await this.getPrimaryCalendarAccount(userId);
     const tokens = await this.getValidTokens(account);
 
@@ -445,19 +397,11 @@ export class CalendarService {
   /**
    * Get calendar events for a time range
    */
-  async getEvents(
-    userId: string,
-    startTime: string,
-    endTime: string,
-  ): Promise<CalendarEventDto[]> {
+  async getEvents(userId: string, startTime: string, endTime: string): Promise<CalendarEventDto[]> {
     const account = await this.getPrimaryCalendarAccount(userId);
     const tokens = await this.getValidTokens(account);
 
-    const events = await this.googleCalendarService.listEvents(
-      tokens,
-      startTime,
-      endTime,
-    );
+    const events = await this.googleCalendarService.listEvents(tokens, startTime, endTime);
 
     return events.map((event) => this.mapEventToDto(event));
   }
@@ -469,12 +413,7 @@ export class CalendarService {
     const [account] = await this.drizzle.db
       .select()
       .from(calendarAccounts)
-      .where(
-        and(
-          eq(calendarAccounts.id, accountId),
-          eq(calendarAccounts.userId, userId),
-        ),
-      )
+      .where(and(eq(calendarAccounts.id, accountId), eq(calendarAccounts.userId, userId)))
       .limit(1);
 
     if (!account) {
@@ -491,12 +430,7 @@ export class CalendarService {
     const [account] = await this.drizzle.db
       .select()
       .from(calendarAccounts)
-      .where(
-        and(
-          eq(calendarAccounts.userId, userId),
-          eq(calendarAccounts.isPrimary, true),
-        ),
-      )
+      .where(and(eq(calendarAccounts.userId, userId), eq(calendarAccounts.isPrimary, true)))
       .limit(1);
 
     if (!account) {
@@ -532,15 +466,11 @@ export class CalendarService {
     // Check if token is expired
     if (this.googleOAuthService.isTokenExpired(tokens.expiryDate)) {
       if (!tokens.refreshToken) {
-        throw new BadRequestException(
-          'Calendar access expired. Please reconnect your calendar.',
-        );
+        throw new BadRequestException('Calendar access expired. Please reconnect your calendar.');
       }
 
       // Refresh token
-      const newTokens = await this.googleOAuthService.refreshAccessToken(
-        tokens.refreshToken,
-      );
+      const newTokens = await this.googleOAuthService.refreshAccessToken(tokens.refreshToken);
 
       // Update in database
       await this.drizzle.db
@@ -548,9 +478,7 @@ export class CalendarService {
         .set({
           accessToken: newTokens.accessToken,
           refreshToken: newTokens.refreshToken || account.refreshToken,
-          tokenExpiresAt: newTokens.expiryDate
-            ? new Date(newTokens.expiryDate)
-            : null,
+          tokenExpiresAt: newTokens.expiryDate ? new Date(newTokens.expiryDate) : null,
           updatedAt: new Date(),
         })
         .where(eq(calendarAccounts.id, account.id));
@@ -583,11 +511,7 @@ export class CalendarService {
   /**
    * Helper: Map Google Calendar event to DTO
    */
-  private mapEventToDto(
-    event: any,
-    taskId?: string,
-    focusSessionId?: string,
-  ): CalendarEventDto {
+  private mapEventToDto(event: any, taskId?: string, focusSessionId?: string): CalendarEventDto {
     return {
       id: event.id || '',
       title: event.summary || '',
@@ -596,8 +520,7 @@ export class CalendarService {
       endTime: event.end?.dateTime || event.end?.date || '',
       location: event.location,
       taskId: taskId || event.extendedProperties?.private?.taskId,
-      focusSessionId:
-        focusSessionId || event.extendedProperties?.private?.focusSessionId,
+      focusSessionId: focusSessionId || event.extendedProperties?.private?.focusSessionId,
       calendarId: event.organizer?.email || '',
       htmlLink: event.htmlLink || '',
       createdAt: new Date(event.created || Date.now()),

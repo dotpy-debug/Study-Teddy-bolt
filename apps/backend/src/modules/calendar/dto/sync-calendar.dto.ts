@@ -1,16 +1,9 @@
-import {
-  IsOptional,
-  IsBoolean,
-  IsDateString,
-  IsString,
-  IsEnum,
-} from 'class-validator';
+import { IsOptional, IsBoolean, IsDateString, IsString, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SyncCalendarDto {
   @ApiPropertyOptional({
-    description:
-      'Calendar ID to sync (if not specified, syncs Study Teddy calendar)',
+    description: 'Calendar ID to sync (if not specified, syncs Study Teddy calendar)',
   })
   @IsOptional()
   @IsString()

@@ -106,9 +106,7 @@ export class UptimeMonitorService {
         this.updateServiceStatus(
           serviceName,
           'down',
-          result.status === 'rejected'
-            ? result.reason.message
-            : 'Health check failed',
+          result.status === 'rejected' ? result.reason.message : 'Health check failed',
         );
         allHealthy = false;
       }
@@ -172,19 +170,10 @@ export class UptimeMonitorService {
       const responseTime = Date.now() - startTime;
 
       if (response.ok) {
-        this.updateServiceStatus(
-          'frontend',
-          'healthy',
-          undefined,
-          responseTime,
-        );
+        this.updateServiceStatus('frontend', 'healthy', undefined, responseTime);
         return true;
       } else {
-        this.updateServiceStatus(
-          'frontend',
-          'degraded',
-          `HTTP ${response.status}`,
-        );
+        this.updateServiceStatus('frontend', 'degraded', `HTTP ${response.status}`);
         return false;
       }
     } catch (error) {
@@ -234,8 +223,7 @@ export class UptimeMonitorService {
     if (this.currentDowntime && !this.currentDowntime.resolved) {
       this.currentDowntime.endTime = new Date();
       this.currentDowntime.duration =
-        this.currentDowntime.endTime.getTime() -
-        this.currentDowntime.startTime.getTime();
+        this.currentDowntime.endTime.getTime() - this.currentDowntime.startTime.getTime();
       this.currentDowntime.resolved = true;
 
       this.logger.log(`Downtime event resolved: ${this.currentDowntime.id}`, {
@@ -253,8 +241,7 @@ export class UptimeMonitorService {
 
     // Calculate uptime percentage
     const totalChecks = this.healthChecksPassed + this.healthChecksFailed;
-    const uptimePercentage =
-      totalChecks > 0 ? (this.healthChecksPassed / totalChecks) * 100 : 100;
+    const uptimePercentage = totalChecks > 0 ? (this.healthChecksPassed / totalChecks) * 100 : 100;
 
     return {
       uptime,
@@ -332,16 +319,11 @@ export class UptimeMonitorService {
   // Get uptime percentage for a specific time period
   getUptimePercentage(hours: number = 24): number {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    const relevantEvents = this.downtimeEvents.filter(
-      (event) => event.startTime > cutoff,
-    );
+    const relevantEvents = this.downtimeEvents.filter((event) => event.startTime > cutoff);
 
     const totalDowntime = relevantEvents.reduce((total, event) => {
       const duration =
-        event.duration ||
-        (event.endTime
-          ? event.endTime.getTime() - event.startTime.getTime()
-          : 0);
+        event.duration || (event.endTime ? event.endTime.getTime() - event.startTime.getTime() : 0);
       return total + duration;
     }, 0);
 

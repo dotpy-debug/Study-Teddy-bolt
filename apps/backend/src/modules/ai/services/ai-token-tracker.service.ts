@@ -51,10 +51,7 @@ export class AITokenTrackerService {
   /**
    * Check if user can make a request within budget limits
    */
-  async checkBudget(
-    userId: string,
-    estimatedTokens?: number,
-  ): Promise<TokenBudget> {
+  async checkBudget(userId: string, estimatedTokens?: number): Promise<TokenBudget> {
     const cacheKey = this.cacheService.generateKey('token_budget', userId);
 
     // Try to get from cache first
@@ -127,10 +124,7 @@ export class AITokenTrackerService {
       });
 
       // Invalidate budget cache
-      const cacheKey = this.cacheService.generateKey(
-        'token_budget',
-        usage.userId,
-      );
+      const cacheKey = this.cacheService.generateKey('token_budget', usage.userId);
       await this.cacheService.del(cacheKey);
 
       // Check if daily limit was exceeded
@@ -162,23 +156,18 @@ export class AITokenTrackerService {
     }
 
     const now = new Date();
-    const todayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     try {
       // Get usage data
-      const [dailyUsage, weeklyUsage, monthlyUsage, actionStats] =
-        await Promise.all([
-          this.getUserUsageSince(userId, todayStart),
-          this.getUserUsageSince(userId, weekStart),
-          this.getUserUsageSince(userId, monthStart),
-          this.getActionBreakdown(userId, monthStart),
-        ]);
+      const [dailyUsage, weeklyUsage, monthlyUsage, actionStats] = await Promise.all([
+        this.getUserUsageSince(userId, todayStart),
+        this.getUserUsageSince(userId, weekStart),
+        this.getUserUsageSince(userId, monthStart),
+        this.getActionBreakdown(userId, monthStart),
+      ]);
 
       const stats: UsageStats = {
         dailyUsage: dailyUsage.tokens,
@@ -232,8 +221,7 @@ export class AITokenTrackerService {
       return {
         totalUsers: stats.totalUsers,
         usersOverLimit: usersOverLimit.length,
-        averageUsage:
-          stats.totalUsers > 0 ? stats.totalTokens / stats.totalUsers : 0,
+        averageUsage: stats.totalUsers > 0 ? stats.totalTokens / stats.totalUsers : 0,
         totalTokensToday: stats.totalTokens,
       };
     } catch (error) {
@@ -256,11 +244,7 @@ export class AITokenTrackerService {
 
   private async calculateBudget(userId: string): Promise<TokenBudget> {
     const now = new Date();
-    const todayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
     const usage = await this.getUserUsageSince(userId, todayStart);
@@ -321,14 +305,9 @@ export class AITokenTrackerService {
     }
 
     const totalTokens = result.reduce((sum, row) => sum + row.totalTokens, 0);
-    const totalRequests = result.reduce(
-      (sum, row) => sum + row.requestCount,
-      0,
-    );
+    const totalRequests = result.reduce((sum, row) => sum + row.requestCount, 0);
 
-    const mostUsed = result.reduce((max, row) =>
-      row.requestCount > max.requestCount ? row : max,
-    );
+    const mostUsed = result.reduce((max, row) => (row.requestCount > max.requestCount ? row : max));
 
     const costBreakdown: Record<string, number> = {};
     result.forEach((row) => {

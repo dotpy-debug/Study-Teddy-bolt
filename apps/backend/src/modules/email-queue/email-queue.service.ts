@@ -1,11 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import {
-  EMAIL_QUEUE,
-  WEEKLY_DIGEST_QUEUE,
-  RETRY_QUEUE,
-} from './email-queue.module';
+import { EMAIL_QUEUE, WEEKLY_DIGEST_QUEUE, RETRY_QUEUE } from './email-queue.module';
 import {
   EmailJobData,
   EmailJobOptions,
@@ -25,28 +21,23 @@ export class EmailQueueService {
     private quietHoursService: QuietHoursService,
   ) {}
 
-  async addEmailJob(
-    emailData: EmailJobData,
-    options: EmailJobOptions = {},
-  ): Promise<string> {
+  async addEmailJob(emailData: EmailJobData, options: EmailJobOptions = {}): Promise<string> {
     try {
       // Check if we should respect quiet hours
       let delay = options.delay || 0;
 
       if (emailData.respectQuietHours !== false) {
-        const shouldRespect =
-          await this.quietHoursService.shouldRespectQuietHours(
-            emailData.userId,
-            emailData.type,
-            emailData.priority || 50,
-          );
+        const shouldRespect = await this.quietHoursService.shouldRespectQuietHours(
+          emailData.userId,
+          emailData.type,
+          emailData.priority || 50,
+        );
 
         if (shouldRespect) {
-          const allowedTime =
-            await this.quietHoursService.getNextAllowedSendTime(
-              emailData.userId,
-              emailData.scheduledFor,
-            );
+          const allowedTime = await this.quietHoursService.getNextAllowedSendTime(
+            emailData.userId,
+            emailData.scheduledFor,
+          );
 
           const now = new Date();
           if (allowedTime > now) {
@@ -62,22 +53,18 @@ export class EmailQueueService {
         }
       }
 
-      const job = await this.emailQueue.add(
-        `send-${emailData.type}`,
-        emailData,
-        {
-          delay,
-          priority: emailData.priority || 50,
-          attempts: emailData.maxRetries || 3,
-          removeOnComplete: options.removeOnComplete ?? 100,
-          removeOnFail: options.removeOnFail ?? 50,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
-          ...options,
+      const job = await this.emailQueue.add(`send-${emailData.type}`, emailData, {
+        delay,
+        priority: emailData.priority || 50,
+        attempts: emailData.maxRetries || 3,
+        removeOnComplete: options.removeOnComplete ?? 100,
+        removeOnFail: options.removeOnFail ?? 50,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
         },
-      );
+        ...options,
+      });
 
       this.logger.debug(`Added email job to queue`, {
         jobId: job.id,
@@ -181,13 +168,7 @@ export class EmailQueueService {
     options: EmailJobOptions = {},
   ): Promise<string> {
     const emailPriority =
-      reminderType === 'overdue'
-        ? 80
-        : priority === 'urgent'
-          ? 70
-          : priority === 'high'
-            ? 60
-            : 50;
+      reminderType === 'overdue' ? 80 : priority === 'urgent' ? 70 : priority === 'high' ? 60 : 50;
 
     return this.addEmailJob(
       {
@@ -286,10 +267,7 @@ export class EmailQueueService {
     options: EmailJobOptions = {},
   ): Promise<string> {
     try {
-      if (
-        !userPreferences.emailEnabled ||
-        !userPreferences.weeklyDigestEnabled
-      ) {
+      if (!userPreferences.emailEnabled || !userPreferences.weeklyDigestEnabled) {
         this.logger.debug(`Weekly digest disabled for user ${userId}`);
         return null;
       }
@@ -406,12 +384,11 @@ export class EmailQueueService {
         this.retryQueue.getActive(),
       ]);
 
-      const [emailCompleted, digestCompleted, retryCompleted] =
-        await Promise.all([
-          this.emailQueue.getCompleted(),
-          this.weeklyDigestQueue.getCompleted(),
-          this.retryQueue.getCompleted(),
-        ]);
+      const [emailCompleted, digestCompleted, retryCompleted] = await Promise.all([
+        this.emailQueue.getCompleted(),
+        this.weeklyDigestQueue.getCompleted(),
+        this.retryQueue.getCompleted(),
+      ]);
 
       const [emailFailed, digestFailed, retryFailed] = await Promise.all([
         this.emailQueue.getFailed(),
@@ -477,8 +454,7 @@ export class EmailQueueService {
         this.retryQueue.clean(0, 100, 'failed'),
       ]);
 
-      const totalCleared =
-        emailCleared.length + digestCleared.length + retryCleared.length;
+      const totalCleared = emailCleared.length + digestCleared.length + retryCleared.length;
 
       this.logger.log(`Cleared ${totalCleared} failed jobs from queues`, {
         email: emailCleared.length,

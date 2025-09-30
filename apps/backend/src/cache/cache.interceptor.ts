@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Reflector } from '@nestjs/core';
@@ -19,19 +14,10 @@ export class CacheInterceptor implements NestInterceptor {
     private readonly reflector: Reflector,
   ) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
-    const cacheKey = this.reflector.get<string>(
-      CACHE_KEY_METADATA,
-      context.getHandler(),
-    );
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+    const cacheKey = this.reflector.get<string>(CACHE_KEY_METADATA, context.getHandler());
 
-    const cacheTTL = this.reflector.get<number>(
-      CACHE_TTL_METADATA,
-      context.getHandler(),
-    );
+    const cacheTTL = this.reflector.get<number>(CACHE_TTL_METADATA, context.getHandler());
 
     if (!cacheKey) {
       return next.handle();

@@ -21,9 +21,7 @@ import { UsersService } from '../users/users.service';
     credentials: true,
   },
 })
-export class SessionsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class SessionsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -43,9 +41,7 @@ export class SessionsGateway
       const token = this.extractToken(client);
 
       if (!token) {
-        this.logger.warn(
-          `Connection attempt without token from client ${client.id}`,
-        );
+        this.logger.warn(`Connection attempt without token from client ${client.id}`);
         client.emit('error', {
           message: 'Authentication required. Please provide a valid JWT token.',
         });
@@ -89,10 +85,7 @@ export class SessionsGateway
         email: user.email,
       });
     } catch (error) {
-      this.logger.error(
-        `Authentication error for client ${client.id}:`,
-        error.message,
-      );
+      this.logger.error(`Authentication error for client ${client.id}:`, error.message);
       client.emit('error', {
         message: 'Authentication failed. Please reconnect with a valid token.',
       });
@@ -113,18 +106,12 @@ export class SessionsGateway
         // Only pause if user was authenticated
         if (client.data.authenticated && client.data.userId) {
           try {
-            await this.sessionsService.pauseSession(
-              client.data.userId,
-              session.id,
-            );
+            await this.sessionsService.pauseSession(client.data.userId, session.id);
             this.logger.log(
               `Paused session ${session.id} for disconnected user ${client.data.userId}`,
             );
           } catch (error) {
-            this.logger.error(
-              `Error pausing session on disconnect:`,
-              error.message,
-            );
+            this.logger.error(`Error pausing session on disconnect:`, error.message);
           }
         }
 
@@ -135,10 +122,7 @@ export class SessionsGateway
       // Clean up any remaining timer intervals for this client
       this.cleanupClientTimers(client.id);
     } catch (error) {
-      this.logger.error(
-        `Error handling disconnect for client ${client.id}:`,
-        error.message,
-      );
+      this.logger.error(`Error handling disconnect for client ${client.id}:`, error.message);
     }
   }
 
@@ -199,8 +183,7 @@ export class SessionsGateway
       // Verify client is authenticated
       if (!this.isAuthenticated(client)) {
         client.emit('error', {
-          message:
-            'Unauthorized: Please authenticate before starting a session',
+          message: 'Unauthorized: Please authenticate before starting a session',
         });
         return;
       }
@@ -261,24 +244,18 @@ export class SessionsGateway
       const activeSession = this.activeSessions.get(client.id);
       if (!activeSession || activeSession.id !== data.sessionId) {
         client.emit('error', {
-          message:
-            'Session not found or you do not have permission to pause it',
+          message: 'Session not found or you do not have permission to pause it',
         });
         return;
       }
 
-      const session = await this.sessionsService.pauseSession(
-        userId,
-        data.sessionId,
-      );
+      const session = await this.sessionsService.pauseSession(userId, data.sessionId);
 
       // Stop timer updates
       this.stopTimerUpdates(data.sessionId);
 
       // Emit session paused event
-      this.server
-        .to(`session:${data.sessionId}`)
-        .emit('session-paused', session);
+      this.server.to(`session:${data.sessionId}`).emit('session-paused', session);
 
       this.logger.log(`Session ${data.sessionId} paused by user ${userId}`);
 
@@ -301,8 +278,7 @@ export class SessionsGateway
       // Verify client is authenticated
       if (!this.isAuthenticated(client)) {
         client.emit('error', {
-          message:
-            'Unauthorized: Please authenticate before resuming a session',
+          message: 'Unauthorized: Please authenticate before resuming a session',
         });
         return;
       }
@@ -313,24 +289,18 @@ export class SessionsGateway
       const activeSession = this.activeSessions.get(client.id);
       if (!activeSession || activeSession.id !== data.sessionId) {
         client.emit('error', {
-          message:
-            'Session not found or you do not have permission to resume it',
+          message: 'Session not found or you do not have permission to resume it',
         });
         return;
       }
 
-      const session = await this.sessionsService.resumeSession(
-        userId,
-        data.sessionId,
-      );
+      const session = await this.sessionsService.resumeSession(userId, data.sessionId);
 
       // Resume timer updates
       this.startTimerUpdates(data.sessionId, client);
 
       // Emit session resumed event
-      this.server
-        .to(`session:${data.sessionId}`)
-        .emit('session-resumed', session);
+      this.server.to(`session:${data.sessionId}`).emit('session-resumed', session);
 
       this.logger.log(`Session ${data.sessionId} resumed by user ${userId}`);
 
@@ -369,19 +339,14 @@ export class SessionsGateway
         return;
       }
 
-      const session = await this.sessionsService.endSession(
-        userId,
-        data.sessionId,
-      );
+      const session = await this.sessionsService.endSession(userId, data.sessionId);
 
       // Clean up
       this.activeSessions.delete(client.id);
       this.stopTimerUpdates(data.sessionId);
 
       // Emit session ended event
-      this.server
-        .to(`session:${data.sessionId}`)
-        .emit('session-ended', session);
+      this.server.to(`session:${data.sessionId}`).emit('session-ended', session);
 
       // Leave the room
       client.leave(`session:${data.sessionId}`);
@@ -430,14 +395,10 @@ export class SessionsGateway
           session.totalDuration ||
           (session.endTime
             ? Math.floor(
-                (new Date(session.endTime).getTime() -
-                  new Date(session.startTime).getTime()) /
+                (new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) /
                   1000,
               )
-            : Math.floor(
-                (new Date().getTime() - new Date(session.startTime).getTime()) /
-                  1000,
-              ));
+            : Math.floor((new Date().getTime() - new Date(session.startTime).getTime()) / 1000));
 
         this.server.to(`session:${sessionId}`).emit('timer-update', {
           sessionId,
@@ -445,10 +406,7 @@ export class SessionsGateway
           status: session.status,
         });
       } catch (error) {
-        this.logger.error(
-          `Error in timer update for session ${sessionId}:`,
-          error.message,
-        );
+        this.logger.error(`Error in timer update for session ${sessionId}:`, error.message);
         this.stopTimerUpdates(sessionId);
       }
     }, 1000);

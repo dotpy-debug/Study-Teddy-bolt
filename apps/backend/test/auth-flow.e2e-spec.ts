@@ -87,16 +87,10 @@ describe('Authentication Flow (e2e)', () => {
       };
 
       // First registration should succeed
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData)
-        .expect(201);
+      await request(app.getHttpServer()).post('/auth/register').send(userData).expect(201);
 
       // Second registration with same email should fail
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData)
-        .expect(409);
+      await request(app.getHttpServer()).post('/auth/register').send(userData).expect(409);
     });
   });
 
@@ -112,9 +106,7 @@ describe('Authentication Flow (e2e)', () => {
         password: 'OriginalPassword123!',
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData);
+      const response = await request(app.getHttpServer()).post('/auth/register').send(userData);
 
       userEmail = userData.email;
       accessToken = response.body.access_token;
@@ -157,9 +149,7 @@ describe('Authentication Flow (e2e)', () => {
         password: 'TokenPassword123!',
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData);
+      const response = await request(app.getHttpServer()).post('/auth/register').send(userData);
 
       accessToken = response.body.access_token;
       userId = response.body.user.id;
@@ -191,10 +181,7 @@ describe('Authentication Flow (e2e)', () => {
     });
 
     it('should reject empty authorization header', async () => {
-      await request(app.getHttpServer())
-        .get('/auth/me')
-        .set('Authorization', '')
-        .expect(401);
+      await request(app.getHttpServer()).get('/auth/me').set('Authorization', '').expect(401);
     });
   });
 
@@ -270,13 +257,11 @@ describe('Authentication Flow (e2e)', () => {
 
   describe('Security Headers and CORS', () => {
     it('should include security headers in responses', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          name: 'Security User',
-          email: 'security@example.com',
-          password: 'SecurePassword123!',
-        });
+      const response = await request(app.getHttpServer()).post('/auth/register').send({
+        name: 'Security User',
+        email: 'security@example.com',
+        password: 'SecurePassword123!',
+      });
 
       // Check for common security headers
       expect(response.headers).toHaveProperty('x-content-type-options');
@@ -302,10 +287,7 @@ describe('Authentication Flow (e2e)', () => {
       };
 
       // First request should succeed
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData)
-        .expect(201);
+      await request(app.getHttpServer()).post('/auth/register').send(userData).expect(201);
 
       // Multiple rapid login attempts should eventually be rate limited
       const loginAttempts = Array(20)
@@ -321,9 +303,7 @@ describe('Authentication Flow (e2e)', () => {
 
       // Some requests should be rate limited
       const rateLimitedResponses = responses.filter(
-        (response) =>
-          response.status === 'fulfilled' &&
-          (response.value as any).status === 429,
+        (response) => response.status === 'fulfilled' && (response.value as any).status === 429,
       );
 
       expect(rateLimitedResponses.length).toBeGreaterThan(0);
@@ -341,9 +321,7 @@ describe('Authentication Flow (e2e)', () => {
         password: 'SessionPassword123!',
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData);
+      const response = await request(app.getHttpServer()).post('/auth/register').send(userData);
 
       accessToken = response.body.access_token;
       userId = response.body.user.id;
@@ -403,13 +381,11 @@ describe('Authentication Flow (e2e)', () => {
     it('should handle database connection errors gracefully', async () => {
       // This test would require mocking database failures
       // For now, we'll test that the endpoint responds appropriately
-      const response = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          name: 'Error Test User',
-          email: 'error@example.com',
-          password: 'Password123!',
-        });
+      const response = await request(app.getHttpServer()).post('/auth/register').send({
+        name: 'Error Test User',
+        email: 'error@example.com',
+        password: 'Password123!',
+      });
 
       // Should either succeed (201) or fail gracefully with proper error
       expect([201, 500, 503]).toContain(response.status);
@@ -442,12 +418,10 @@ describe('Authentication Flow (e2e)', () => {
     it('should prevent SQL injection attempts', async () => {
       const maliciousEmail = "test@example.com'; DROP TABLE users; --";
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({
-          email: maliciousEmail,
-          password: 'password123',
-        });
+      const response = await request(app.getHttpServer()).post('/auth/login').send({
+        email: maliciousEmail,
+        password: 'password123',
+      });
 
       // Should handle gracefully without causing database errors
       expect([400, 401]).toContain(response.status);

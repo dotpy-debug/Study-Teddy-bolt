@@ -46,20 +46,14 @@ export function AuthThrottle() {
  * 50 requests per minute for premium users
  */
 export function AIThrottle() {
-  return applyDecorators(
-    Throttle({ ai: { limit: 10, ttl: 60000 } }),
-    UseGuards(AIThrottlerGuard),
-  );
+  return applyDecorators(Throttle({ ai: { limit: 10, ttl: 60000 } }), UseGuards(AIThrottlerGuard));
 }
 
 /**
  * Apply custom throttling with specific limits
  */
 export function CustomThrottle(limit: number, ttl: number) {
-  return applyDecorators(
-    Throttle({ default: { limit, ttl } }),
-    UseGuards(CustomThrottlerGuard),
-  );
+  return applyDecorators(Throttle({ default: { limit, ttl } }), UseGuards(CustomThrottlerGuard));
 }
 
 /**

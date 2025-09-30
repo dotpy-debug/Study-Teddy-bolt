@@ -67,25 +67,17 @@ export class EnhancedNotificationsController {
   ) {
     const notificationData = {
       ...createDto,
-      scheduledAt: createDto.scheduledAt
-        ? new Date(createDto.scheduledAt)
-        : undefined,
-      expiresAt: createDto.expiresAt
-        ? new Date(createDto.expiresAt)
-        : undefined,
+      scheduledAt: createDto.scheduledAt ? new Date(createDto.scheduledAt) : undefined,
+      expiresAt: createDto.expiresAt ? new Date(createDto.expiresAt) : undefined,
     };
 
-    return this.notificationsService.createNotification(
-      userId,
-      notificationData,
-    );
+    return this.notificationsService.createNotification(userId, notificationData);
   }
 
   @Get()
   @ApiOperation({
     summary: 'Get user notifications',
-    description:
-      'Retrieve notifications with advanced filtering, sorting, and pagination',
+    description: 'Retrieve notifications with advanced filtering, sorting, and pagination',
   })
   @ApiQuery({ type: EnhancedNotificationQueryDto, required: false })
   @ApiResponse({
@@ -114,10 +106,7 @@ export class EnhancedNotificationsController {
     status: 200,
     description: 'Notification retrieved successfully',
   })
-  async getNotificationById(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() userId: string,
-  ) {
+  async getNotificationById(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() userId: string) {
     return this.notificationsService.getNotificationById(id, userId);
   }
 
@@ -151,18 +140,14 @@ export class EnhancedNotificationsController {
   @Post('bulk-operation')
   @ApiOperation({
     summary: 'Perform bulk operations on notifications',
-    description:
-      'Mark multiple notifications as read, archive, delete, or update priority',
+    description: 'Mark multiple notifications as read, archive, delete, or update priority',
   })
   @ApiResponse({
     status: 200,
     description: 'Bulk operation completed successfully',
   })
   @ApiBody({ type: BulkOperationDto })
-  async bulkOperation(
-    @CurrentUser() userId: string,
-    @Body() bulkDto: BulkOperationDto,
-  ) {
+  async bulkOperation(@CurrentUser() userId: string, @Body() bulkDto: BulkOperationDto) {
     return this.notificationsService.bulkOperation({
       ...bulkDto,
       userId,
@@ -179,10 +164,7 @@ export class EnhancedNotificationsController {
     description: 'Notifications marked as read successfully',
   })
   @ApiBody({ type: MarkAsReadDto })
-  async markAsRead(
-    @CurrentUser() userId: string,
-    @Body() markAsReadDto: MarkAsReadDto,
-  ) {
+  async markAsRead(@CurrentUser() userId: string, @Body() markAsReadDto: MarkAsReadDto) {
     return this.notificationsService.markAsRead(userId, markAsReadDto);
   }
 
@@ -214,10 +196,7 @@ export class EnhancedNotificationsController {
     @CurrentUser() userId: string,
     @Body() archiveDto: ArchiveNotificationsDto,
   ) {
-    return this.notificationsService.archiveNotifications(
-      userId,
-      archiveDto.notificationIds,
-    );
+    return this.notificationsService.archiveNotifications(userId, archiveDto.notificationIds);
   }
 
   @Delete(':id')
@@ -235,10 +214,7 @@ export class EnhancedNotificationsController {
     status: 200,
     description: 'Notification deleted successfully',
   })
-  async deleteNotification(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() userId: string,
-  ) {
+  async deleteNotification(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() userId: string) {
     return this.notificationsService.deleteNotification(id, userId);
   }
 
@@ -259,8 +235,7 @@ export class EnhancedNotificationsController {
   @Get('preferences')
   @ApiOperation({
     summary: 'Get notification preferences',
-    description:
-      'Get user notification preferences including channel settings and quiet hours',
+    description: 'Get user notification preferences including channel settings and quiet hours',
   })
   @ApiResponse({
     status: 200,
@@ -430,10 +405,7 @@ export class EnhancedNotificationsController {
     description: 'Test push notification sent successfully',
   })
   @ApiBody({ type: SendTestPushDto })
-  async sendTestPush(
-    @CurrentUser() userId: string,
-    @Body() testDto: SendTestPushDto,
-  ) {
+  async sendTestPush(@CurrentUser() userId: string, @Body() testDto: SendTestPushDto) {
     return this.notificationsService.sendTestNotification(userId, {
       type: 'info',
       channel: 'push',
@@ -460,8 +432,7 @@ export class EnhancedNotificationsController {
   @Post('scheduled')
   @ApiOperation({
     summary: 'Schedule a notification',
-    description:
-      'Create a scheduled notification with optional recurring settings',
+    description: 'Create a scheduled notification with optional recurring settings',
   })
   @ApiResponse({
     status: 201,
@@ -478,17 +449,12 @@ export class EnhancedNotificationsController {
       recurring: scheduleDto.recurring
         ? {
             ...scheduleDto.recurring,
-            endDate: scheduleDto.recurring.endDate
-              ? scheduleDto.recurring.endDate
-              : undefined,
+            endDate: scheduleDto.recurring.endDate ? scheduleDto.recurring.endDate : undefined,
           }
         : undefined,
     };
 
-    return this.notificationsService.scheduleNotification(
-      userId,
-      scheduledData,
-    );
+    return this.notificationsService.scheduleNotification(userId, scheduledData);
   }
 
   @Put('scheduled/:id')
@@ -543,8 +509,7 @@ export class EnhancedNotificationsController {
   @Post('batch')
   @ApiOperation({
     summary: 'Send batch notifications',
-    description:
-      'Send notifications to multiple users using a template or custom content',
+    description: 'Send notifications to multiple users using a template or custom content',
   })
   @ApiResponse({
     status: 201,

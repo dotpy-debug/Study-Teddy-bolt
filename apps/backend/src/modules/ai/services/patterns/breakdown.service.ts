@@ -130,10 +130,7 @@ export class BreakdownService {
     });
 
     // Parse the AI response
-    const parsedResponse = await this.parseAIResponse(
-      aiResponse.content,
-      request,
-    );
+    const parsedResponse = await this.parseAIResponse(aiResponse.content, request);
 
     // Cache the response
     await this.aiCacheService.cacheResponse(
@@ -297,12 +294,8 @@ DIFFICULTY LEVEL: ${request.difficulty}`;
           totalHours: originalRequest.totalEstimatedHours,
         },
         subtasks: enhancedSubtasks,
-        learningPath:
-          parsed.learningPath ||
-          this.generateDefaultLearningPath(enhancedSubtasks),
-        studyStrategy:
-          parsed.studyStrategy ||
-          this.generateDefaultStudyStrategy(originalRequest),
+        learningPath: parsed.learningPath || this.generateDefaultLearningPath(enhancedSubtasks),
+        studyStrategy: parsed.studyStrategy || this.generateDefaultStudyStrategy(originalRequest),
       };
     } catch (error) {
       this.logger.error('Failed to parse breakdown response:', error);
@@ -319,33 +312,20 @@ DIFFICULTY LEVEL: ${request.difficulty}`;
     }
 
     if (response.subtasks.length < 4 || response.subtasks.length > 8) {
-      throw new Error(
-        `Invalid response: must have 4-8 subtasks, got ${response.subtasks.length}`,
-      );
+      throw new Error(`Invalid response: must have 4-8 subtasks, got ${response.subtasks.length}`);
     }
 
     for (const subtask of response.subtasks) {
       if (!subtask.title || !subtask.description) {
         throw new Error('Invalid subtask: title and description are required');
       }
-      if (
-        typeof subtask.estimatedHours !== 'number' ||
-        subtask.estimatedHours <= 0
-      ) {
-        throw new Error(
-          'Invalid subtask: estimatedHours must be a positive number',
-        );
+      if (typeof subtask.estimatedHours !== 'number' || subtask.estimatedHours <= 0) {
+        throw new Error('Invalid subtask: estimatedHours must be a positive number');
       }
       if (!['easy', 'medium', 'hard'].includes(subtask.difficulty)) {
-        throw new Error(
-          'Invalid subtask: difficulty must be easy, medium, or hard',
-        );
+        throw new Error('Invalid subtask: difficulty must be easy, medium, or hard');
       }
-      if (
-        !['research', 'practice', 'create', 'review', 'apply'].includes(
-          subtask.type,
-        )
-      ) {
+      if (!['research', 'practice', 'create', 'review', 'apply'].includes(subtask.type)) {
         throw new Error(
           'Invalid subtask: type must be research, practice, create, review, or apply',
         );
@@ -360,10 +340,7 @@ DIFFICULTY LEVEL: ${request.difficulty}`;
       .sort((a, b) => a.order - b.order);
 
     // Adjust time estimates to match total hours
-    const currentTotal = orderedSubtasks.reduce(
-      (sum, task) => sum + task.estimatedHours,
-      0,
-    );
+    const currentTotal = orderedSubtasks.reduce((sum, task) => sum + task.estimatedHours, 0);
     const scaleFactor = totalHours / currentTotal;
 
     return orderedSubtasks.map((task, index) => ({
@@ -375,34 +352,25 @@ DIFFICULTY LEVEL: ${request.difficulty}`;
     }));
   }
 
-  private generateDefaultLearningPath(
-    subtasks: SubTask[],
-  ): BreakdownResponse['learningPath'] {
+  private generateDefaultLearningPath(subtasks: SubTask[]): BreakdownResponse['learningPath'] {
     const phases = [
       {
         name: 'Foundation',
-        subtaskOrders: subtasks
-          .slice(0, Math.ceil(subtasks.length / 3))
-          .map((t) => t.order),
+        subtaskOrders: subtasks.slice(0, Math.ceil(subtasks.length / 3)).map((t) => t.order),
         estimatedDuration: '1-2 days',
         goals: ['Establish basic understanding', 'Gather necessary resources'],
       },
       {
         name: 'Development',
         subtaskOrders: subtasks
-          .slice(
-            Math.ceil(subtasks.length / 3),
-            Math.ceil((2 * subtasks.length) / 3),
-          )
+          .slice(Math.ceil(subtasks.length / 3), Math.ceil((2 * subtasks.length) / 3))
           .map((t) => t.order),
         estimatedDuration: '2-3 days',
         goals: ['Build core skills', 'Practice application'],
       },
       {
         name: 'Mastery',
-        subtaskOrders: subtasks
-          .slice(Math.ceil((2 * subtasks.length) / 3))
-          .map((t) => t.order),
+        subtaskOrders: subtasks.slice(Math.ceil((2 * subtasks.length) / 3)).map((t) => t.order),
         estimatedDuration: '1-2 days',
         goals: ['Consolidate learning', 'Demonstrate competency'],
       },
@@ -455,11 +423,7 @@ DIFFICULTY LEVEL: ${request.difficulty}`;
         resources.push('Summary notes', 'Flashcards', 'Review guides');
         break;
       case 'apply':
-        resources.push(
-          'Real-world examples',
-          'Case studies',
-          'Application scenarios',
-        );
+        resources.push('Real-world examples', 'Case studies', 'Application scenarios');
         break;
     }
 
@@ -471,35 +435,19 @@ DIFFICULTY LEVEL: ${request.difficulty}`;
 
     switch (subtask.type) {
       case 'research':
-        skills.push(
-          'Information gathering',
-          'Critical reading',
-          'Source evaluation',
-        );
+        skills.push('Information gathering', 'Critical reading', 'Source evaluation');
         break;
       case 'practice':
-        skills.push(
-          'Problem solving',
-          'Skill application',
-          'Repetition learning',
-        );
+        skills.push('Problem solving', 'Skill application', 'Repetition learning');
         break;
       case 'create':
         skills.push('Creative thinking', 'Synthesis', 'Production skills');
         break;
       case 'review':
-        skills.push(
-          'Memory consolidation',
-          'Self-assessment',
-          'Knowledge organization',
-        );
+        skills.push('Memory consolidation', 'Self-assessment', 'Knowledge organization');
         break;
       case 'apply':
-        skills.push(
-          'Transfer learning',
-          'Real-world application',
-          'Adaptation',
-        );
+        skills.push('Transfer learning', 'Real-world application', 'Adaptation');
         break;
     }
 
@@ -589,10 +537,7 @@ DIFFICULTY LEVEL: ${request.difficulty}`;
     return Math.min(confidence, 1.0);
   }
 
-  private formatCachedResponse(
-    cached: any,
-    startTime: number,
-  ): BreakdownResponse {
+  private formatCachedResponse(cached: any, startTime: number): BreakdownResponse {
     return {
       originalTask: cached.originalTask || {
         title: '',

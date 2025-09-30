@@ -34,8 +34,7 @@ export class SentryExceptionFilter implements ExceptionFilter {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
         const responseObj = exceptionResponse as any;
-        message =
-          responseObj.message || responseObj.error || 'An error occurred';
+        message = responseObj.message || responseObj.error || 'An error occurred';
         validationErrors = responseObj.details || responseObj.validationErrors;
       }
     } else if (exception instanceof Error) {
@@ -117,11 +116,7 @@ export class SentryExceptionFilter implements ExceptionFilter {
     return false;
   }
 
-  private captureErrorWithSentry(
-    exception: unknown,
-    context: any,
-    request: Request,
-  ): void {
+  private captureErrorWithSentry(exception: unknown, context: any, request: Request): void {
     Sentry.withScope((scope) => {
       // Set user context
       if (context.user) {
@@ -158,10 +153,7 @@ export class SentryExceptionFilter implements ExceptionFilter {
       });
 
       // Set tags
-      scope.setTag(
-        'error.type',
-        exception instanceof HttpException ? 'http' : 'unhandled',
-      );
+      scope.setTag('error.type', exception instanceof HttpException ? 'http' : 'unhandled');
       scope.setTag('error.status', context.statusCode.toString());
       scope.setTag('api.endpoint', context.url);
       scope.setTag('api.method', context.method);

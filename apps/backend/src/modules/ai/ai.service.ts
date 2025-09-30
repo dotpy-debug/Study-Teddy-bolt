@@ -1,19 +1,19 @@
-import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { OpenAI } from 'openai';
-import { DrizzleService } from '../../db/drizzle.service';
-import { aiChats } from '../../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { Injectable, HttpException, HttpStatus, Logger } from &apos;@nestjs/common&apos;;
+import { ConfigService } from &apos;@nestjs/config&apos;;
+import { OpenAI } from &apos;openai&apos;;
+import { DrizzleService } from &apos;../../db/drizzle.service&apos;;
+import { aiChats } from &apos;../../db/schema&apos;;
+import { eq, desc } from &apos;drizzle-orm&apos;;
 import {
   ChatDto,
   ChatHistoryQueryDto,
   GeneratePracticeQuestionsDto,
   StudyPlanDto,
-} from './dto/ai.dto';
-import { CacheService } from '../../common/cache/cache.service';
-import { AIRouterService } from './services/ai-router.service';
-import { AITokenTrackerService } from './services/ai-token-tracker.service';
-import { AIActionType, AIRequest } from './services/ai-provider.service';
+} from &apos;./dto/ai.dto&apos;;
+import { CacheService } from &apos;../../common/cache/cache.service&apos;;
+import { AIRouterService } from &apos;./services/ai-router.service&apos;;
+import { AITokenTrackerService } from &apos;./services/ai-token-tracker.service&apos;;
+import { AIActionType, AIRequest } from &apos;./services/ai-provider.service&apos;;
 
 @Injectable()
 export class AIService {
@@ -34,17 +34,17 @@ export class AIService {
   ) {
     // Legacy OpenAI configuration for backward compatibility
     // New requests will use the AIRouterService instead
-    const apiProvider = this.configService.get<string>('AI_PROVIDER', 'router');
+    const apiProvider = this.configService.get<string>(&apos;AI_PROVIDER&apos;, &apos;router&apos;);
     const apiKey =
-      this.configService.get<string>('AI_API_KEY') ||
-      this.configService.get<string>('OPENAI_API_KEY');
+      this.configService.get<string>(&apos;AI_API_KEY&apos;) ||
+      this.configService.get<string>(&apos;OPENAI_API_KEY&apos;);
 
-    if (apiProvider === 'deepseek') {
+    if (apiProvider === &apos;deepseek&apos;) {
       this.openai = new OpenAI({
         apiKey,
-        baseURL: 'https://api.deepseek.com/v1',
+        baseURL: &apos;https://api.deepseek.com/v1&apos;,
       });
-    } else if (apiProvider !== 'router') {
+    } else if (apiProvider !== &apos;router&apos;) {
       this.openai = new OpenAI({
         apiKey,
       });
@@ -53,21 +53,21 @@ export class AIService {
     // Initialize model configuration from environment variables
     this.modelConfig = {
       model:
-        this.configService.get<string>('AI_MODEL') ||
+        this.configService.get<string>(&apos;AI_MODEL&apos;) ||
         this.configService.get<string>(
-          'OPENAI_MODEL',
-          apiProvider === 'deepseek' ? 'deepseek-chat' : 'gpt-4o-mini',
+          &apos;OPENAI_MODEL&apos;,
+          apiProvider === &apos;deepseek&apos; ? &apos;deepseek-chat&apos; : &apos;gpt-4o-mini&apos;,
         ),
       maxTokens:
-        this.configService.get<number>('AI_MAX_TOKENS') ||
-        this.configService.get<number>('OPENAI_MAX_TOKENS', 500),
+        this.configService.get<number>(&apos;AI_MAX_TOKENS&apos;) ||
+        this.configService.get<number>(&apos;OPENAI_MAX_TOKENS&apos;, 500),
       temperature:
-        this.configService.get<number>('AI_TEMPERATURE') ||
-        this.configService.get<number>('OPENAI_TEMPERATURE', 0.7),
+        this.configService.get<number>(&apos;AI_TEMPERATURE&apos;) ||
+        this.configService.get<number>(&apos;OPENAI_TEMPERATURE&apos;, 0.7),
     };
 
     this.logger.log(
-      `AI Service initialized with provider: ${apiProvider === 'router' ? 'AI Router (DeepSeek-V3 → DeepSeek-Coder → GPT-4)' : apiProvider}, ` +
+      `AI Service initialized with provider: ${apiProvider === &apos;router&apos; ? &apos;AI Router (DeepSeek-V3 → DeepSeek-Coder → GPT-4)&apos; : apiProvider}, ` +
         `model: ${this.modelConfig.model}, ` +
         `maxTokens: ${this.modelConfig.maxTokens}, temperature: ${this.modelConfig.temperature}`,
     );
@@ -80,8 +80,7 @@ export class AIService {
       );
 
       // Use modern AI router service if enabled (default)
-      const useRouter =
-        this.configService.get<string>('AI_PROVIDER', 'router') === 'router';
+      const useRouter = this.configService.get<string>(&apos;AI_PROVIDER&apos;, &apos;router&apos;) === &apos;router&apos;;
 
       if (useRouter) {
         return await this.handleChatWithRouter(chatDto, userId);
@@ -89,8 +88,8 @@ export class AIService {
 
       // Legacy direct OpenAI/DeepSeek handling (fallback)
       return await this.handleChatLegacy(chatDto, userId);
-    } catch (error) {
-      this.logger.error('AI Chat error:', error);
+    } catch (error: unknown) {
+      this.logger.error(&apos;AI Chat error:&apos;, error);
 
       // Handle specific errors with more informative messages
       if (error instanceof HttpException) {
@@ -99,18 +98,17 @@ export class AIService {
 
       if (error instanceof OpenAI.APIError) {
         const status = error.status || 500;
-        let message = 'AI service error';
+        let message = &apos;AI service error&apos;;
         let httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         if (status === 401) {
-          message = 'AI service authentication failed';
+          message = &apos;AI service authentication failed&apos;;
           httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (status === 429) {
-          message = 'AI service rate limit exceeded. Please try again later.';
+          message = &apos;AI service rate limit exceeded. Please try again later.&apos;;
           httpStatus = HttpStatus.TOO_MANY_REQUESTS;
         } else if (status === 503) {
-          message =
-            'AI service temporarily unavailable. Please try again later.';
+          message = &apos;AI service temporarily unavailable. Please try again later.&apos;;
           httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
         } else if (error.message) {
           message = `AI service error: ${error.message}`;
@@ -120,11 +118,8 @@ export class AIService {
           {
             statusCode: httpStatus,
             message,
-            error: 'AI_SERVICE_ERROR',
-            details:
-              process.env.NODE_ENV === 'development'
-                ? error.message
-                : undefined,
+            error: &apos;AI_SERVICE_ERROR&apos;,
+            details: process.env.NODE_ENV === &apos;development&apos; ? error.message : undefined,
           },
           httpStatus,
         );
@@ -134,9 +129,8 @@ export class AIService {
       throw new HttpException(
         {
           statusCode: HttpStatus.SERVICE_UNAVAILABLE,
-          message:
-            'AI service temporarily unavailable. Please try again later.',
-          error: 'AI_SERVICE_UNAVAILABLE',
+          message: &apos;AI service temporarily unavailable. Please try again later.&apos;,
+          error: &apos;AI_SERVICE_UNAVAILABLE&apos;,
         },
         HttpStatus.SERVICE_UNAVAILABLE,
       );
@@ -152,24 +146,24 @@ export class AIService {
 
     // Check cache for similar questions
     const cacheKey = this.cacheService.generateKey(
-      'ai_chat_response',
+      &apos;ai_chat_response&apos;,
       chatDto.message.toLowerCase().trim().slice(0, 100),
     );
 
     const cachedResponse = await this.cacheService.get(cacheKey);
 
     if (cachedResponse) {
-      this.logger.debug('Using cached AI response for similar question');
+      this.logger.debug(&apos;Using cached AI response for similar question&apos;);
 
       // Save to database with cached response
       const [savedChat] = await this.drizzleService.db
         .insert(aiChats)
         .values({
           userId,
-          actionType: 'chat',
+          actionType: &apos;chat&apos;,
           prompt: chatDto.message,
           response: cachedResponse.response,
-          model: cachedResponse.provider || 'cached',
+          model: cachedResponse.provider || &apos;cached&apos;,
           promptTokens: 0,
           completionTokens: cachedResponse.tokensUsed || 0,
           totalTokens: cachedResponse.tokensUsed || 0,
@@ -192,7 +186,7 @@ export class AIService {
       actionType: AIActionType.CHAT,
       prompt: chatDto.message,
       systemPrompt:
-        'You are Teddy AI, a helpful AI tutor. Provide clear, concise answers that help students learn effectively.',
+        &apos;You are Teddy AI, a helpful AI tutor. Provide clear, concise answers that help students learn effectively.&apos;,
       maxTokens: this.modelConfig.maxTokens,
       temperature: this.modelConfig.temperature,
       userId,
@@ -234,7 +228,7 @@ export class AIService {
       .insert(aiChats)
       .values({
         userId,
-        actionType: 'chat',
+        actionType: &apos;chat&apos;,
         prompt: chatDto.message,
         response: aiResponse.content,
         model: aiResponse.model,
@@ -263,20 +257,20 @@ export class AIService {
   private async handleChatLegacy(chatDto: ChatDto, userId: string) {
     // Check cache for similar questions to improve response time
     const cacheKey = this.cacheService.generateKey(
-      'ai_response',
+      &apos;ai_response&apos;,
       chatDto.message.toLowerCase().trim().slice(0, 100),
     );
 
     const cachedResponse = await this.cacheService.get(cacheKey);
     if (cachedResponse) {
-      this.logger.debug('Using cached AI response for similar question');
+      this.logger.debug(&apos;Using cached AI response for similar question&apos;);
 
       // Save to database with cached response
       const [savedChat] = await this.drizzleService.db
         .insert(aiChats)
         .values({
           userId,
-          actionType: 'chat',
+          actionType: &apos;chat&apos;,
           prompt: chatDto.message,
           response: cachedResponse.response,
           model: this.modelConfig.model,
@@ -299,17 +293,17 @@ export class AIService {
 
     // Optimized system prompt for faster responses
     const systemPrompt =
-      'You are Teddy AI, a helpful AI tutor. Provide clear, concise answers that help students learn effectively.';
+      &apos;You are Teddy AI, a helpful AI tutor. Provide clear, concise answers that help students learn effectively.&apos;;
 
     const completion = await this.openai.chat.completions.create({
       model: this.modelConfig.model,
       messages: [
         {
-          role: 'system',
+          role: &apos;system&apos;,
           content: systemPrompt,
         },
         {
-          role: 'user',
+          role: &apos;user&apos;,
           content: chatDto.message,
         },
       ],
@@ -317,7 +311,7 @@ export class AIService {
       temperature: this.modelConfig.temperature,
     });
 
-    const response = completion.choices[0].message.content || '';
+    const response = completion.choices[0].message.content || &apos;&apos;;
     const tokensUsed = completion.usage?.total_tokens || 0;
 
     // Cache successful responses for 1 hour to improve future response times
@@ -328,7 +322,7 @@ export class AIService {
       .insert(aiChats)
       .values({
         userId,
-        actionType: 'chat',
+        actionType: &apos;chat&apos;,
         prompt: chatDto.message,
         response: response,
         model: this.modelConfig.model,
@@ -351,14 +345,12 @@ export class AIService {
   }
 
   async getChatHistory(userId: string, query?: ChatHistoryQueryDto) {
-    const cacheKey = this.cacheService.generateKey('ai_chat_history', userId);
+    const cacheKey = this.cacheService.generateKey(&apos;ai_chat_history&apos;, userId);
 
     return this.cacheService.warm(
       cacheKey,
       async () => {
-        this.logger.debug(
-          `Fetching chat history from database for user: ${userId}`,
-        );
+        this.logger.debug(`Fetching chat history from database for user: ${userId}`);
 
         const limit = query?.limit || 50;
         const page = query?.page || 1;
@@ -395,41 +387,37 @@ export class AIService {
       .returning();
 
     if (deletedRows.length === 0) {
-      throw new HttpException('Chat message not found', HttpStatus.NOT_FOUND);
+      throw new HttpException(&apos;Chat message not found&apos;, HttpStatus.NOT_FOUND);
     }
 
     // Verify the chat belongs to the user
     if (deletedRows[0].userId !== userId) {
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(&apos;Unauthorized&apos;, HttpStatus.UNAUTHORIZED);
     }
 
     // Invalidate chat history cache after deletion
     await this.invalidateChatCache(userId);
 
-    return { message: 'Chat message deleted successfully' };
+    return { message: &apos;Chat message deleted successfully&apos; };
   }
 
-  async generatePracticeQuestions(
-    generateDto: GeneratePracticeQuestionsDto,
-    userId: string,
-  ) {
+  async generatePracticeQuestions(generateDto: GeneratePracticeQuestionsDto, userId: string) {
     const { subject, difficulty, questionCount } = generateDto;
     const prompt = `Generate ${questionCount || 5} practice questions for the subject: ${subject}.
-    Difficulty level: ${difficulty || 'medium'}. Make them educational and appropriate for students.
+    Difficulty level: ${difficulty || &apos;medium&apos;}. Make them educational and appropriate for students.
     Format as a numbered list with clear questions and provide answer hints.`;
 
     return this.askQuestion({ message: prompt }, userId);
   }
 
   async generateStudyPlan(studyPlanDto: StudyPlanDto, userId: string) {
-    const { subject, totalWeeks, hoursPerWeek, skillLevel, goals } =
-      studyPlanDto;
+    const { subject, totalWeeks, hoursPerWeek, skillLevel, goals } = studyPlanDto;
     const duration = totalWeeks || Math.ceil(40 / hoursPerWeek); // Use provided weeks or estimate
     const prompt = `Create a detailed study plan for the subject: ${subject}.
     Duration: ${duration} weeks
     Time commitment: ${hoursPerWeek} hours per week
     Skill level: ${skillLevel}
-    Goals: ${goals || 'General improvement and mastery'}
+    Goals: ${goals || &apos;General improvement and mastery&apos;}
 
     Please structure this as a week-by-week plan with specific topics, activities, and time allocation.`;
 
@@ -456,21 +444,15 @@ export class AIService {
         .where(eq(aiChats.userId, userId));
 
       const totalMessages = stats.length;
-      const totalTokensUsed = stats.reduce(
-        (sum, chat) => sum + (chat.totalTokens || 0),
-        0,
-      );
-      const averageTokensPerMessage =
-        totalMessages > 0 ? totalTokensUsed / totalMessages : 0;
+      const totalTokensUsed = stats.reduce((sum, chat) => sum + (chat.totalTokens || 0), 0);
+      const averageTokensPerMessage = totalMessages > 0 ? totalTokensUsed / totalMessages : 0;
 
-      // Get this month's stats
+      // Get this month&apos;s stats
       const thisMonth = new Date();
       thisMonth.setDate(1);
       thisMonth.setHours(0, 0, 0, 0);
 
-      const thisMonthStats = stats.filter(
-        (chat) => new Date(chat.createdAt) >= thisMonth,
-      );
+      const thisMonthStats = stats.filter((chat) => new Date(chat.createdAt) >= thisMonth);
 
       const lastMessage = stats.length > 0 ? stats[0] : null;
 
@@ -478,26 +460,20 @@ export class AIService {
         totalMessages,
         totalTokensUsed,
         messagesThisMonth: thisMonthStats.length,
-        tokensThisMonth: thisMonthStats.reduce(
-          (sum, chat) => sum + (chat.totalTokens || 0),
-          0,
-        ),
+        tokensThisMonth: thisMonthStats.reduce((sum, chat) => sum + (chat.totalTokens || 0), 0),
         averageTokensPerMessage: Math.round(averageTokensPerMessage),
-        mostUsedContext: 'general', // Could be computed from message analysis
+        mostUsedContext: &apos;general&apos;, // Could be computed from message analysis
         lastMessageAt: lastMessage?.createdAt || null,
       };
-    } catch (error) {
-      this.logger.error('Error fetching AI stats:', error);
-      throw new HttpException(
-        'Unable to fetch AI statistics',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    } catch (error: unknown) {
+      this.logger.error(&apos;Error fetching AI stats:&apos;, error);
+      throw new HttpException(&apos;Unable to fetch AI statistics&apos;, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   // Cache invalidation methods
   async invalidateChatCache(userId: string): Promise<void> {
-    const cacheKey = this.cacheService.generateKey('ai_chat_history', userId);
+    const cacheKey = this.cacheService.generateKey(&apos;ai_chat_history&apos;, userId);
     await this.cacheService.del(cacheKey);
     this.logger.debug(`Invalidated chat history cache for user: ${userId}`);
   }

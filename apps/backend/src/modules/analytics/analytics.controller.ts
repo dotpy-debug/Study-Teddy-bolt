@@ -1,11 +1,5 @@
 import { Controller, Get, Query, UseGuards, Param } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsQueryDto, TimeRangeDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -28,10 +22,7 @@ export class AnalyticsController {
     status: 200,
     description: 'Analytics retrieved successfully',
   })
-  async getAnalytics(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getAnalytics(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.analyticsService.getComprehensiveAnalytics(userId, query);
   }
 
@@ -58,10 +49,7 @@ export class AnalyticsController {
     status: 200,
     description: 'Productivity analytics retrieved successfully',
   })
-  async getProductivityAnalytics(
-    @CurrentUser() userId: string,
-    @Query() query: AnalyticsQueryDto,
-  ) {
+  async getProductivityAnalytics(@CurrentUser() userId: string, @Query() query: AnalyticsQueryDto) {
     return this.analyticsService.getProductivityAnalytics(userId, query);
   }
 
@@ -75,10 +63,7 @@ export class AnalyticsController {
     status: 200,
     description: 'Subject analytics retrieved successfully',
   })
-  async getSubjectAnalytics(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getSubjectAnalytics(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.analyticsService.getSubjectAnalytics(userId, query);
   }
 
@@ -97,11 +82,7 @@ export class AnalyticsController {
     @Param('subjectId') subjectId: string,
     @Query() query: TimeRangeDto,
   ) {
-    return this.analyticsService.getSpecificSubjectAnalytics(
-      userId,
-      subjectId,
-      query,
-    );
+    return this.analyticsService.getSpecificSubjectAnalytics(userId, subjectId, query);
   }
 
   @Get('time-distribution')
@@ -114,10 +95,7 @@ export class AnalyticsController {
     status: 200,
     description: 'Time distribution retrieved successfully',
   })
-  async getTimeDistribution(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getTimeDistribution(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.analyticsService.getTimeDistribution(userId, query);
   }
 
@@ -131,10 +109,7 @@ export class AnalyticsController {
     status: 200,
     description: 'Focus patterns retrieved successfully',
   })
-  async getFocusPatterns(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getFocusPatterns(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.analyticsService.getFocusPatterns(userId, query);
   }
 
@@ -148,10 +123,7 @@ export class AnalyticsController {
     status: 200,
     description: 'Completion rates retrieved successfully',
   })
-  async getCompletionRates(
-    @CurrentUser() userId: string,
-    @Query() query: AnalyticsQueryDto,
-  ) {
+  async getCompletionRates(@CurrentUser() userId: string, @Query() query: AnalyticsQueryDto) {
     return this.analyticsService.getCompletionRates(userId, query);
   }
 
@@ -178,10 +150,7 @@ export class AnalyticsController {
     status: 200,
     description: 'Goal analytics retrieved successfully',
   })
-  async getGoalAnalytics(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getGoalAnalytics(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.analyticsService.getGoalAnalytics(userId, query);
   }
 

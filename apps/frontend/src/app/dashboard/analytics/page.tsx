@@ -35,7 +35,7 @@ import { NextBestAction } from '@/components/analytics/NextBestAction';
 import { PerformanceMetrics } from '@/components/analytics/PerformanceMetrics';
 import { StudyPatterns } from '@/components/analytics/StudyPatterns';
 import { GoalProgress } from '@/components/analytics/GoalProgress';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import { useAnalytics } from '../hooks/use-analytics';
 import { toast } from 'sonner';
 
 export default function AnalyticsDashboard() {

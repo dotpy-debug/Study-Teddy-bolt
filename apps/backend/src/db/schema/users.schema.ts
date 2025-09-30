@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  boolean,
-  pgEnum,
-  index,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, pgEnum, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { profiles } from './profiles.schema';
 import { subjects } from './subjects.schema';
@@ -18,11 +10,7 @@ import { userAchievements } from './achievements.schema';
 import { notifications } from './notifications.schema';
 
 export const authProviderEnum = pgEnum('auth_provider', ['local', 'google']);
-export const userRoleEnum = pgEnum('user_role', [
-  'student',
-  'teacher',
-  'admin',
-]);
+export const userRoleEnum = pgEnum('user_role', ['student', 'teacher', 'admin']);
 
 export const users = pgTable(
   'users',

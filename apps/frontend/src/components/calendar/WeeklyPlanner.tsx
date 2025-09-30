@@ -35,8 +35,8 @@ import {
 } from 'lucide-react';
 import { format, addDays, startOfWeek, endOfWeek, isSameDay, isWithinInterval } from 'date-fns';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import calendarService, { CalendarEvent, ScheduleSessionDto } from '@/services/calendar.service';
-import tasksService, { Task } from '@/services/tasks.service';
+import calendarService, { CalendarEvent, ScheduleSessionDto } from '../services/calendar.service';
+import tasksService, { Task } from '../services/tasks.service';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 

@@ -151,10 +151,7 @@ export class MetricsProvider implements OnModuleInit {
     const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
     if (heapUsedMB > 1024) {
       // > 1GB
-      this.sentryService.captureMessage(
-        'High memory usage detected',
-        'warning',
-      );
+      this.sentryService.captureMessage('High memory usage detected', 'warning');
     }
 
     this.logger.debug(
@@ -307,15 +304,9 @@ export class MetricsProvider implements OnModuleInit {
     success: boolean,
     tokenUsage?: { prompt: number; completion: number; total: number },
   ): void {
-    this.sentryService.trackAIOperation(
-      operation,
-      provider,
-      duration,
-      success,
-      {
-        tokenUsage,
-      },
-    );
+    this.sentryService.trackAIOperation(operation, provider, duration, success, {
+      tokenUsage,
+    });
 
     // Track token usage if available
     if (tokenUsage) {
@@ -371,13 +362,7 @@ export class MetricsProvider implements OnModuleInit {
    * Track study session metrics
    */
   trackStudySession(
-    event:
-      | 'created'
-      | 'started'
-      | 'paused'
-      | 'resumed'
-      | 'completed'
-      | 'cancelled',
+    event: 'created' | 'started' | 'paused' | 'resumed' | 'completed' | 'cancelled',
     sessionId: string,
     userId: string,
     duration?: number,

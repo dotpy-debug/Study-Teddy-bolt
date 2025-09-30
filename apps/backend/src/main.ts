@@ -149,8 +149,7 @@ async function bootstrap() {
     app.setGlobalPrefix(apiPrefix);
 
     // Swagger documentation setup (disabled in production by default)
-    const enableSwagger =
-      configService.get<string>('SWAGGER_ENABLED') === 'true' || !isProduction;
+    const enableSwagger = configService.get<string>('SWAGGER_ENABLED') === 'true' || !isProduction;
     if (enableSwagger) {
       const config = new DocumentBuilder()
         .setTitle('Study Teddy API')
@@ -249,20 +248,15 @@ async function bootstrap() {
 
     // Dev-only: seed demo user if enabled and missing
     try {
-      const isProduction =
-        configService.get<string>('NODE_ENV') === 'production';
+      const isProduction = configService.get<string>('NODE_ENV') === 'production';
       const shouldSeedDemo =
-        (configService.get<string>('SEED_DEMO_USER') || 'true') === 'true' &&
-        !isProduction;
+        (configService.get<string>('SEED_DEMO_USER') || 'true') === 'true' && !isProduction;
 
       if (shouldSeedDemo) {
         const usersService = app.get(UsersService);
-        const demoEmail =
-          configService.get<string>('DEMO_USER_EMAIL') || 'demo@studyteddy.dev';
-        const demoPassword =
-          configService.get<string>('DEMO_USER_PASSWORD') || 'DemoPass123!';
-        const demoName =
-          configService.get<string>('DEMO_USER_NAME') || 'Demo User';
+        const demoEmail = configService.get<string>('DEMO_USER_EMAIL') || 'demo@studyteddy.dev';
+        const demoPassword = configService.get<string>('DEMO_USER_PASSWORD') || 'DemoPass123!';
+        const demoName = configService.get<string>('DEMO_USER_NAME') || 'Demo User';
 
         const existing = await usersService.findByEmail(demoEmail);
         if (!existing) {
@@ -279,9 +273,7 @@ async function bootstrap() {
     const port = configService.get<number>('PORT') || 3001;
     await app.listen(port, '0.0.0.0');
 
-    logger.log(
-      `Study Teddy Backend is running on: http://localhost:${port}/${apiPrefix}`,
-    );
+    logger.log(`Study Teddy Backend is running on: http://localhost:${port}/${apiPrefix}`);
     logger.log(`Environment: ${configService.get<string>('NODE_ENV')}`);
     logger.log(`Database: Managed by DrizzleService`);
 

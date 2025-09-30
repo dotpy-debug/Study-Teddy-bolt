@@ -81,9 +81,7 @@ describe('AIService - Enhanced Tests', () => {
         },
       },
     };
-    (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(
-      () => mockOpenAI,
-    );
+    (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(() => mockOpenAI);
 
     // Suppress logger output during tests
     jest.spyOn(Logger.prototype, 'debug').mockImplementation();
@@ -100,15 +98,10 @@ describe('AIService - Enhanced Tests', () => {
     const chatDto = { message: 'What is calculus?' };
 
     beforeEach(() => {
-      configService.get.mockImplementation(
-        (key: string, defaultValue?: any) => {
-          if (key === 'AI_PROVIDER') return 'router';
-          return TestModuleHelper.createMockConfigService().get(
-            key,
-            defaultValue,
-          );
-        },
-      );
+      configService.get.mockImplementation((key: string, defaultValue?: any) => {
+        if (key === 'AI_PROVIDER') return 'router';
+        return TestModuleHelper.createMockConfigService().get(key, defaultValue);
+      });
     });
 
     it('should handle chat with router service successfully', async () => {
@@ -180,9 +173,7 @@ describe('AIService - Enhanced Tests', () => {
     it('should handle budget check failure', async () => {
       tokenTracker.checkBudget.mockRejectedValue(new Error('Budget exceeded'));
 
-      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(
-        'Budget exceeded',
-      );
+      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow('Budget exceeded');
 
       expect(aiRouterService.routeRequest).not.toHaveBeenCalled();
     });
@@ -190,13 +181,9 @@ describe('AIService - Enhanced Tests', () => {
     it('should handle AI router service errors', async () => {
       cacheService.get.mockResolvedValue(null);
       tokenTracker.checkBudget.mockResolvedValue(true);
-      aiRouterService.routeRequest.mockRejectedValue(
-        new Error('AI service error'),
-      );
+      aiRouterService.routeRequest.mockRejectedValue(new Error('AI service error'));
 
-      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(HttpException);
     });
   });
 
@@ -205,15 +192,10 @@ describe('AIService - Enhanced Tests', () => {
     const chatDto = { message: 'Explain photosynthesis' };
 
     beforeEach(() => {
-      configService.get.mockImplementation(
-        (key: string, defaultValue?: any) => {
-          if (key === 'AI_PROVIDER') return 'openai';
-          return TestModuleHelper.createMockConfigService().get(
-            key,
-            defaultValue,
-          );
-        },
-      );
+      configService.get.mockImplementation((key: string, defaultValue?: any) => {
+        if (key === 'AI_PROVIDER') return 'openai';
+        return TestModuleHelper.createMockConfigService().get(key, defaultValue);
+      });
     });
 
     it('should handle chat with OpenAI directly', async () => {
@@ -260,9 +242,7 @@ describe('AIService - Enhanced Tests', () => {
       });
 
       expect(cacheService.set).toHaveBeenCalled();
-      expect(result.response).toBe(
-        mockOpenAIResponse.choices[0].message.content,
-      );
+      expect(result.response).toBe(mockOpenAIResponse.choices[0].message.content);
     });
 
     it('should handle OpenAI API errors gracefully', async () => {
@@ -271,13 +251,9 @@ describe('AIService - Enhanced Tests', () => {
       const apiError = new (OpenAI as any).APIError('Rate limit exceeded', 429);
       mockOpenAI.chat.completions.create.mockRejectedValue(apiError);
 
-      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(HttpException);
 
-      const thrownError = await service
-        .askQuestion(chatDto, userId)
-        .catch((e) => e);
+      const thrownError = await service.askQuestion(chatDto, userId).catch((e) => e);
       expect(thrownError.getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
     });
 
@@ -287,48 +263,31 @@ describe('AIService - Enhanced Tests', () => {
       const authError = new (OpenAI as any).APIError('Invalid API key', 401);
       mockOpenAI.chat.completions.create.mockRejectedValue(authError);
 
-      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(HttpException);
 
-      const thrownError = await service
-        .askQuestion(chatDto, userId)
-        .catch((e) => e);
+      const thrownError = await service.askQuestion(chatDto, userId).catch((e) => e);
       expect(thrownError.getStatus()).toBe(HttpStatus.UNAUTHORIZED);
     });
 
     it('should handle service unavailable errors', async () => {
       cacheService.get.mockResolvedValue(null);
 
-      const serviceError = new (OpenAI as any).APIError(
-        'Service unavailable',
-        503,
-      );
+      const serviceError = new (OpenAI as any).APIError('Service unavailable', 503);
       mockOpenAI.chat.completions.create.mockRejectedValue(serviceError);
 
-      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(HttpException);
 
-      const thrownError = await service
-        .askQuestion(chatDto, userId)
-        .catch((e) => e);
+      const thrownError = await service.askQuestion(chatDto, userId).catch((e) => e);
       expect(thrownError.getStatus()).toBe(HttpStatus.SERVICE_UNAVAILABLE);
     });
 
     it('should handle non-OpenAI errors', async () => {
       cacheService.get.mockResolvedValue(null);
-      mockOpenAI.chat.completions.create.mockRejectedValue(
-        new Error('Network error'),
-      );
+      mockOpenAI.chat.completions.create.mockRejectedValue(new Error('Network error'));
 
-      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.askQuestion(chatDto, userId)).rejects.toThrow(HttpException);
 
-      const thrownError = await service
-        .askQuestion(chatDto, userId)
-        .catch((e) => e);
+      const thrownError = await service.askQuestion(chatDto, userId).catch((e) => e);
       expect(thrownError.getStatus()).toBe(HttpStatus.SERVICE_UNAVAILABLE);
     });
   });
@@ -434,13 +393,9 @@ describe('AIService - Enhanced Tests', () => {
         returning: [],
       });
 
-      await expect(service.deleteChatMessage(chatId, userId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.deleteChatMessage(chatId, userId)).rejects.toThrow(HttpException);
 
-      const thrownError = await service
-        .deleteChatMessage(chatId, userId)
-        .catch((e) => e);
+      const thrownError = await service.deleteChatMessage(chatId, userId).catch((e) => e);
       expect(thrownError.getStatus()).toBe(HttpStatus.NOT_FOUND);
     });
 
@@ -454,13 +409,9 @@ describe('AIService - Enhanced Tests', () => {
         returning: [mockChat],
       });
 
-      await expect(service.deleteChatMessage(chatId, userId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.deleteChatMessage(chatId, userId)).rejects.toThrow(HttpException);
 
-      const thrownError = await service
-        .deleteChatMessage(chatId, userId)
-        .catch((e) => e);
+      const thrownError = await service.deleteChatMessage(chatId, userId).catch((e) => e);
       expect(thrownError.getStatus()).toBe(HttpStatus.UNAUTHORIZED);
     });
   });
@@ -484,10 +435,7 @@ describe('AIService - Enhanced Tests', () => {
 
       jest.spyOn(service, 'askQuestion').mockResolvedValue(mockResponse);
 
-      const result = await service.generatePracticeQuestions(
-        generateDto,
-        userId,
-      );
+      const result = await service.generatePracticeQuestions(generateDto, userId);
 
       expect(service.askQuestion).toHaveBeenCalledWith(
         {

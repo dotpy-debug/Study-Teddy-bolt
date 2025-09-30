@@ -59,9 +59,7 @@ export class NotificationPreferencesService {
 
   constructor(@Inject(DRIZZLE_DB) private db: DatabaseService) {}
 
-  async getUserPreferences(
-    userId: string,
-  ): Promise<NotificationPreference | null> {
+  async getUserPreferences(userId: string): Promise<NotificationPreference | null> {
     try {
       const [preferences] = await this.db
         .select()
@@ -79,9 +77,7 @@ export class NotificationPreferencesService {
     }
   }
 
-  async createDefaultPreferences(
-    userId: string,
-  ): Promise<NotificationPreference> {
+  async createDefaultPreferences(userId: string): Promise<NotificationPreference> {
     try {
       const defaultPreferences: NewNotificationPreference = {
         userId,
@@ -134,9 +130,7 @@ export class NotificationPreferencesService {
         .values(defaultPreferences)
         .returning();
 
-      this.logger.debug(
-        `Created default notification preferences for user: ${userId}`,
-      );
+      this.logger.debug(`Created default notification preferences for user: ${userId}`);
 
       return created;
     } catch (error) {
@@ -174,10 +168,7 @@ export class NotificationPreferencesService {
         .where(eq(notificationPreferences.userId, userId))
         .returning();
 
-      this.logger.debug(
-        `Updated notification preferences for user: ${userId}`,
-        updates,
-      );
+      this.logger.debug(`Updated notification preferences for user: ${userId}`, updates);
 
       return updated;
     } catch (error) {
@@ -190,9 +181,7 @@ export class NotificationPreferencesService {
     }
   }
 
-  async getOrCreatePreferences(
-    userId: string,
-  ): Promise<NotificationPreference> {
+  async getOrCreatePreferences(userId: string): Promise<NotificationPreference> {
     try {
       let preferences = await this.getUserPreferences(userId);
 
@@ -312,8 +301,7 @@ export class NotificationPreferencesService {
       const preferences = await this.getOrCreatePreferences(userId);
 
       return {
-        enabled:
-          preferences.emailEnabled && preferences.emailWeeklyDigestEnabled,
+        enabled: preferences.emailEnabled && preferences.emailWeeklyDigestEnabled,
         day: preferences.weeklyDigestDay,
         time: preferences.weeklyDigestTime,
         timezone: preferences.quietHoursTimezone,
@@ -343,22 +331,15 @@ export class NotificationPreferencesService {
 
     // Validate reminder lead time
     if (updates.reminderLeadTimeMinutes !== undefined) {
-      if (
-        updates.reminderLeadTimeMinutes < 0 ||
-        updates.reminderLeadTimeMinutes > 1440
-      ) {
-        throw new Error(
-          'Reminder lead time must be between 0 and 1440 minutes (24 hours)',
-        );
+      if (updates.reminderLeadTimeMinutes < 0 || updates.reminderLeadTimeMinutes > 1440) {
+        throw new Error('Reminder lead time must be between 0 and 1440 minutes (24 hours)');
       }
     }
 
     // Validate weekly digest day
     if (updates.weeklyDigestDay !== undefined) {
       if (updates.weeklyDigestDay < 0 || updates.weeklyDigestDay > 6) {
-        throw new Error(
-          'Weekly digest day must be between 0 (Sunday) and 6 (Saturday)',
-        );
+        throw new Error('Weekly digest day must be between 0 (Sunday) and 6 (Saturday)');
       }
     }
 

@@ -78,9 +78,7 @@ export const getCorsConfig = (configService: ConfigService): CorsOptions => {
         const isAllowedSubdomain = allowedOrigins.some((allowedOrigin) => {
           if (allowedOrigin.includes('*')) {
             // Convert wildcard to regex
-            const regex = new RegExp(
-              allowedOrigin.replace(/\./g, '\\.').replace(/\*/g, '.*'),
-            );
+            const regex = new RegExp(allowedOrigin.replace(/\./g, '\\.').replace(/\*/g, '.*'));
             return regex.test(origin);
           }
           return false;
@@ -159,9 +157,7 @@ export const validateCorsConfig = (configService: ConfigService): void => {
   const frontendUrl = configService.get<string>('FRONTEND_URL');
 
   if (!frontendUrl && nodeEnv === 'production') {
-    throw new Error(
-      'FRONTEND_URL must be configured in production environment',
-    );
+    throw new Error('FRONTEND_URL must be configured in production environment');
   }
 
   const corsConfig = getCorsConfig(configService);

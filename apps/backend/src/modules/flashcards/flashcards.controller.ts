@@ -31,11 +31,7 @@ export class FlashcardsController {
     @Param('deckId') deckId: string,
     @Body() createFlashcardDto: any,
   ) {
-    return this.flashcardsService.create(
-      user.userId,
-      deckId,
-      createFlashcardDto,
-    );
+    return this.flashcardsService.create(user.userId, deckId, createFlashcardDto);
   }
 
   @Get('deck/:deckId')
@@ -46,10 +42,7 @@ export class FlashcardsController {
 
   @Get('deck/:deckId/due')
   @ApiOperation({ summary: 'Get due flashcards for review' })
-  getDueCards(
-    @Param('deckId') deckId: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  getDueCards(@Param('deckId') deckId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.flashcardsService.getDueCards(deckId, user.userId);
   }
 

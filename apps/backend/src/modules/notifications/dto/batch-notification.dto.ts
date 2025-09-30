@@ -1,12 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsString,
-  IsArray,
-  IsOptional,
-  IsUUID,
-  ArrayNotEmpty,
-  IsObject,
-} from 'class-validator';
+import { IsString, IsArray, IsOptional, IsUUID, ArrayNotEmpty, IsObject } from 'class-validator';
 
 export class CreateBatchNotificationDto {
   @ApiProperty({
@@ -35,10 +28,7 @@ export class CreateBatchNotificationDto {
   @ApiProperty({
     description: 'Array of user IDs to send notifications to',
     type: [String],
-    example: [
-      '123e4567-e89b-12d3-a456-426614174000',
-      '987fcdeb-51a2-43d1-b567-987654321000',
-    ],
+    example: ['123e4567-e89b-12d3-a456-426614174000', '987fcdeb-51a2-43d1-b567-987654321000'],
   })
   @IsArray()
   @ArrayNotEmpty()

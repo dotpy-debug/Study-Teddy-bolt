@@ -295,8 +295,7 @@ export enum PreferredStyleEnum {
 export class TaskifyDto {
   @ApiProperty({
     description: 'Free text to convert into structured tasks',
-    example:
-      'I need to study for my calculus exam next week and finish my chemistry lab report',
+    example: 'I need to study for my calculus exam next week and finish my chemistry lab report',
     minLength: 10,
     maxLength: 2000,
   })
@@ -376,8 +375,7 @@ export class BreakdownDto {
 
   @ApiProperty({
     description: 'Detailed description of the task',
-    example:
-      'Comprehensive understanding of linear algebra concepts for engineering applications',
+    example: 'Comprehensive understanding of linear algebra concepts for engineering applications',
     required: false,
     maxLength: 1000,
   })
@@ -447,8 +445,7 @@ export class BreakdownDto {
   })
   @IsOptional()
   @IsEnum(LearningStyleEnum, {
-    message:
-      'Learning style must be one of: visual, auditory, kinesthetic, reading',
+    message: 'Learning style must be one of: visual, auditory, kinesthetic, reading',
   })
   learningStyle?: LearningStyleEnum;
 
@@ -552,8 +549,7 @@ export class TutorExplainDto {
   })
   @IsOptional()
   @IsEnum(PreferredStyleEnum, {
-    message:
-      'Preferred style must be one of: detailed, concise, visual, example-heavy',
+    message: 'Preferred style must be one of: detailed, concise, visual, example-heavy',
   })
   preferredStyle?: PreferredStyleEnum;
 
@@ -642,10 +638,7 @@ export class CheckAnswerDto {
 
   @ApiProperty({
     description: 'Available hints for the question',
-    example: [
-      'Try factoring the equation',
-      'Look for two numbers that multiply to 6 and add to 5',
-    ],
+    example: ['Try factoring the equation', 'Look for two numbers that multiply to 6 and add to 5'],
     required: false,
     type: [String],
   })

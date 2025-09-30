@@ -1,4 +1,4 @@
-import { getCLS, getFCP, getFID, getLCP, getTTFB, type Metric } from 'web-vitals';
+import { onCLS, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
 
 export interface WebVitalMetrics {
   CLS: number;
@@ -30,11 +30,11 @@ class WebVitalsTracker {
 
   private initializeTracking(): void {
     // Track Core Web Vitals
-    getCLS(this.onMetric.bind(this));
-    getFCP(this.onMetric.bind(this));
-    getFID(this.onMetric.bind(this));
-    getLCP(this.onMetric.bind(this));
-    getTTFB(this.onMetric.bind(this));
+    onCLS(this.onMetric.bind(this));
+    onFCP(this.onMetric.bind(this));
+    // Note: FID is deprecated in web-vitals v4+, replaced by INP
+    onLCP(this.onMetric.bind(this));
+    onTTFB(this.onMetric.bind(this));
 
     // Track custom performance metrics
     this.trackLongTasks();
@@ -143,12 +143,12 @@ class WebVitalsTracker {
 
             this.reportCustomMetric({
               name: 'navigation-timing',
-              value: navigation.loadEventEnd - navigation.navigationStart,
+              value: navigation.loadEventEnd - navigation.fetchStart,
               timestamp: Date.now(),
               url: window.location.href,
               details: {
-                domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
-                loadComplete: navigation.loadEventEnd - navigation.navigationStart,
+                domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
+                loadComplete: navigation.loadEventEnd - navigation.fetchStart,
                 dnsLookup: navigation.domainLookupEnd - navigation.domainLookupStart,
                 tcpConnect: navigation.connectEnd - navigation.connectStart,
                 requestResponse: navigation.responseEnd - navigation.requestStart,

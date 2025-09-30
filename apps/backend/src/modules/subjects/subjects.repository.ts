@@ -1,18 +1,7 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { DrizzleService } from '../../db/drizzle.service';
 import { subjects, tasks, studySessions } from '../../db/schema';
-import {
-  eq,
-  and,
-  desc,
-  asc,
-  sql,
-  ilike,
-  count,
-  sum,
-  avg,
-  gte,
-} from 'drizzle-orm';
+import { eq, and, desc, asc, sql, ilike, count, sum, avg, gte } from 'drizzle-orm';
 import { QuerySubjectsDto } from './dto/query-subjects.dto';
 import { SubjectAnalyticsQueryDto } from './dto/subject-analytics.dto';
 
@@ -25,9 +14,7 @@ export class SubjectsRepository {
     const existing = await this.db.db
       .select()
       .from(subjects)
-      .where(
-        and(eq(subjects.userId, data.userId), eq(subjects.name, data.name)),
-      )
+      .where(and(eq(subjects.userId, data.userId), eq(subjects.name, data.name)))
       .limit(1);
 
     if (existing.length > 0) {
@@ -60,12 +47,10 @@ export class SubjectsRepository {
       conditions.push(ilike(subjects.name, `%${search}%`));
     }
 
-    const whereClause =
-      conditions.length > 1 ? and(...conditions) : conditions[0];
+    const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
 
     // Handle ordering
-    const orderBy =
-      order === 'asc' ? asc(subjects[sort]) : desc(subjects[sort]);
+    const orderBy = order === 'asc' ? asc(subjects[sort]) : desc(subjects[sort]);
 
     const [items, totalResult] = await Promise.all([
       this.db.db
@@ -95,11 +80,7 @@ export class SubjectsRepository {
   }
 
   async findOne(id: string) {
-    const result = await this.db.db
-      .select()
-      .from(subjects)
-      .where(eq(subjects.id, id))
-      .limit(1);
+    const result = await this.db.db.select().from(subjects).where(eq(subjects.id, id)).limit(1);
 
     return result[0];
   }
@@ -121,9 +102,7 @@ export class SubjectsRepository {
       if (subject) {
         const existing = await this.findByName(subject.userId, data.name);
         if (existing && existing.id !== id) {
-          throw new ConflictException(
-            'Subject name already exists for this user',
-          );
+          throw new ConflictException('Subject name already exists for this user');
         }
       }
     }
@@ -142,10 +121,7 @@ export class SubjectsRepository {
     return { message: 'Subject deleted successfully' };
   }
 
-  async getSubjectAnalytics(
-    subjectId: string,
-    query: SubjectAnalyticsQueryDto,
-  ) {
+  async getSubjectAnalytics(subjectId: string, query: SubjectAnalyticsQueryDto) {
     const { startDate, endDate, window = 'week' } = query;
 
     // Set default date range based on window
@@ -211,8 +187,7 @@ export class SubjectsRepository {
 
     const totalTasks = Number(taskData.totalTasks || 0);
     const completedTasks = Number(taskData.completedTasks || 0);
-    const completionRate =
-      totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
     return {
       totalFocusedMinutes: Number(focusData.totalMinutes || 0),
@@ -239,10 +214,7 @@ export class SubjectsRepository {
       .where(and(eq(subjects.userId, userId), eq(subjects.isArchived, false)))
       .groupBy(subjects.id, subjects.name, subjects.color);
 
-    const totalStudyTime = result.reduce(
-      (sum, item) => sum + Number(item.totalMinutes || 0),
-      0,
-    );
+    const totalStudyTime = result.reduce((sum, item) => sum + Number(item.totalMinutes || 0), 0);
 
     return result.map((item) => ({
       subjectName: item.name,
@@ -250,9 +222,7 @@ export class SubjectsRepository {
       minutes: Number(item.totalMinutes || 0),
       percentage:
         totalStudyTime > 0
-          ? Math.round(
-              (Number(item.totalMinutes || 0) / totalStudyTime) * 1000,
-            ) / 10
+          ? Math.round((Number(item.totalMinutes || 0) / totalStudyTime) * 1000) / 10
           : 0,
     }));
   }

@@ -111,9 +111,7 @@ describe('TasksService', () => {
 
       mockDatabaseService.db.select.mockReturnValue(mockChain);
 
-      await expect(service.findOne('user1', 'nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.findOne('user1', 'nonexistent')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -157,9 +155,9 @@ describe('TasksService', () => {
 
       mockDatabaseService.db.select.mockReturnValue(mockChain);
 
-      await expect(
-        service.update('user1', 'nonexistent', updateTaskDto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.update('user1', 'nonexistent', updateTaskDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -188,9 +186,7 @@ describe('TasksService', () => {
 
       mockDatabaseService.db.select.mockReturnValue(mockChain);
 
-      await expect(service.remove('user1', 'nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.remove('user1', 'nonexistent')).rejects.toThrow(NotFoundException);
     });
   });
 });

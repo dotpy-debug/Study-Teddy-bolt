@@ -55,11 +55,7 @@ export const CacheMethod = (keyPrefix: string, ttl: number = 300) => {
       const argsKey = JSON.stringify(args);
       const cacheKey = `${keyPrefix}:${target.constructor.name}:${propertyKey}:${argsKey}`;
 
-      return cacheService.getOrSet(
-        cacheKey,
-        () => originalMethod.apply(this, args),
-        { ttl },
-      );
+      return cacheService.getOrSet(cacheKey, () => originalMethod.apply(this, args), { ttl });
     };
 
     return descriptor;

@@ -61,9 +61,7 @@ export class FrontendSecurityService {
   /**
    * Generate Content Security Policy header value
    */
-  generateCSPHeader(
-    customDirectives?: Partial<ContentSecurityPolicyConfig>,
-  ): string {
+  generateCSPHeader(customDirectives?: Partial<ContentSecurityPolicyConfig>): string {
     const csp = { ...this.config.csp, ...customDirectives };
     const directives: string[] = [];
 
@@ -78,9 +76,7 @@ export class FrontendSecurityService {
       } else if (directive === 'reportTo' && value) {
         directives.push(`report-to ${value}`);
       } else if (Array.isArray(value) && value.length > 0) {
-        const kebabDirective = directive
-          .replace(/([A-Z])/g, '-$1')
-          .toLowerCase();
+        const kebabDirective = directive.replace(/([A-Z])/g, '-$1').toLowerCase();
         directives.push(`${kebabDirective} ${value.join(' ')}`);
       }
     });
@@ -190,8 +186,7 @@ export class FrontendSecurityService {
     try {
       const url = new URL(resource.url);
       const isDomainTrusted = trustedDomains.some(
-        (domain) =>
-          url.hostname === domain || url.hostname.endsWith(`.${domain}`),
+        (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`),
       );
 
       if (!isDomainTrusted) {
@@ -415,8 +410,7 @@ export class FrontendSecurityService {
     // Security headers
     headers['X-Download-Options'] = 'noopen';
     headers['X-DNS-Prefetch-Control'] = 'off';
-    headers['Strict-Transport-Security'] =
-      'max-age=31536000; includeSubDomains; preload';
+    headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload';
 
     return headers;
   }
@@ -460,9 +454,7 @@ export class FrontendSecurityService {
 
       // Check domain whitelist
       const isDomainAllowed = allowedDomains.some(
-        (domain) =>
-          parsedUrl.hostname === domain ||
-          parsedUrl.hostname.endsWith(`.${domain}`),
+        (domain) => parsedUrl.hostname === domain || parsedUrl.hostname.endsWith(`.${domain}`),
       );
 
       if (!isDomainAllowed) {
@@ -494,8 +486,7 @@ export class FrontendSecurityService {
   }
 
   private initializeConfig(): FrontendSecurityConfig {
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
     return {
       csp: {

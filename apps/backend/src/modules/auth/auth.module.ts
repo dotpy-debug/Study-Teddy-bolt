@@ -32,13 +32,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
     }),
   ],
   controllers: [AuthController, BetterAuthController],
-  providers: [
-    AuthService,
-    BetterAuthService,
-    BetterAuthGuard,
-    JwtStrategy,
-    GoogleStrategy,
-  ],
+  providers: [AuthService, BetterAuthService, BetterAuthGuard, JwtStrategy, GoogleStrategy],
   exports: [AuthService, BetterAuthService, BetterAuthGuard, JwtStrategy],
 })
 export class AuthModule {}

@@ -44,19 +44,14 @@ export class ErrorRecoveryService {
   /**
    * Attempt to recover from an error
    */
-  async recoverFromError(
-    error: any,
-    context?: BackendErrorContext,
-  ): Promise<boolean> {
+  async recoverFromError(error: any, context?: BackendErrorContext): Promise<boolean> {
     const errorKey = this.getErrorKey(error, context);
     const attempts = this.recoveryAttempts.get(errorKey) || 0;
 
     // Find applicable strategy
     const strategy = this.strategies.find((s) => s.canHandle(error));
     if (!strategy) {
-      this.logger.warn(
-        `No recovery strategy found for error: ${error.message}`,
-      );
+      this.logger.warn(`No recovery strategy found for error: ${error.message}`);
       return false;
     }
 
@@ -97,9 +92,7 @@ export class ErrorRecoveryService {
       const recovered = await strategy.recover(error, context);
 
       if (recovered) {
-        this.logger.log(
-          `Successfully recovered from error using strategy: ${strategy.name}`,
-        );
+        this.logger.log(`Successfully recovered from error using strategy: ${strategy.name}`);
         this.recoveryAttempts.delete(errorKey);
 
         this.sentryService.trackMetric({
@@ -114,9 +107,7 @@ export class ErrorRecoveryService {
 
         return true;
       } else {
-        this.logger.warn(
-          `Recovery strategy ${strategy.name} failed to recover from error`,
-        );
+        this.logger.warn(`Recovery strategy ${strategy.name} failed to recover from error`);
 
         this.sentryService.trackMetric({
           name: 'error_recovery.failed',
@@ -200,9 +191,7 @@ export class ErrorRecoveryService {
         );
       },
       recover: async (error, context) => {
-        this.logger.log(
-          `Retrying external API call after error: ${error.message}`,
-        );
+        this.logger.log(`Retrying external API call after error: ${error.message}`);
 
         // For rate limiting, implement exponential backoff
         if (error.status === 429) {
@@ -260,14 +249,11 @@ export class ErrorRecoveryService {
         ); // Service unavailable
       },
       recover: async (error, context) => {
-        this.logger.log(
-          `Retrying AI service call after error: ${error.message}`,
-        );
+        this.logger.log(`Retrying AI service call after error: ${error.message}`);
 
         // Handle rate limiting with exponential backoff
         if (error.status === 429) {
-          const attempts =
-            this.recoveryAttempts.get(this.getErrorKey(error, context)) || 0;
+          const attempts = this.recoveryAttempts.get(this.getErrorKey(error, context)) || 0;
           const delay = Math.min(1000 * Math.pow(2, attempts), 60000); // Max 1 minute
           await this.delay(delay);
         }
@@ -425,17 +411,12 @@ export class ErrorRecoveryService {
  * Decorator for automatic error recovery
  */
 export function WithErrorRecovery(context?: Partial<BackendErrorContext>) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;
 
     descriptor.value = async function (...args: any[]) {
-      const errorRecoveryService = this
-        .errorRecoveryService as ErrorRecoveryService;
+      const errorRecoveryService = this.errorRecoveryService as ErrorRecoveryService;
 
       if (!errorRecoveryService) {
         // If no error recovery service available, just call original method
@@ -451,10 +432,7 @@ export function WithErrorRecovery(context?: Partial<BackendErrorContext>) {
       try {
         return await originalMethod.apply(this, args);
       } catch (error) {
-        const recovered = await errorRecoveryService.recoverFromError(
-          error,
-          fullContext,
-        );
+        const recovered = await errorRecoveryService.recoverFromError(error, fullContext);
 
         if (recovered) {
           // Retry the operation after successful recovery
@@ -481,10 +459,7 @@ export const withErrorRecovery = async <T>(
   try {
     return await operation();
   } catch (error) {
-    const recovered = await errorRecoveryService.recoverFromError(
-      error,
-      context,
-    );
+    const recovered = await errorRecoveryService.recoverFromError(error, context);
 
     if (recovered) {
       // Retry the operation after successful recovery

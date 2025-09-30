@@ -54,12 +54,7 @@ export const goalStatusEnum = pgEnum('goal_status', [
 ]);
 
 // Goal priority enum
-export const goalPriorityEnum = pgEnum('goal_priority', [
-  'low',
-  'medium',
-  'high',
-  'critical',
-]);
+export const goalPriorityEnum = pgEnum('goal_priority', ['low', 'medium', 'high', 'critical']);
 
 // Sharing type enum
 export const goalSharingTypeEnum = pgEnum('goal_sharing_type', [
@@ -85,9 +80,7 @@ export const goals = pgTable(
 
     // Target and progress values
     targetValue: decimal('target_value', { precision: 10, scale: 2 }).notNull(),
-    currentValue: decimal('current_value', { precision: 10, scale: 2 })
-      .default('0')
-      .notNull(),
+    currentValue: decimal('current_value', { precision: 10, scale: 2 }).default('0').notNull(),
     unit: text('unit').notNull(), // 'hours', 'tasks', 'sessions', 'points', 'percentage'
 
     // Dates
@@ -122,9 +115,7 @@ export const goals = pgTable(
     parentGoalId: uuid('parent_goal_id').references(() => goals.id), // For recurring goal instances
 
     // Sharing and collaboration
-    sharingType: goalSharingTypeEnum('sharing_type')
-      .default('private')
-      .notNull(),
+    sharingType: goalSharingTypeEnum('sharing_type').default('private').notNull(),
     isCollaborative: boolean('is_collaborative').default(false).notNull(),
     collaboratorIds: jsonb('collaborator_ids').$type<string[]>().default([]),
 
@@ -237,9 +228,7 @@ export const goalTemplates = pgTable(
     // Template configuration
     isPublic: boolean('is_public').default(true).notNull(),
     usageCount: integer('usage_count').default(0).notNull(),
-    rating: decimal('rating', { precision: 3, scale: 2 })
-      .default('0')
-      .notNull(),
+    rating: decimal('rating', { precision: 3, scale: 2 }).default('0').notNull(),
 
     // Template metadata
     tags: jsonb('tags').$type<string[]>().default([]),
@@ -290,15 +279,10 @@ export const goalSharing = pgTable(
   },
   (table) => ({
     goalIdIdx: index('goal_sharing_goal_id_idx').on(table.goalId),
-    sharedWithIdx: index('goal_sharing_shared_with_idx').on(
-      table.sharedWithUserId,
-    ),
+    sharedWithIdx: index('goal_sharing_shared_with_idx').on(table.sharedWithUserId),
     sharedByIdx: index('goal_sharing_shared_by_idx').on(table.sharedByUserId),
     statusIdx: index('goal_sharing_status_idx').on(table.status),
-    goalUserUnique: index('goal_sharing_goal_user_unique').on(
-      table.goalId,
-      table.sharedWithUserId,
-    ),
+    goalUserUnique: index('goal_sharing_goal_user_unique').on(table.goalId, table.sharedWithUserId),
   }),
 );
 
@@ -314,9 +298,7 @@ export const goalComments = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     content: text('content').notNull(),
-    parentCommentId: uuid('parent_comment_id').references(
-      () => goalComments.id,
-    ),
+    parentCommentId: uuid('parent_comment_id').references(() => goalComments.id),
     isEdited: boolean('is_edited').default(false).notNull(),
     editedAt: timestamp('edited_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -324,9 +306,7 @@ export const goalComments = pgTable(
   (table) => ({
     goalIdIdx: index('goal_comments_goal_id_idx').on(table.goalId),
     userIdIdx: index('goal_comments_user_id_idx').on(table.userId),
-    parentCommentIdx: index('goal_comments_parent_idx').on(
-      table.parentCommentId,
-    ),
+    parentCommentIdx: index('goal_comments_parent_idx').on(table.parentCommentId),
     createdAtIdx: index('goal_comments_created_at_idx').on(table.createdAt),
   }),
 );
@@ -397,16 +377,13 @@ export const goalProgressRelations = relations(goalProgress, ({ one }) => ({
   }),
 }));
 
-export const goalTemplatesRelations = relations(
-  goalTemplates,
-  ({ one, many }) => ({
-    creator: one(users, {
-      fields: [goalTemplates.createdBy],
-      references: [users.id],
-    }),
-    goals: many(goals),
+export const goalTemplatesRelations = relations(goalTemplates, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [goalTemplates.createdBy],
+    references: [users.id],
   }),
-);
+  goals: many(goals),
+}));
 
 export const goalSharingRelations = relations(goalSharing, ({ one }) => ({
   goal: one(goals, {
@@ -423,24 +400,21 @@ export const goalSharingRelations = relations(goalSharing, ({ one }) => ({
   }),
 }));
 
-export const goalCommentsRelations = relations(
-  goalComments,
-  ({ one, many }) => ({
-    goal: one(goals, {
-      fields: [goalComments.goalId],
-      references: [goals.id],
-    }),
-    user: one(users, {
-      fields: [goalComments.userId],
-      references: [users.id],
-    }),
-    parentComment: one(goalComments, {
-      fields: [goalComments.parentCommentId],
-      references: [goalComments.id],
-    }),
-    replies: many(goalComments),
+export const goalCommentsRelations = relations(goalComments, ({ one, many }) => ({
+  goal: one(goals, {
+    fields: [goalComments.goalId],
+    references: [goals.id],
   }),
-);
+  user: one(users, {
+    fields: [goalComments.userId],
+    references: [users.id],
+  }),
+  parentComment: one(goalComments, {
+    fields: [goalComments.parentCommentId],
+    references: [goalComments.id],
+  }),
+  replies: many(goalComments),
+}));
 
 export const goalRemindersRelations = relations(goalReminders, ({ one }) => ({
   goal: one(goals, {

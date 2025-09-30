@@ -101,10 +101,7 @@ export class CalendarController {
     status: 204,
     description: 'Calendar disconnected successfully',
   })
-  async disconnectCalendar(
-    @Request() req,
-    @Body() dto: DisconnectCalendarDto,
-  ): Promise<void> {
+  async disconnectCalendar(@Request() req, @Body() dto: DisconnectCalendarDto): Promise<void> {
     return this.calendarService.disconnectCalendar(req.user.userId, dto);
   }
 
@@ -115,9 +112,7 @@ export class CalendarController {
     description: 'Calendar accounts retrieved successfully',
     type: [CalendarAccountResponseDto],
   })
-  async getCalendarAccounts(
-    @Request() req,
-  ): Promise<CalendarAccountResponseDto[]> {
+  async getCalendarAccounts(@Request() req): Promise<CalendarAccountResponseDto[]> {
     return this.calendarService.getCalendarAccounts(req.user.userId);
   }
 
@@ -213,8 +208,7 @@ export class CalendarController {
     // This endpoint would typically be handled by the frontend
     // The frontend should capture the code and call POST /api/calendar/connect
     return {
-      message:
-        'Please use the authorization code to complete calendar connection',
+      message: 'Please use the authorization code to complete calendar connection',
     };
   }
 
@@ -240,10 +234,7 @@ export class CalendarController {
     status: 201,
     description: 'Event created successfully',
   })
-  async createGoogleEvent(
-    @Request() req,
-    @Body() createEventDto: CreateEventDto,
-  ): Promise<any> {
+  async createGoogleEvent(@Request() req, @Body() createEventDto: CreateEventDto): Promise<any> {
     return this.googleCalendarService.createEvent(
       req.user.userId,
       createEventDto,
@@ -268,11 +259,7 @@ export class CalendarController {
     @Param('eventId') eventId: string,
     @Query('calendarId') calendarId?: string,
   ): Promise<any> {
-    return this.googleCalendarService.getEvent(
-      req.user.userId,
-      eventId,
-      calendarId,
-    );
+    return this.googleCalendarService.getEvent(req.user.userId, eventId, calendarId);
   }
 
   @Put('google/events/:eventId')
@@ -385,18 +372,12 @@ export class CalendarController {
     @Query('showDeleted') showDeleted?: boolean,
     @Query('singleEvents') singleEvents?: boolean,
   ): Promise<any[]> {
-    return this.googleCalendarService.listEvents(
-      req.user.userId,
-      timeMin,
-      timeMax,
-      calendarId,
-      {
-        maxResults,
-        orderBy,
-        showDeleted,
-        singleEvents,
-      },
-    );
+    return this.googleCalendarService.listEvents(req.user.userId, timeMin, timeMax, calendarId, {
+      maxResults,
+      orderBy,
+      showDeleted,
+      singleEvents,
+    });
   }
 
   @Post('google/events/conflicts/check')
@@ -480,12 +461,7 @@ export class CalendarController {
     @Query('timeMax') timeMax: string,
     @Query('calendarIds') calendarIds?: string[],
   ): Promise<any> {
-    return this.googleCalendarService.getFreeBusy(
-      req.user.userId,
-      timeMin,
-      timeMax,
-      calendarIds,
-    );
+    return this.googleCalendarService.getFreeBusy(req.user.userId, timeMin, timeMax, calendarIds);
   }
 
   // ============================================================================
@@ -565,17 +541,11 @@ export class CalendarController {
     @Request() req,
     @Body() syncDto: SyncCalendarDto,
   ): Promise<CalendarSyncResult> {
-    return this.googleCalendarService.syncCalendar(
-      req.user.userId,
-      syncDto.calendarId,
-      {
-        fullSync: syncDto.fullSync,
-        lastSyncTime: syncDto.lastSyncTime
-          ? new Date(syncDto.lastSyncTime)
-          : undefined,
-        conflictResolution: syncDto.conflictResolution,
-      },
-    );
+    return this.googleCalendarService.syncCalendar(req.user.userId, syncDto.calendarId, {
+      fullSync: syncDto.fullSync,
+      lastSyncTime: syncDto.lastSyncTime ? new Date(syncDto.lastSyncTime) : undefined,
+      conflictResolution: syncDto.conflictResolution,
+    });
   }
 
   @Get('google/sync/status')
@@ -589,10 +559,7 @@ export class CalendarController {
     status: 200,
     description: 'Sync status retrieved successfully',
   })
-  async getSyncStatus(
-    @Request() req,
-    @Query('calendarId') calendarId?: string,
-  ): Promise<any> {
+  async getSyncStatus(@Request() req, @Query('calendarId') calendarId?: string): Promise<any> {
     // This would typically get sync status from database
     // For now, return basic information
     return {
@@ -632,21 +599,14 @@ export class CalendarController {
     status: 200,
     description: 'Webhook handled successfully',
   })
-  async handleWebhook(
-    @Request() req,
-    @Body() body: any,
-  ): Promise<{ status: string }> {
+  async handleWebhook(@Request() req, @Body() body: any): Promise<{ status: string }> {
     // Extract channel info from headers and body
     const channelId = req.headers['x-goog-channel-id'] as string;
     const resourceId = req.headers['x-goog-resource-id'] as string;
     const eventType = req.headers['x-goog-resource-state'] as string;
 
     if (channelId && resourceId && eventType) {
-      await this.googleCalendarService.handleCalendarNotification(
-        channelId,
-        resourceId,
-        eventType,
-      );
+      await this.googleCalendarService.handleCalendarNotification(channelId, resourceId, eventType);
     }
 
     return { status: 'ok' };
@@ -717,13 +677,7 @@ export class CalendarController {
     status: 200,
     description: 'Tokens exchanged successfully',
   })
-  async exchangeCodeForTokens(
-    @Request() req,
-    @Body() body: { code: string },
-  ): Promise<any> {
-    return this.googleCalendarService.exchangeCodeForTokens(
-      req.user.userId,
-      body.code,
-    );
+  async exchangeCodeForTokens(@Request() req, @Body() body: { code: string }): Promise<any> {
+    return this.googleCalendarService.exchangeCodeForTokens(req.user.userId, body.code);
   }
 }

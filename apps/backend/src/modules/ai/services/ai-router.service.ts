@@ -87,10 +87,7 @@ export class AIRouterService {
 
     // Try primary provider first
     try {
-      return await this.aiProviderService.executeRequest(
-        route.primary,
-        request,
-      );
+      return await this.aiProviderService.executeRequest(route.primary, request);
     } catch (error) {
       this.logger.warn(
         `Primary provider ${route.primary} failed, attempting fallbacks`,
@@ -224,20 +221,12 @@ export class AIRouterService {
 
       try {
         this.logger.debug(`Trying fallback provider: ${provider}`);
-        const response = await this.aiProviderService.executeRequest(
-          provider,
-          request,
-        );
+        const response = await this.aiProviderService.executeRequest(provider, request);
 
-        this.logger.log(
-          `Successfully executed with fallback provider: ${provider}`,
-        );
+        this.logger.log(`Successfully executed with fallback provider: ${provider}`);
         return response;
       } catch (error) {
-        this.logger.warn(
-          `Fallback provider ${provider} failed:`,
-          error.message,
-        );
+        this.logger.warn(`Fallback provider ${provider} failed:`, error.message);
         lastError = error;
       }
     }

@@ -80,9 +80,7 @@ export class ErrorTrackingService {
     errorRate: number;
   } {
     const cutoff = new Date(Date.now() - timeWindow);
-    const recentErrors = this.errors.filter(
-      (error) => error.timestamp > cutoff,
-    );
+    const recentErrors = this.errors.filter((error) => error.timestamp > cutoff);
 
     const byseverity = recentErrors.reduce(
       (acc, error) => {
@@ -102,9 +100,7 @@ export class ErrorTrackingService {
 
   // Get errors by severity
   getErrorsBySeverity(severity: ErrorEvent['severity']): ErrorEvent[] {
-    return this.errors.filter(
-      (error) => error.severity === severity && !error.resolved,
-    );
+    return this.errors.filter((error) => error.severity === severity && !error.resolved);
   }
 
   // Mark error as resolved
@@ -120,9 +116,7 @@ export class ErrorTrackingService {
 
   // Get unresolved critical errors
   getCriticalErrors(): ErrorEvent[] {
-    return this.errors.filter(
-      (error) => error.severity === 'critical' && !error.resolved,
-    );
+    return this.errors.filter((error) => error.severity === 'critical' && !error.resolved);
   }
 
   // Check if system is in error state
@@ -146,8 +140,7 @@ export class ErrorTrackingService {
     const alertRules: AlertRule[] = [
       {
         name: 'Critical Error Alert',
-        condition: (errors) =>
-          errors.some((e) => e.severity === 'critical' && !e.resolved),
+        condition: (errors) => errors.some((e) => e.severity === 'critical' && !e.resolved),
         message: 'Critical error detected in Study Teddy backend',
         severity: 'critical',
         cooldown: 5, // 5 minutes
@@ -168,9 +161,7 @@ export class ErrorTrackingService {
         name: 'Database Error Alert',
         condition: (errors) => {
           const dbErrors = errors.filter(
-            (e) =>
-              e.context?.type === 'database' &&
-              e.timestamp > new Date(Date.now() - 600000), // 10 minutes
+            (e) => e.context?.type === 'database' && e.timestamp > new Date(Date.now() - 600000), // 10 minutes
           );
           return dbErrors.length > 5;
         },

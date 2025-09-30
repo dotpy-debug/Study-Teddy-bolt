@@ -63,9 +63,7 @@ export class NotificationService {
       // Get escalation rule for this severity
       const escalationRule = this.escalationRules.get(alert.severity);
       if (!escalationRule) {
-        this.logger.warn(
-          `No escalation rule found for severity: ${alert.severity}`,
-        );
+        this.logger.warn(`No escalation rule found for severity: ${alert.severity}`);
         return;
       }
 
@@ -91,10 +89,7 @@ export class NotificationService {
   /**
    * Send notification to specific channels
    */
-  private async sendToChannels(
-    alert: AlertNotification,
-    channelNames: string[],
-  ): Promise<void> {
+  private async sendToChannels(alert: AlertNotification, channelNames: string[]): Promise<void> {
     const promises = channelNames.map(async (channelName) => {
       const channel = this.channels.get(channelName);
       if (!channel || !channel.isEnabled) {
@@ -149,10 +144,7 @@ export class NotificationService {
   /**
    * Send email notification
    */
-  private async sendEmail(
-    alert: AlertNotification,
-    channel: NotificationChannel,
-  ): Promise<void> {
+  private async sendEmail(alert: AlertNotification, channel: NotificationChannel): Promise<void> {
     const nodemailer = require('nodemailer');
 
     const transporter = nodemailer.createTransporter({
@@ -181,10 +173,7 @@ export class NotificationService {
   /**
    * Send Slack notification
    */
-  private async sendSlack(
-    alert: AlertNotification,
-    channel: NotificationChannel,
-  ): Promise<void> {
+  private async sendSlack(alert: AlertNotification, channel: NotificationChannel): Promise<void> {
     const webhookUrl = channel.config.webhookUrl;
 
     const slackMessage = {
@@ -228,19 +217,14 @@ export class NotificationService {
     });
 
     if (!response.ok) {
-      throw new Error(
-        `Slack webhook failed: ${response.status} ${response.statusText}`,
-      );
+      throw new Error(`Slack webhook failed: ${response.status} ${response.statusText}`);
     }
   }
 
   /**
    * Send webhook notification
    */
-  private async sendWebhook(
-    alert: AlertNotification,
-    channel: NotificationChannel,
-  ): Promise<void> {
+  private async sendWebhook(alert: AlertNotification, channel: NotificationChannel): Promise<void> {
     const payload = {
       alert,
       timestamp: new Date().toISOString(),
@@ -258,23 +242,16 @@ export class NotificationService {
     });
 
     if (!response.ok) {
-      throw new Error(
-        `Webhook failed: ${response.status} ${response.statusText}`,
-      );
+      throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
     }
   }
 
   /**
    * Send SMS notification (placeholder - would integrate with SMS service)
    */
-  private async sendSMS(
-    alert: AlertNotification,
-    channel: NotificationChannel,
-  ): Promise<void> {
+  private async sendSMS(alert: AlertNotification, channel: NotificationChannel): Promise<void> {
     // This would integrate with an SMS service like Twilio
-    this.logger.log(
-      `SMS would be sent to: ${channel.config.phoneNumbers.join(', ')}`,
-    );
+    this.logger.log(`SMS would be sent to: ${channel.config.phoneNumbers.join(', ')}`);
     this.logger.log(
       `SMS content: [${alert.severity.toUpperCase()}] ${alert.title}: ${alert.message}`,
     );
@@ -283,10 +260,7 @@ export class NotificationService {
   /**
    * Schedule escalation for critical alerts
    */
-  private scheduleEscalation(
-    alert: AlertNotification,
-    rule: EscalationRule,
-  ): void {
+  private scheduleEscalation(alert: AlertNotification, rule: EscalationRule): void {
     const escalationKey = `${alert.id}_escalation`;
 
     rule.delays.forEach((delayMinutes, index) => {
@@ -294,9 +268,7 @@ export class NotificationService {
 
       const timeout = setTimeout(
         async () => {
-          this.logger.warn(
-            `Escalating alert: ${alert.title} (level ${index + 1})`,
-          );
+          this.logger.warn(`Escalating alert: ${alert.title} (level ${index + 1})`);
 
           // Send to escalation channels
           await this.sendToChannels(alert, this.getEscalationChannels(index));
@@ -355,10 +327,7 @@ export class NotificationService {
       name: 'Development Team Email',
       type: 'email',
       config: {
-        recipients: this.configService
-          .get('DEV_TEAM_EMAILS', '')
-          .split(',')
-          .filter(Boolean),
+        recipients: this.configService.get('DEV_TEAM_EMAILS', '').split(',').filter(Boolean),
       },
       isEnabled: true,
     });
@@ -367,9 +336,7 @@ export class NotificationService {
       name: 'On-Call Engineer Email',
       type: 'email',
       config: {
-        recipients: [
-          this.configService.get('ONCALL_EMAIL', 'oncall@studyteddy.com'),
-        ],
+        recipients: [this.configService.get('ONCALL_EMAIL', 'oncall@studyteddy.com')],
       },
       isEnabled: true,
     });
@@ -523,9 +490,7 @@ export class NotificationService {
     return {
       channels: stats,
       totalChannels: this.channels.size,
-      enabledChannels: Array.from(this.channels.values()).filter(
-        (c) => c.isEnabled,
-      ).length,
+      enabledChannels: Array.from(this.channels.values()).filter((c) => c.isEnabled).length,
       pendingEscalations: this.pendingEscalations.size,
     };
   }
@@ -551,15 +516,10 @@ export class NotificationService {
 
     try {
       await this.sendToChannel(testAlert, channel);
-      this.logger.log(
-        `Test notification sent successfully to channel: ${channelName}`,
-      );
+      this.logger.log(`Test notification sent successfully to channel: ${channelName}`);
       return true;
     } catch (error) {
-      this.logger.error(
-        `Test notification failed for channel ${channelName}:`,
-        error,
-      );
+      this.logger.error(`Test notification failed for channel ${channelName}:`, error);
       return false;
     }
   }

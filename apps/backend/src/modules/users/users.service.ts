@@ -83,10 +83,7 @@ export class UsersService {
     return newUser;
   }
 
-  async validatePassword(
-    password: string,
-    hashedPassword: string,
-  ): Promise<boolean> {
+  async validatePassword(password: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }
 
@@ -94,19 +91,14 @@ export class UsersService {
     return crypto.randomBytes(32).toString('hex');
   }
 
-  async updateRefreshToken(
-    userId: string,
-    refreshToken: string,
-  ): Promise<void> {
+  async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30); // 30 days expiration
 
     const tokenHash = await bcrypt.hash(refreshToken, 10);
 
     // Use upsert pattern: delete existing token first, then insert new one
-    await this.drizzleService.db
-      .delete(refreshTokens)
-      .where(eq(refreshTokens.userId, userId));
+    await this.drizzleService.db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
 
     await this.drizzleService.db.insert(refreshTokens).values({
       userId,
@@ -115,10 +107,7 @@ export class UsersService {
     });
   }
 
-  async validateRefreshToken(
-    userId: string,
-    refreshToken: string,
-  ): Promise<boolean> {
+  async validateRefreshToken(userId: string, refreshToken: string): Promise<boolean> {
     const [token] = await this.drizzleService.db
       .select({
         tokenHash: refreshTokens.tokenHash,
@@ -126,12 +115,7 @@ export class UsersService {
         revokedAt: refreshTokens.revokedAt,
       })
       .from(refreshTokens)
-      .where(
-        and(
-          eq(refreshTokens.userId, userId),
-          gt(refreshTokens.expiresAt, new Date()),
-        ),
-      )
+      .where(and(eq(refreshTokens.userId, userId), gt(refreshTokens.expiresAt, new Date())))
       .limit(1);
 
     if (!token || !token.tokenHash || token.revokedAt) {
@@ -159,12 +143,7 @@ export class UsersService {
         tokenHash: refreshTokens.tokenHash,
       })
       .from(refreshTokens)
-      .where(
-        and(
-          gt(refreshTokens.expiresAt, new Date()),
-          isNull(refreshTokens.revokedAt),
-        ),
-      );
+      .where(and(gt(refreshTokens.expiresAt, new Date()), isNull(refreshTokens.revokedAt)));
 
     // Check each token hash - this is still O(N) but much smaller N than all users
     // In practice, there should be very few active refresh tokens
@@ -268,10 +247,7 @@ export class UsersService {
     return crypto.randomBytes(32).toString('hex');
   }
 
-  async setEmailVerificationToken(
-    userId: string,
-    token: string,
-  ): Promise<void> {
+  async setEmailVerificationToken(userId: string, token: string): Promise<void> {
     await this.drizzleService.db
       .update(users)
       .set({
@@ -288,12 +264,7 @@ export class UsersService {
     }
 
     // Return user profile without sensitive data
-    const {
-      passwordHash,
-      resetPasswordToken,
-      emailVerificationToken,
-      ...profile
-    } = user;
+    const { passwordHash, resetPasswordToken, emailVerificationToken, ...profile } = user;
     return profile;
   }
 
@@ -307,12 +278,7 @@ export class UsersService {
       .where(eq(users.id, userId))
       .returning();
 
-    const {
-      passwordHash,
-      resetPasswordToken,
-      emailVerificationToken,
-      ...profile
-    } = updatedUser;
+    const { passwordHash, resetPasswordToken, emailVerificationToken, ...profile } = updatedUser;
     return profile;
   }
 
@@ -358,10 +324,7 @@ export class UsersService {
     }
 
     // Validate current password
-    const isCurrentPasswordValid = await this.validatePassword(
-      currentPassword,
-      user.passwordHash,
-    );
+    const isCurrentPasswordValid = await this.validatePassword(currentPassword, user.passwordHash);
     if (!isCurrentPasswordValid) {
       throw new Error('Current password is incorrect');
     }
@@ -398,12 +361,7 @@ export class UsersService {
     }
 
     // Return sanitized user data for export
-    const {
-      passwordHash,
-      resetPasswordToken,
-      emailVerificationToken,
-      ...exportData
-    } = user;
+    const { passwordHash, resetPasswordToken, emailVerificationToken, ...exportData } = user;
 
     return {
       userData: exportData,

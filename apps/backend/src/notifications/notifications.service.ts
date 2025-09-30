@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DrizzleService } from '../db/drizzle.service';
 import {
   notifications,
@@ -60,12 +56,7 @@ export class NotificationsService {
     const conditions = [eq(notifications.userId, userId)];
 
     // Add expired filter - don't show expired notifications
-    conditions.push(
-      or(
-        isNull(notifications.expiresAt),
-        gte(notifications.expiresAt, new Date()),
-      )!,
-    );
+    conditions.push(or(isNull(notifications.expiresAt), gte(notifications.expiresAt, new Date()))!);
 
     if (query?.read !== undefined) {
       conditions.push(eq(notifications.read, query.read));
@@ -157,9 +148,7 @@ export class NotificationsService {
         readAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(
-        and(eq(notifications.userId, userId), eq(notifications.read, false)),
-      );
+      .where(and(eq(notifications.userId, userId), eq(notifications.read, false)));
 
     return { count: result.length || 0 };
   }
@@ -193,10 +182,7 @@ export class NotificationsService {
         and(
           eq(notifications.userId, userId),
           eq(notifications.read, false),
-          or(
-            isNull(notifications.expiresAt),
-            gte(notifications.expiresAt, new Date()),
-          ),
+          or(isNull(notifications.expiresAt), gte(notifications.expiresAt, new Date())),
         ),
       );
 

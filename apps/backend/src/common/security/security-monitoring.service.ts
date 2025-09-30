@@ -104,11 +104,7 @@ export class SecurityMonitoringService implements OnModuleInit {
   /**
    * Record security event for monitoring
    */
-  async recordSecurityEvent(
-    category: string,
-    event: string,
-    metadata: any = {},
-  ): Promise<void> {
+  async recordSecurityEvent(category: string, event: string, metadata: any = {}): Promise<void> {
     if (!this.config.enabled) return;
 
     try {
@@ -150,8 +146,7 @@ export class SecurityMonitoringService implements OnModuleInit {
       const authMetrics = await this.getAuthenticationMetrics(timeWindow);
       const authzMetrics = await this.getAuthorizationMetrics(timeWindow);
       const rateLimitMetrics = await this.getRateLimitMetrics(timeWindow);
-      const inputValidationMetrics =
-        await this.getInputValidationMetrics(timeWindow);
+      const inputValidationMetrics = await this.getInputValidationMetrics(timeWindow);
       const fileUploadMetrics = await this.getFileUploadMetrics(timeWindow);
       const systemMetrics = await this.getSystemHealthMetrics();
       const threatMetrics = await this.getThreatMetrics(timeWindow);
@@ -235,10 +230,7 @@ export class SecurityMonitoringService implements OnModuleInit {
   /**
    * Acknowledge security alert
    */
-  async acknowledgeAlert(
-    alertId: string,
-    acknowledgedBy: string,
-  ): Promise<boolean> {
+  async acknowledgeAlert(alertId: string, acknowledgedBy: string): Promise<boolean> {
     const alert = this.activeAlerts.get(alertId);
     if (!alert) return false;
 
@@ -290,9 +282,7 @@ export class SecurityMonitoringService implements OnModuleInit {
 
       // Keep only recent metrics in buffer
       const cutoff = new Date(Date.now() - 60 * 60 * 1000); // 1 hour
-      this.metricsBuffer = this.metricsBuffer.filter(
-        (m) => m.timestamp > cutoff,
-      );
+      this.metricsBuffer = this.metricsBuffer.filter((m) => m.timestamp > cutoff);
     } catch (error) {
       this.logger.error('Failed to collect metrics', {
         error: error.message,
@@ -323,11 +313,7 @@ export class SecurityMonitoringService implements OnModuleInit {
         now.getTime() - this.config.metricsRetentionDays * 24 * 60 * 60 * 1000,
       );
       for (const [alertId, alert] of this.activeAlerts) {
-        if (
-          alert.resolved &&
-          alert.resolvedAt &&
-          alert.resolvedAt < retentionCutoff
-        ) {
+        if (alert.resolved && alert.resolvedAt && alert.resolvedAt < retentionCutoff) {
           this.activeAlerts.delete(alertId);
         }
       }
@@ -343,49 +329,19 @@ export class SecurityMonitoringService implements OnModuleInit {
    */
   private initializeConfig(): MonitoringConfig {
     return {
-      enabled: this.configService.get<boolean>(
-        'SECURITY_MONITORING_ENABLED',
-        true,
-      ),
-      metricsRetentionDays: this.configService.get<number>(
-        'SECURITY_METRICS_RETENTION_DAYS',
-        30,
-      ),
+      enabled: this.configService.get<boolean>('SECURITY_MONITORING_ENABLED', true),
+      metricsRetentionDays: this.configService.get<number>('SECURITY_METRICS_RETENTION_DAYS', 30),
       alertThresholds: {
-        failedLoginRate: this.configService.get<number>(
-          'ALERT_FAILED_LOGIN_RATE',
-          10,
-        ),
-        rateLimitExceededRate: this.configService.get<number>(
-          'ALERT_RATE_LIMIT_RATE',
-          50,
-        ),
-        highRiskRequestRate: this.configService.get<number>(
-          'ALERT_HIGH_RISK_RATE',
-          5,
-        ),
+        failedLoginRate: this.configService.get<number>('ALERT_FAILED_LOGIN_RATE', 10),
+        rateLimitExceededRate: this.configService.get<number>('ALERT_RATE_LIMIT_RATE', 50),
+        highRiskRequestRate: this.configService.get<number>('ALERT_HIGH_RISK_RATE', 5),
         systemCpuUsage: this.configService.get<number>('ALERT_CPU_USAGE', 80),
-        systemMemoryUsage: this.configService.get<number>(
-          'ALERT_MEMORY_USAGE',
-          85,
-        ),
-        responseTimeMs: this.configService.get<number>(
-          'ALERT_RESPONSE_TIME',
-          5000,
-        ),
+        systemMemoryUsage: this.configService.get<number>('ALERT_MEMORY_USAGE', 85),
+        responseTimeMs: this.configService.get<number>('ALERT_RESPONSE_TIME', 5000),
       },
-      alertCooldownMinutes: this.configService.get<number>(
-        'ALERT_COOLDOWN_MINUTES',
-        15,
-      ),
-      enableRealTimeMonitoring: this.configService.get<boolean>(
-        'ENABLE_REALTIME_MONITORING',
-        true,
-      ),
-      enableAutomatedResponse: this.configService.get<boolean>(
-        'ENABLE_AUTOMATED_RESPONSE',
-        false,
-      ),
+      alertCooldownMinutes: this.configService.get<number>('ALERT_COOLDOWN_MINUTES', 15),
+      enableRealTimeMonitoring: this.configService.get<boolean>('ENABLE_REALTIME_MONITORING', true),
+      enableAutomatedResponse: this.configService.get<boolean>('ENABLE_AUTOMATED_RESPONSE', false),
     };
   }
 
@@ -398,8 +354,7 @@ export class SecurityMonitoringService implements OnModuleInit {
         if (alertData) {
           const alert = JSON.parse(alertData);
           alert.timestamp = new Date(alert.timestamp);
-          if (alert.acknowledgedAt)
-            alert.acknowledgedAt = new Date(alert.acknowledgedAt);
+          if (alert.acknowledgedAt) alert.acknowledgedAt = new Date(alert.acknowledgedAt);
           if (alert.resolvedAt) alert.resolvedAt = new Date(alert.resolvedAt);
           this.activeAlerts.set(alert.id, alert);
         }
@@ -441,9 +396,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     const data = await this.redisService.hgetall<string>(key);
 
     return {
-      total:
-        parseInt(data.access_granted || '0') +
-        parseInt(data.access_denied || '0'),
+      total: parseInt(data.access_granted || '0') + parseInt(data.access_denied || '0'),
       granted: parseInt(data.access_granted || '0'),
       denied: parseInt(data.access_denied || '0'),
     };
@@ -456,9 +409,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     const data = await this.redisService.hgetall<string>(key);
 
     return {
-      total:
-        parseInt(data.rate_limit_exceeded || '0') +
-        parseInt(data.rate_limit_warning || '0'),
+      total: parseInt(data.rate_limit_exceeded || '0') + parseInt(data.rate_limit_warning || '0'),
       exceeded: parseInt(data.rate_limit_exceeded || '0'),
       ipsBlocked: parseInt(data.ip_blocked || '0'),
     };
@@ -471,9 +422,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     const data = await this.redisService.hgetall<string>(key);
 
     return {
-      total:
-        parseInt(data.validation_failure || '0') +
-        parseInt(data.sanitization_applied || '0'),
+      total: parseInt(data.validation_failure || '0') + parseInt(data.sanitization_applied || '0'),
       failures: parseInt(data.validation_failure || '0'),
       maliciousDetected: parseInt(data.malicious_input_detected || '0'),
     };
@@ -486,17 +435,13 @@ export class SecurityMonitoringService implements OnModuleInit {
     const data = await this.redisService.hgetall<string>(key);
 
     return {
-      total:
-        parseInt(data.file_upload_success || '0') +
-        parseInt(data.file_upload_failure || '0'),
+      total: parseInt(data.file_upload_success || '0') + parseInt(data.file_upload_failure || '0'),
       successful: parseInt(data.file_upload_success || '0'),
       threats: parseInt(data.malicious_file_detected || '0'),
     };
   }
 
-  private async getSystemHealthMetrics(): Promise<
-    SecurityMetrics['systemHealth']
-  > {
+  private async getSystemHealthMetrics(): Promise<SecurityMetrics['systemHealth']> {
     // Get system health metrics (CPU, memory, etc.)
     // This would typically integrate with monitoring tools
     return {
@@ -507,9 +452,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     };
   }
 
-  private async getThreatMetrics(
-    timeWindow: string,
-  ): Promise<SecurityMetrics['threats']> {
+  private async getThreatMetrics(timeWindow: string): Promise<SecurityMetrics['threats']> {
     // Count threats by level across all categories
     const categories = [
       'authentication',
@@ -542,8 +485,7 @@ export class SecurityMonitoringService implements OnModuleInit {
       await this.redisService.zadd(key, score, value);
 
       // Clean up old metrics
-      const cutoff =
-        Date.now() - this.config.metricsRetentionDays * 24 * 60 * 60 * 1000;
+      const cutoff = Date.now() - this.config.metricsRetentionDays * 24 * 60 * 60 * 1000;
       await this.redisService.zremrangebyscore(key, 0, cutoff);
     } catch (error) {
       this.logger.error('Failed to store metrics', {
@@ -574,11 +516,7 @@ export class SecurityMonitoringService implements OnModuleInit {
 
     // Example alert conditions
     if (category === 'authentication' && event === 'login_failure') {
-      const recentFailures = await this.getRecentEventCount(
-        'authentication',
-        'login_failure',
-        1,
-      ); // 1 minute
+      const recentFailures = await this.getRecentEventCount('authentication', 'login_failure', 1); // 1 minute
       if (recentFailures >= this.config.alertThresholds.failedLoginRate) {
         shouldAlert = true;
         alertLevel = 'warning';
@@ -598,9 +536,7 @@ export class SecurityMonitoringService implements OnModuleInit {
       );
 
       // Set cooldown
-      const cooldownEnd = new Date(
-        Date.now() + this.config.alertCooldownMinutes * 60 * 1000,
-      );
+      const cooldownEnd = new Date(Date.now() + this.config.alertCooldownMinutes * 60 * 1000);
       this.alertCooldowns.set(alertKey, cooldownEnd);
     }
   }
@@ -614,9 +550,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     const now = Date.now();
 
     for (let i = 0; i < minutes; i++) {
-      const timeWindow = Math.floor(
-        (now - i * 60 * 1000) / (60 * 1000),
-      ).toString();
+      const timeWindow = Math.floor((now - i * 60 * 1000) / (60 * 1000)).toString();
       const key = `security_events:${category}:${timeWindow}`;
       const eventCount = await this.redisService.hget(key, event);
       count += parseInt(eventCount || '0');
@@ -686,10 +620,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     }
   }
 
-  private aggregateMetrics(
-    metrics: SecurityMetrics[],
-    granularity: string,
-  ): SecurityMetrics[] {
+  private aggregateMetrics(metrics: SecurityMetrics[], granularity: string): SecurityMetrics[] {
     // Implement metric aggregation based on granularity
     // For now, return as-is
     return metrics;

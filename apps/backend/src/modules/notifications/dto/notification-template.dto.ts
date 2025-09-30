@@ -32,8 +32,7 @@ export class CreateNotificationTemplateDto {
 
   @ApiProperty({
     description: 'Template message (supports variables with {{variableName}})',
-    example:
-      'Your task "{{taskName}}" is due on {{dueDate}}. Don\'t forget to complete it!',
+    example: 'Your task "{{taskName}}" is due on {{dueDate}}. Don\'t forget to complete it!',
   })
   @IsString()
   message: string;

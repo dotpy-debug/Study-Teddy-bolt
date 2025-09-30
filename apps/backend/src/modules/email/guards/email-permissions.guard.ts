@@ -28,14 +28,8 @@ export class EmailPermissionsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermissions =
-      this.reflector.get<EmailPermission[]>(
-        'emailPermissions',
-        context.getHandler(),
-      ) ||
-      this.reflector.get<EmailPermission[]>(
-        'emailPermissions',
-        context.getClass(),
-      );
+      this.reflector.get<EmailPermission[]>('emailPermissions', context.getHandler()) ||
+      this.reflector.get<EmailPermission[]>('emailPermissions', context.getClass());
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true; // No permissions required
@@ -50,10 +44,7 @@ export class EmailPermissionsGuard implements CanActivate {
     }
 
     // Check if user has required permissions
-    const hasPermission = await this.checkUserPermissions(
-      user,
-      requiredPermissions,
-    );
+    const hasPermission = await this.checkUserPermissions(user, requiredPermissions);
 
     if (!hasPermission) {
       this.logger.warn(`User ${user.id} lacks required email permissions`, {
@@ -87,9 +78,7 @@ export class EmailPermissionsGuard implements CanActivate {
     }
 
     // Check if user has all required permissions
-    return requiredPermissions.every((permission) =>
-      userPermissions.includes(permission),
-    );
+    return requiredPermissions.every((permission) => userPermissions.includes(permission));
   }
 
   private getUserPermissions(user: any): EmailPermission[] {
@@ -125,10 +114,7 @@ export class EmailPermissionsGuard implements CanActivate {
 
       case 'premium_user':
         // Premium users can send emails and schedule
-        permissions.push(
-          EmailPermission.SEND_EMAIL,
-          EmailPermission.SCHEDULE_EMAIL,
-        );
+        permissions.push(EmailPermission.SEND_EMAIL, EmailPermission.SCHEDULE_EMAIL);
         break;
 
       case 'user':
@@ -141,9 +127,7 @@ export class EmailPermissionsGuard implements CanActivate {
     // Add any additional permissions from user object
     if (user.permissions && Array.isArray(user.permissions)) {
       permissions.push(
-        ...user.permissions.filter((p) =>
-          Object.values(EmailPermission).includes(p),
-        ),
+        ...user.permissions.filter((p) => Object.values(EmailPermission).includes(p)),
       );
     }
 
@@ -153,10 +137,7 @@ export class EmailPermissionsGuard implements CanActivate {
   /**
    * Check if user can send to specific recipient
    */
-  async canSendToRecipient(
-    user: any,
-    recipientEmail: string,
-  ): Promise<boolean> {
+  async canSendToRecipient(user: any, recipientEmail: string): Promise<boolean> {
     // Prevent users from sending emails to unauthorized recipients
 
     // Admins can send to anyone
@@ -183,10 +164,7 @@ export class EmailPermissionsGuard implements CanActivate {
     const recipientDomain = recipientEmail.split('@')[1];
     const allowedDomains = this.getAllowedDomains(user);
 
-    if (
-      allowedDomains.length > 0 &&
-      !allowedDomains.includes(recipientDomain)
-    ) {
+    if (allowedDomains.length > 0 && !allowedDomains.includes(recipientDomain)) {
       return false;
     }
 

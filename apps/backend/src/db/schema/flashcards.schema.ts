@@ -80,38 +80,29 @@ export const flashcardReviews = pgTable(
     quality: integer('quality').notNull(), // 0-5 rating for spaced repetition
     reviewedAt: timestamp('reviewed_at').defaultNow().notNull(),
     nextReviewDate: timestamp('next_review_date').notNull(),
-    easeFactor: numeric('ease_factor', { precision: 3, scale: 2 })
-      .default('2.5')
-      .notNull(),
+    easeFactor: numeric('ease_factor', { precision: 3, scale: 2 }).default('2.5').notNull(),
     interval: integer('interval').default(1).notNull(), // days until next review
     repetitions: integer('repetitions').default(0).notNull(),
     responseTime: integer('response_time'), // in milliseconds
   },
   (table) => ({
     userIdIdx: index('flashcard_reviews_user_id_idx').on(table.userId),
-    flashcardIdIdx: index('flashcard_reviews_flashcard_id_idx').on(
-      table.flashcardId,
-    ),
-    nextReviewIdx: index('flashcard_reviews_next_review_idx').on(
-      table.nextReviewDate,
-    ),
+    flashcardIdIdx: index('flashcard_reviews_flashcard_id_idx').on(table.flashcardId),
+    nextReviewIdx: index('flashcard_reviews_next_review_idx').on(table.nextReviewDate),
   }),
 );
 
-export const flashcardDecksRelations = relations(
-  flashcardDecks,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [flashcardDecks.userId],
-      references: [users.id],
-    }),
-    subject: one(subjects, {
-      fields: [flashcardDecks.subjectId],
-      references: [subjects.id],
-    }),
-    flashcards: many(flashcards),
+export const flashcardDecksRelations = relations(flashcardDecks, ({ one, many }) => ({
+  user: one(users, {
+    fields: [flashcardDecks.userId],
+    references: [users.id],
   }),
-);
+  subject: one(subjects, {
+    fields: [flashcardDecks.subjectId],
+    references: [subjects.id],
+  }),
+  flashcards: many(flashcards),
+}));
 
 export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({
   deck: one(flashcardDecks, {
@@ -121,16 +112,13 @@ export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({
   reviews: many(flashcardReviews),
 }));
 
-export const flashcardReviewsRelations = relations(
-  flashcardReviews,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [flashcardReviews.userId],
-      references: [users.id],
-    }),
-    flashcard: one(flashcards, {
-      fields: [flashcardReviews.flashcardId],
-      references: [flashcards.id],
-    }),
+export const flashcardReviewsRelations = relations(flashcardReviews, ({ one }) => ({
+  user: one(users, {
+    fields: [flashcardReviews.userId],
+    references: [users.id],
   }),
-);
+  flashcard: one(flashcards, {
+    fields: [flashcardReviews.flashcardId],
+    references: [flashcards.id],
+  }),
+}));

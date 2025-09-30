@@ -9,13 +9,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { SubtasksService } from './subtasks.service';
 import {
   CreateSubtaskDto,
@@ -110,11 +104,7 @@ export class SubtasksController {
     @Body() updateSubtaskDto: UpdateSubtaskDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.subtasksService.updateSubtask(
-      id,
-      user.userId,
-      updateSubtaskDto,
-    );
+    return this.subtasksService.updateSubtask(id, user.userId, updateSubtaskDto);
   }
 
   @Delete(':id')
@@ -181,10 +171,6 @@ export class SubtasksController {
     @Body() reorderDto: ReorderSubtaskDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.subtasksService.reorderSubtask(
-      id,
-      user.userId,
-      reorderDto.position,
-    );
+    return this.subtasksService.reorderSubtask(id, user.userId, reorderDto.position);
   }
 }

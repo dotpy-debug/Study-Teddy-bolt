@@ -74,9 +74,7 @@ describe('DashboardService', () => {
       cacheService.warm = jest.fn().mockImplementation(async (key, fn) => {
         return await fn();
       });
-      cacheService.generateKey = jest
-        .fn()
-        .mockReturnValue('dashboard_stats:user-123');
+      cacheService.generateKey = jest.fn().mockReturnValue('dashboard_stats:user-123');
 
       // Mock different query results
       db.select
@@ -103,10 +101,7 @@ describe('DashboardService', () => {
 
       const result = await service.getStats(mockUserId);
 
-      expect(cacheService.generateKey).toHaveBeenCalledWith(
-        'dashboard_stats',
-        mockUserId,
-      );
+      expect(cacheService.generateKey).toHaveBeenCalledWith('dashboard_stats', mockUserId);
       expect(result).toEqual({
         totalTasks: 10,
         completedTasks: 7,
@@ -188,9 +183,7 @@ describe('DashboardService', () => {
       cacheService.warm = jest.fn().mockImplementation(async (key, fn) => {
         return await fn();
       });
-      cacheService.generateKey = jest
-        .fn()
-        .mockReturnValue('dashboard_streak:user-123');
+      cacheService.generateKey = jest.fn().mockReturnValue('dashboard_streak:user-123');
 
       const result = await service.getStreak(mockUserId);
 
@@ -410,35 +403,23 @@ describe('DashboardService', () => {
     });
 
     it('should invalidate stats cache', async () => {
-      cacheService.generateKey = jest
-        .fn()
-        .mockReturnValue('dashboard_stats:user-123');
+      cacheService.generateKey = jest.fn().mockReturnValue('dashboard_stats:user-123');
       cacheService.del = jest.fn().mockResolvedValue();
 
       await service.invalidateStatsCache(mockUserId);
 
-      expect(cacheService.generateKey).toHaveBeenCalledWith(
-        'dashboard_stats',
-        mockUserId,
-      );
+      expect(cacheService.generateKey).toHaveBeenCalledWith('dashboard_stats', mockUserId);
       expect(cacheService.del).toHaveBeenCalledWith('dashboard_stats:user-123');
     });
 
     it('should invalidate streak cache', async () => {
-      cacheService.generateKey = jest
-        .fn()
-        .mockReturnValue('dashboard_streak:user-123');
+      cacheService.generateKey = jest.fn().mockReturnValue('dashboard_streak:user-123');
       cacheService.del = jest.fn().mockResolvedValue();
 
       await service.invalidateStreakCache(mockUserId);
 
-      expect(cacheService.generateKey).toHaveBeenCalledWith(
-        'dashboard_streak',
-        mockUserId,
-      );
-      expect(cacheService.del).toHaveBeenCalledWith(
-        'dashboard_streak:user-123',
-      );
+      expect(cacheService.generateKey).toHaveBeenCalledWith('dashboard_streak', mockUserId);
+      expect(cacheService.del).toHaveBeenCalledWith('dashboard_streak:user-123');
     });
 
     it('should invalidate weekly cache', async () => {
@@ -446,9 +427,7 @@ describe('DashboardService', () => {
 
       await service.invalidateWeeklyCache(mockUserId);
 
-      expect(cacheService.delPattern).toHaveBeenCalledWith(
-        `dashboard_weekly:${mockUserId}`,
-      );
+      expect(cacheService.delPattern).toHaveBeenCalledWith(`dashboard_weekly:${mockUserId}`);
     });
   });
 });

@@ -45,15 +45,9 @@ import * as Redis from 'ioredis';
           storage: redisUrl
             ? new ThrottlerStorageRedisService(
                 new Redis.Redis({
-                  host: redisUrl.includes('://')
-                    ? new URL(redisUrl).hostname
-                    : redisUrl,
-                  port: redisUrl.includes('://')
-                    ? Number(new URL(redisUrl).port) || 6379
-                    : 6379,
-                  password: redisUrl.includes('://')
-                    ? new URL(redisUrl).password
-                    : undefined,
+                  host: redisUrl.includes('://') ? new URL(redisUrl).hostname : redisUrl,
+                  port: redisUrl.includes('://') ? Number(new URL(redisUrl).port) || 6379 : 6379,
+                  password: redisUrl.includes('://') ? new URL(redisUrl).password : undefined,
                   retryAttempts: 3,
                   retryDelayMs: 1000,
                   keyPrefix: 'throttle:',

@@ -18,11 +18,7 @@ export interface SentryTrackOptions {
  * Decorator to track method performance with Sentry
  */
 export function SentryTrack(options: SentryTrackOptions) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;
     const methodName = propertyKey;
@@ -225,10 +221,7 @@ export function SentryTrackJob(jobName: string, queue?: string) {
 /**
  * Decorator for external service calls
  */
-export function SentryTrackExternalAPI(
-  serviceName: string,
-  operation?: string,
-) {
+export function SentryTrackExternalAPI(serviceName: string, operation?: string) {
   return SentryTrack({
     operation: 'http.client',
     description: `External API: ${serviceName}${operation ? ` (${operation})` : ''}`,
@@ -300,8 +293,7 @@ function sanitizeValue(value: any, maxDepth = 3, currentDepth = 0): any {
 
     for (const [key, val] of Object.entries(value)) {
       if (keyCount >= maxKeys) {
-        sanitized['[truncated]'] =
-          `... ${Object.keys(value).length - maxKeys} more properties`;
+        sanitized['[truncated]'] = `... ${Object.keys(value).length - maxKeys} more properties`;
         break;
       }
 

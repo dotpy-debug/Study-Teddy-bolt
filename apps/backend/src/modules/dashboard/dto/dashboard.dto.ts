@@ -1,12 +1,4 @@
-import {
-  IsOptional,
-  IsDateString,
-  IsEnum,
-  IsNumber,
-  Min,
-  Max,
-  ValidateIf,
-} from 'class-validator';
+import { IsOptional, IsDateString, IsEnum, IsNumber, Min, Max, ValidateIf } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -59,12 +51,7 @@ export class DashboardStatsQueryDto {
   @IsDateString({}, { message: 'End date must be a valid ISO date string' })
   @ValidateIf((o, v) => v !== null && v !== undefined)
   @Transform(({ value, obj }) => {
-    if (
-      value &&
-      obj.startDate &&
-      typeof value === 'string' &&
-      typeof obj.startDate === 'string'
-    ) {
+    if (value && obj.startDate && typeof value === 'string' && typeof obj.startDate === 'string') {
       const endDate = new Date(value);
       const startDate = new Date(obj.startDate);
       if (endDate <= startDate) {
@@ -100,8 +87,7 @@ export class StreakQueryDto {
   })
   @IsOptional()
   @IsEnum(MetricEnum, {
-    message:
-      'Metric must be one of: tasks_completed, study_time, streak, productivity',
+    message: 'Metric must be one of: tasks_completed, study_time, streak, productivity',
   })
   metric?: MetricEnum;
 
@@ -122,8 +108,7 @@ export class StreakQueryDto {
 
 export class WeeklyOverviewQueryDto {
   @ApiProperty({
-    description:
-      'Week offset from current week (0 = current week, -1 = last week)',
+    description: 'Week offset from current week (0 = current week, -1 = last week)',
     example: 0,
     minimum: -52,
     maximum: 0,
@@ -190,8 +175,7 @@ export class ActivityQueryDto {
   })
   @IsOptional()
   @IsEnum(MetricEnum, {
-    message:
-      'Activity type must be one of: tasks_completed, study_time, streak, productivity',
+    message: 'Activity type must be one of: tasks_completed, study_time, streak, productivity',
   })
   activityType?: MetricEnum;
 }

@@ -26,28 +26,10 @@ export const taskStatusEnum = pgEnum('task_status', [
   'completed',
   'cancelled',
 ]);
-export const taskPriorityEnum = pgEnum('task_priority', [
-  'low',
-  'medium',
-  'high',
-  'urgent',
-]);
-export const goalTypeEnum = pgEnum('goal_type', [
-  'daily',
-  'weekly',
-  'monthly',
-  'custom',
-]);
-export const goalStatusEnum = pgEnum('goal_status', [
-  'active',
-  'completed',
-  'expired',
-]);
-export const calendarProviderEnum = pgEnum('calendar_provider', [
-  'google',
-  'outlook',
-  'apple',
-]);
+export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high', 'urgent']);
+export const goalTypeEnum = pgEnum('goal_type', ['daily', 'weekly', 'monthly', 'custom']);
+export const goalStatusEnum = pgEnum('goal_status', ['active', 'completed', 'expired']);
+export const calendarProviderEnum = pgEnum('calendar_provider', ['google', 'outlook', 'apple']);
 export const syncStatusEnum = pgEnum('sync_status', [
   'pending',
   'in_progress',
@@ -55,22 +37,13 @@ export const syncStatusEnum = pgEnum('sync_status', [
   'failed',
   'cancelled',
 ]);
-export const syncOperationEnum = pgEnum('sync_operation', [
-  'create',
-  'update',
-  'delete',
-  'fetch',
-]);
+export const syncOperationEnum = pgEnum('sync_operation', ['create', 'update', 'delete', 'fetch']);
 export const conflictResolutionEnum = pgEnum('conflict_resolution', [
   'local_wins',
   'remote_wins',
   'manual',
 ]);
-export const eventStatusEnum = pgEnum('event_status', [
-  'tentative',
-  'confirmed',
-  'cancelled',
-]);
+export const eventStatusEnum = pgEnum('event_status', ['tentative', 'confirmed', 'cancelled']);
 export const notificationTypeEnum = pgEnum('notification_type', [
   'reminder',
   'achievement',
@@ -83,11 +56,7 @@ export const notificationPriorityEnum = pgEnum('notification_priority', [
   'high',
   'urgent',
 ]);
-export const notificationChannelEnum = pgEnum('notification_channel', [
-  'in_app',
-  'email',
-  'push',
-]);
+export const notificationChannelEnum = pgEnum('notification_channel', ['in_app', 'email', 'push']);
 export const aiActionTypeEnum = pgEnum('ai_action_type', [
   'chat',
   'task_generation',
@@ -138,9 +107,7 @@ export const users = pgTable(
     emailIdx: index('users_email_idx').on(table.email),
     googleIdIdx: index('users_google_id_idx').on(table.googleId),
     authProviderIdx: index('users_auth_provider_idx').on(table.authProvider),
-    resetPasswordTokenIdx: index('users_reset_password_token_idx').on(
-      table.resetPasswordToken,
-    ),
+    resetPasswordTokenIdx: index('users_reset_password_token_idx').on(table.resetPasswordToken),
   }),
 );
 
@@ -189,10 +156,7 @@ export const subjects = pgTable(
     nameIdx: index('subjects_name_idx').on(table.name),
     archivedIdx: index('subjects_archived_idx').on(table.isArchived),
     // Unique constraint: subject name per user
-    uniqueUserSubject: uniqueIndex('unique_user_subject').on(
-      table.userId,
-      table.name,
-    ),
+    uniqueUserSubject: uniqueIndex('unique_user_subject').on(table.userId, table.name),
   }),
 );
 
@@ -352,21 +316,15 @@ export const focusPresets = pgTable(
     description: text('description'),
 
     // Timer settings
-    focusDurationMinutes: integer('focus_duration_minutes')
-      .notNull()
-      .default(25),
+    focusDurationMinutes: integer('focus_duration_minutes').notNull().default(25),
     shortBreakMinutes: integer('short_break_minutes').notNull().default(5),
     longBreakMinutes: integer('long_break_minutes').notNull().default(15),
-    sessionsBeforeLongBreak: integer('sessions_before_long_break')
-      .notNull()
-      .default(4),
+    sessionsBeforeLongBreak: integer('sessions_before_long_break').notNull().default(4),
 
     // Audio/visual settings
     soundEnabled: boolean('sound_enabled').default(true).notNull(),
     soundVolume: integer('sound_volume').default(50).notNull(), // 0-100
-    notificationEnabled: boolean('notification_enabled')
-      .default(true)
-      .notNull(),
+    notificationEnabled: boolean('notification_enabled').default(true).notNull(),
 
     // Auto-start settings
     autoStartBreaks: boolean('auto_start_breaks').default(false).notNull(),
@@ -473,9 +431,7 @@ export const calendarAccounts = pgTable(
   (table) => ({
     userIdIdx: index('calendar_accounts_user_id_idx').on(table.userId),
     providerIdx: index('calendar_accounts_provider_idx').on(table.provider),
-    syncEnabledIdx: index('calendar_accounts_sync_enabled_idx').on(
-      table.syncEnabled,
-    ),
+    syncEnabledIdx: index('calendar_accounts_sync_enabled_idx').on(table.syncEnabled),
   }),
 );
 
@@ -493,9 +449,7 @@ export const googleCalendarTokens = pgTable(
     // OAuth tokens
     accessToken: text('access_token').notNull(),
     refreshToken: text('refresh_token').notNull(),
-    tokenType: varchar('token_type', { length: 50 })
-      .default('Bearer')
-      .notNull(),
+    tokenType: varchar('token_type', { length: 50 }).default('Bearer').notNull(),
     scope: text('scope').notNull(),
 
     // Token expiration
@@ -522,19 +476,10 @@ export const googleCalendarTokens = pgTable(
   },
   (table) => ({
     userIdIdx: index('google_calendar_tokens_user_id_idx').on(table.userId),
-    googleEmailIdx: index('google_calendar_tokens_google_email_idx').on(
-      table.googleEmail,
-    ),
-    expiresAtIdx: index('google_calendar_tokens_expires_at_idx').on(
-      table.expiresAt,
-    ),
-    syncEnabledIdx: index('google_calendar_tokens_sync_enabled_idx').on(
-      table.syncEnabled,
-    ),
-    uniqueUserGoogle: uniqueIndex('unique_user_google_token').on(
-      table.userId,
-      table.googleEmail,
-    ),
+    googleEmailIdx: index('google_calendar_tokens_google_email_idx').on(table.googleEmail),
+    expiresAtIdx: index('google_calendar_tokens_expires_at_idx').on(table.expiresAt),
+    syncEnabledIdx: index('google_calendar_tokens_sync_enabled_idx').on(table.syncEnabled),
+    uniqueUserGoogle: uniqueIndex('unique_user_google_token').on(table.userId, table.googleEmail),
   }),
 );
 
@@ -548,10 +493,9 @@ export const calendarEvents = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    calendarAccountId: uuid('calendar_account_id').references(
-      () => calendarAccounts.id,
-      { onDelete: 'cascade' },
-    ),
+    calendarAccountId: uuid('calendar_account_id').references(() => calendarAccounts.id, {
+      onDelete: 'cascade',
+    }),
 
     // Event details
     title: varchar('title', { length: 500 }).notNull(),
@@ -595,9 +539,7 @@ export const calendarEvents = pgTable(
     >(),
 
     // Reminders
-    useDefaultReminders: boolean('use_default_reminders')
-      .default(true)
-      .notNull(),
+    useDefaultReminders: boolean('use_default_reminders').default(true).notNull(),
     overrideReminders: jsonb('override_reminders').$type<
       Array<{
         method: 'email' | 'popup';
@@ -639,26 +581,16 @@ export const calendarEvents = pgTable(
     calendarAccountIdIdx: index('calendar_events_calendar_account_id_idx').on(
       table.calendarAccountId,
     ),
-    googleEventIdIdx: index('calendar_events_google_event_id_idx').on(
-      table.googleEventId,
-    ),
-    googleCalendarIdIdx: index('calendar_events_google_calendar_id_idx').on(
-      table.googleCalendarId,
-    ),
+    googleEventIdIdx: index('calendar_events_google_event_id_idx').on(table.googleEventId),
+    googleCalendarIdIdx: index('calendar_events_google_calendar_id_idx').on(table.googleCalendarId),
     startTimeIdx: index('calendar_events_start_time_idx').on(table.startTime),
     endTimeIdx: index('calendar_events_end_time_idx').on(table.endTime),
     taskIdIdx: index('calendar_events_task_id_idx').on(table.taskId),
     subjectIdIdx: index('calendar_events_subject_id_idx').on(table.subjectId),
-    isStudyBlockIdx: index('calendar_events_is_study_block_idx').on(
-      table.isStudyBlock,
-    ),
-    lastSyncAtIdx: index('calendar_events_last_sync_at_idx').on(
-      table.lastSyncAt,
-    ),
+    isStudyBlockIdx: index('calendar_events_is_study_block_idx').on(table.isStudyBlock),
+    lastSyncAtIdx: index('calendar_events_last_sync_at_idx').on(table.lastSyncAt),
     deletedAtIdx: index('calendar_events_deleted_at_idx').on(table.deletedAt),
-    conflictDetectedIdx: index('calendar_events_conflict_detected_idx').on(
-      table.conflictDetected,
-    ),
+    conflictDetectedIdx: index('calendar_events_conflict_detected_idx').on(table.conflictDetected),
     uniqueGoogleEvent: uniqueIndex('unique_google_event').on(
       table.googleEventId,
       table.googleCalendarId,
@@ -676,10 +608,9 @@ export const calendarSyncLogs = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    calendarAccountId: uuid('calendar_account_id').references(
-      () => calendarAccounts.id,
-      { onDelete: 'cascade' },
-    ),
+    calendarAccountId: uuid('calendar_account_id').references(() => calendarAccounts.id, {
+      onDelete: 'cascade',
+    }),
 
     // Sync details
     syncId: uuid('sync_id').notNull(), // Groups related log entries
@@ -733,19 +664,15 @@ export const calendarSyncLogs = pgTable(
   },
   (table) => ({
     userIdIdx: index('calendar_sync_logs_user_id_idx').on(table.userId),
-    calendarAccountIdIdx: index(
-      'calendar_sync_logs_calendar_account_id_idx',
-    ).on(table.calendarAccountId),
+    calendarAccountIdIdx: index('calendar_sync_logs_calendar_account_id_idx').on(
+      table.calendarAccountId,
+    ),
     syncIdIdx: index('calendar_sync_logs_sync_id_idx').on(table.syncId),
     statusIdx: index('calendar_sync_logs_status_idx').on(table.status),
     operationIdx: index('calendar_sync_logs_operation_idx').on(table.operation),
-    startedAtIdx: index('calendar_sync_logs_started_at_idx').on(
-      table.startedAt,
-    ),
+    startedAtIdx: index('calendar_sync_logs_started_at_idx').on(table.startedAt),
     syncTypeIdx: index('calendar_sync_logs_sync_type_idx').on(table.syncType),
-    createdAtIdx: index('calendar_sync_logs_created_at_idx').on(
-      table.createdAt,
-    ),
+    createdAtIdx: index('calendar_sync_logs_created_at_idx').on(table.createdAt),
   }),
 );
 
@@ -787,23 +714,17 @@ export const calendarMappings = pgTable(
 
     // Sync preferences
     syncEnabled: boolean('sync_enabled').default(true).notNull(),
-    syncDirection: varchar('sync_direction', { length: 50 })
-      .default('bidirectional')
-      .notNull(), // 'read_only', 'write_only', 'bidirectional'
+    syncDirection: varchar('sync_direction', { length: 50 }).default('bidirectional').notNull(), // 'read_only', 'write_only', 'bidirectional'
 
     // Study Teddy mappings
     defaultSubjectId: uuid('default_subject_id').references(() => subjects.id, {
       onDelete: 'set null',
     }),
     autoCreateTasks: boolean('auto_create_tasks').default(false).notNull(),
-    studyBlockDetection: boolean('study_block_detection')
-      .default(true)
-      .notNull(),
+    studyBlockDetection: boolean('study_block_detection').default(true).notNull(),
 
     // Conflict resolution preferences
-    conflictResolution: conflictResolutionEnum('conflict_resolution')
-      .default('manual')
-      .notNull(),
+    conflictResolution: conflictResolutionEnum('conflict_resolution').default('manual').notNull(),
 
     // Custom mappings
     eventTitleMappings: jsonb('event_title_mappings').$type<
@@ -844,19 +765,13 @@ export const calendarMappings = pgTable(
     googleCalendarIdIdx: index('calendar_mappings_google_calendar_id_idx').on(
       table.googleCalendarId,
     ),
-    syncEnabledIdx: index('calendar_mappings_sync_enabled_idx').on(
-      table.syncEnabled,
-    ),
+    syncEnabledIdx: index('calendar_mappings_sync_enabled_idx').on(table.syncEnabled),
     isPrimaryIdx: index('calendar_mappings_is_primary_idx').on(table.isPrimary),
-    isSelectedIdx: index('calendar_mappings_is_selected_idx').on(
-      table.isSelected,
-    ),
+    isSelectedIdx: index('calendar_mappings_is_selected_idx').on(table.isSelected),
     defaultSubjectIdIdx: index('calendar_mappings_default_subject_id_idx').on(
       table.defaultSubjectId,
     ),
-    lastSyncAtIdx: index('calendar_mappings_last_sync_at_idx').on(
-      table.lastSyncAt,
-    ),
+    lastSyncAtIdx: index('calendar_mappings_last_sync_at_idx').on(table.lastSyncAt),
     uniqueUserCalendar: uniqueIndex('unique_user_calendar_mapping').on(
       table.userId,
       table.googleCalendarId,
@@ -882,23 +797,14 @@ export const calendarTokens = pgTable(
     scope: text('scope'),
 
     // Timestamps
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
     userIdIdx: index('calendar_tokens_user_id_idx').on(table.userId),
     providerIdx: index('calendar_tokens_provider_idx').on(table.provider),
-    expiryDateIdx: index('calendar_tokens_expiry_date_idx').on(
-      table.expiryDate,
-    ),
-    uniqueUserProvider: uniqueIndex('unique_user_provider_token').on(
-      table.userId,
-      table.provider,
-    ),
+    expiryDateIdx: index('calendar_tokens_expiry_date_idx').on(table.expiryDate),
+    uniqueUserProvider: uniqueIndex('unique_user_provider_token').on(table.userId, table.provider),
   }),
 );
 
@@ -918,25 +824,15 @@ export const calendarNotifications = pgTable(
     active: boolean('active').default(true).notNull(),
 
     // Timestamps
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
     userIdIdx: index('calendar_notifications_user_id_idx').on(table.userId),
-    channelIdIdx: index('calendar_notifications_channel_id_idx').on(
-      table.channelId,
-    ),
-    calendarIdIdx: index('calendar_notifications_calendar_id_idx').on(
-      table.calendarId,
-    ),
+    channelIdIdx: index('calendar_notifications_channel_id_idx').on(table.channelId),
+    calendarIdIdx: index('calendar_notifications_calendar_id_idx').on(table.calendarId),
     activeIdx: index('calendar_notifications_active_idx').on(table.active),
-    expirationIdx: index('calendar_notifications_expiration_idx').on(
-      table.expiration,
-    ),
+    expirationIdx: index('calendar_notifications_expiration_idx').on(table.expiration),
   }),
 );
 
@@ -992,9 +888,7 @@ export const notifications = pgTable(
     userIdIdx: index('notifications_user_id_idx').on(table.userId),
     readIdx: index('notifications_read_idx').on(table.read),
     typeIdx: index('notifications_type_idx').on(table.type),
-    scheduledForIdx: index('notifications_scheduled_for_idx').on(
-      table.scheduledFor,
-    ),
+    scheduledForIdx: index('notifications_scheduled_for_idx').on(table.scheduledFor),
     createdAtIdx: index('notifications_created_at_idx').on(table.createdAt),
   }),
 );
@@ -1188,29 +1082,15 @@ export const notificationPreferences = pgTable(
     inAppEnabled: boolean('in_app_enabled').default(true).notNull(),
 
     // Email notification type preferences
-    emailWelcomeEnabled: boolean('email_welcome_enabled')
+    emailWelcomeEnabled: boolean('email_welcome_enabled').default(true).notNull(),
+    emailVerificationEnabled: boolean('email_verification_enabled').default(true).notNull(),
+    emailPasswordResetEnabled: boolean('email_password_reset_enabled').default(true).notNull(),
+    emailTaskRemindersEnabled: boolean('email_task_reminders_enabled').default(true).notNull(),
+    emailWeeklyDigestEnabled: boolean('email_weekly_digest_enabled').default(true).notNull(),
+    emailFocusSessionAlertsEnabled: boolean('email_focus_session_alerts_enabled')
       .default(true)
       .notNull(),
-    emailVerificationEnabled: boolean('email_verification_enabled')
-      .default(true)
-      .notNull(),
-    emailPasswordResetEnabled: boolean('email_password_reset_enabled')
-      .default(true)
-      .notNull(),
-    emailTaskRemindersEnabled: boolean('email_task_reminders_enabled')
-      .default(true)
-      .notNull(),
-    emailWeeklyDigestEnabled: boolean('email_weekly_digest_enabled')
-      .default(true)
-      .notNull(),
-    emailFocusSessionAlertsEnabled: boolean(
-      'email_focus_session_alerts_enabled',
-    )
-      .default(true)
-      .notNull(),
-    emailAchievementsEnabled: boolean('email_achievements_enabled')
-      .default(true)
-      .notNull(),
+    emailAchievementsEnabled: boolean('email_achievements_enabled').default(true).notNull(),
 
     // Notification type preferences (in-app)
     taskReminders: boolean('task_reminders').default(true).notNull(),
@@ -1220,40 +1100,22 @@ export const notificationPreferences = pgTable(
     systemAlerts: boolean('system_alerts').default(true).notNull(),
 
     // Timing preferences
-    reminderLeadTimeMinutes: integer('reminder_lead_time_minutes')
-      .default(15)
-      .notNull(),
-    dailySummaryEnabled: boolean('daily_summary_enabled')
-      .default(true)
-      .notNull(),
-    dailySummaryTime: varchar('daily_summary_time', { length: 5 }).default(
-      '08:00',
-    ), // HH:MM format
-    weeklyDigestEnabled: boolean('weekly_digest_enabled')
-      .default(true)
-      .notNull(),
+    reminderLeadTimeMinutes: integer('reminder_lead_time_minutes').default(15).notNull(),
+    dailySummaryEnabled: boolean('daily_summary_enabled').default(true).notNull(),
+    dailySummaryTime: varchar('daily_summary_time', { length: 5 }).default('08:00'), // HH:MM format
+    weeklyDigestEnabled: boolean('weekly_digest_enabled').default(true).notNull(),
     weeklyDigestDay: integer('weekly_digest_day').default(1).notNull(), // 1 = Monday
-    weeklyDigestTime: varchar('weekly_digest_time', { length: 5 }).default(
-      '08:00',
-    ), // HH:MM format
+    weeklyDigestTime: varchar('weekly_digest_time', { length: 5 }).default('08:00'), // HH:MM format
 
     // Quiet hours
     quietHoursEnabled: boolean('quiet_hours_enabled').default(true).notNull(),
-    quietHoursStart: varchar('quiet_hours_start', { length: 5 }).default(
-      '22:00',
-    ), // HH:MM format
+    quietHoursStart: varchar('quiet_hours_start', { length: 5 }).default('22:00'), // HH:MM format
     quietHoursEnd: varchar('quiet_hours_end', { length: 5 }).default('08:00'), // HH:MM format
-    quietHoursTimezone: varchar('quiet_hours_timezone', { length: 50 })
-      .default('UTC')
-      .notNull(),
+    quietHoursTimezone: varchar('quiet_hours_timezone', { length: 50 }).default('UTC').notNull(),
 
     // Frequency settings
-    reminderFrequency: varchar('reminder_frequency', { length: 20 })
-      .default('immediate')
-      .notNull(), // immediate, daily, weekly
-    digestFrequency: varchar('digest_frequency', { length: 20 })
-      .default('weekly')
-      .notNull(), // daily, weekly, monthly
+    reminderFrequency: varchar('reminder_frequency', { length: 20 }).default('immediate').notNull(), // immediate, daily, weekly
+    digestFrequency: varchar('digest_frequency', { length: 20 }).default('weekly').notNull(), // daily, weekly, monthly
 
     // Sound preferences
     soundEnabled: boolean('sound_enabled').default(true).notNull(),
@@ -1345,16 +1207,10 @@ export const emailDeliveryLog = pgTable(
   (table) => ({
     userIdIdx: index('email_delivery_log_user_id_idx').on(table.userId),
     statusIdx: index('email_delivery_log_status_idx').on(table.status),
-    emailTypeIdx: index('email_delivery_log_email_type_idx').on(
-      table.emailType,
-    ),
+    emailTypeIdx: index('email_delivery_log_email_type_idx').on(table.emailType),
     resendIdIdx: index('email_delivery_log_resend_id_idx').on(table.resendId),
-    nextRetryAtIdx: index('email_delivery_log_next_retry_at_idx').on(
-      table.nextRetryAt,
-    ),
-    createdAtIdx: index('email_delivery_log_created_at_idx').on(
-      table.createdAt,
-    ),
+    nextRetryAtIdx: index('email_delivery_log_next_retry_at_idx').on(table.nextRetryAt),
+    createdAtIdx: index('email_delivery_log_created_at_idx').on(table.createdAt),
   }),
 );
 
@@ -1450,29 +1306,23 @@ export const goalsRelations = relations(goals, ({ one, many }) => ({
 }));
 
 // Calendar account relations
-export const calendarAccountsRelations = relations(
-  calendarAccounts,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [calendarAccounts.userId],
-      references: [users.id],
-    }),
-    calendarEvents: many(calendarEvents),
-    calendarMappings: many(calendarMappings),
-    calendarSyncLogs: many(calendarSyncLogs),
+export const calendarAccountsRelations = relations(calendarAccounts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [calendarAccounts.userId],
+    references: [users.id],
   }),
-);
+  calendarEvents: many(calendarEvents),
+  calendarMappings: many(calendarMappings),
+  calendarSyncLogs: many(calendarSyncLogs),
+}));
 
 // Google Calendar tokens relations
-export const googleCalendarTokensRelations = relations(
-  googleCalendarTokens,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [googleCalendarTokens.userId],
-      references: [users.id],
-    }),
+export const googleCalendarTokensRelations = relations(googleCalendarTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [googleCalendarTokens.userId],
+    references: [users.id],
   }),
-);
+}));
 
 // Calendar events relations
 export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
@@ -1499,38 +1349,32 @@ export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
 }));
 
 // Calendar sync logs relations
-export const calendarSyncLogsRelations = relations(
-  calendarSyncLogs,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [calendarSyncLogs.userId],
-      references: [users.id],
-    }),
-    calendarAccount: one(calendarAccounts, {
-      fields: [calendarSyncLogs.calendarAccountId],
-      references: [calendarAccounts.id],
-    }),
+export const calendarSyncLogsRelations = relations(calendarSyncLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [calendarSyncLogs.userId],
+    references: [users.id],
   }),
-);
+  calendarAccount: one(calendarAccounts, {
+    fields: [calendarSyncLogs.calendarAccountId],
+    references: [calendarAccounts.id],
+  }),
+}));
 
 // Calendar mappings relations
-export const calendarMappingsRelations = relations(
-  calendarMappings,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [calendarMappings.userId],
-      references: [users.id],
-    }),
-    calendarAccount: one(calendarAccounts, {
-      fields: [calendarMappings.calendarAccountId],
-      references: [calendarAccounts.id],
-    }),
-    defaultSubject: one(subjects, {
-      fields: [calendarMappings.defaultSubjectId],
-      references: [subjects.id],
-    }),
+export const calendarMappingsRelations = relations(calendarMappings, ({ one }) => ({
+  user: one(users, {
+    fields: [calendarMappings.userId],
+    references: [users.id],
   }),
-);
+  calendarAccount: one(calendarAccounts, {
+    fields: [calendarMappings.calendarAccountId],
+    references: [calendarAccounts.id],
+  }),
+  defaultSubject: one(subjects, {
+    fields: [calendarMappings.defaultSubjectId],
+    references: [subjects.id],
+  }),
+}));
 
 // Calendar tokens relations
 export const calendarTokensRelations = relations(calendarTokens, ({ one }) => ({
@@ -1541,15 +1385,12 @@ export const calendarTokensRelations = relations(calendarTokens, ({ one }) => ({
 }));
 
 // Calendar notifications relations
-export const calendarNotificationsRelations = relations(
-  calendarNotifications,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [calendarNotifications.userId],
-      references: [users.id],
-    }),
+export const calendarNotificationsRelations = relations(calendarNotifications, ({ one }) => ({
+  user: one(users, {
+    fields: [calendarNotifications.userId],
+    references: [users.id],
   }),
-);
+}));
 
 // Notification relations
 export const notificationsRelations = relations(notifications, ({ one }) => ({
@@ -1592,34 +1433,28 @@ export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
 }));
 
 // Notification preferences relations
-export const notificationPreferencesRelations = relations(
-  notificationPreferences,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [notificationPreferences.userId],
-      references: [users.id],
-    }),
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [notificationPreferences.userId],
+    references: [users.id],
   }),
-);
+}));
 
 // Email delivery log relations
-export const emailDeliveryLogRelations = relations(
-  emailDeliveryLog,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [emailDeliveryLog.userId],
-      references: [users.id],
-    }),
-    task: one(tasks, {
-      fields: [emailDeliveryLog.taskId],
-      references: [tasks.id],
-    }),
-    notification: one(notifications, {
-      fields: [emailDeliveryLog.notificationId],
-      references: [notifications.id],
-    }),
+export const emailDeliveryLogRelations = relations(emailDeliveryLog, ({ one }) => ({
+  user: one(users, {
+    fields: [emailDeliveryLog.userId],
+    references: [users.id],
   }),
-);
+  task: one(tasks, {
+    fields: [emailDeliveryLog.taskId],
+    references: [tasks.id],
+  }),
+  notification: one(notifications, {
+    fields: [emailDeliveryLog.notificationId],
+    references: [notifications.id],
+  }),
+}));
 
 // ============================================
 // Type Exports
@@ -1670,10 +1505,8 @@ export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type NewRefreshToken = typeof refreshTokens.$inferInsert;
 
 // Notification preference types
-export type NotificationPreference =
-  typeof notificationPreferences.$inferSelect;
-export type NewNotificationPreference =
-  typeof notificationPreferences.$inferInsert;
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type NewNotificationPreference = typeof notificationPreferences.$inferInsert;
 
 // Email delivery log types
 export type EmailDeliveryLog = typeof emailDeliveryLog.$inferSelect;

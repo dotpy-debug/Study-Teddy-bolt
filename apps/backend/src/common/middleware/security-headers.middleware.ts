@@ -110,26 +110,17 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
       // Cross-Origin Embedder Policy
       if (this.config.crossOriginEmbedderPolicy.enabled) {
-        res.setHeader(
-          'Cross-Origin-Embedder-Policy',
-          this.config.crossOriginEmbedderPolicy.policy,
-        );
+        res.setHeader('Cross-Origin-Embedder-Policy', this.config.crossOriginEmbedderPolicy.policy);
       }
 
       // Cross-Origin Opener Policy
       if (this.config.crossOriginOpenerPolicy.enabled) {
-        res.setHeader(
-          'Cross-Origin-Opener-Policy',
-          this.config.crossOriginOpenerPolicy.policy,
-        );
+        res.setHeader('Cross-Origin-Opener-Policy', this.config.crossOriginOpenerPolicy.policy);
       }
 
       // Cross-Origin Resource Policy
       if (this.config.crossOriginResourcePolicy.enabled) {
-        res.setHeader(
-          'Cross-Origin-Resource-Policy',
-          this.config.crossOriginResourcePolicy.policy,
-        );
+        res.setHeader('Cross-Origin-Resource-Policy', this.config.crossOriginResourcePolicy.policy);
       }
 
       // Expect-CT
@@ -161,55 +152,34 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
   }
 
   private initializeConfig(): SecurityHeadersConfig {
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
     return {
       contentSecurityPolicy: {
         enabled: this.configService.get<boolean>('CSP_ENABLED', true),
         directives: {
-          defaultSrc: this.configService
-            .get<string>('CSP_DEFAULT_SRC', "'self'")
-            .split(' '),
+          defaultSrc: this.configService.get<string>('CSP_DEFAULT_SRC', "'self'").split(' '),
           scriptSrc: this.configService
             .get<string>('CSP_SCRIPT_SRC', "'self' 'unsafe-inline'")
             .split(' '),
           styleSrc: this.configService
             .get<string>('CSP_STYLE_SRC', "'self' 'unsafe-inline'")
             .split(' '),
-          imgSrc: this.configService
-            .get<string>('CSP_IMG_SRC', "'self' data: https:")
-            .split(' '),
+          imgSrc: this.configService.get<string>('CSP_IMG_SRC', "'self' data: https:").split(' '),
           connectSrc: this.configService
             .get<string>('CSP_CONNECT_SRC', "'self' https://api.openai.com")
             .split(' '),
-          fontSrc: this.configService
-            .get<string>('CSP_FONT_SRC', "'self' https: data:")
-            .split(' '),
-          objectSrc: this.configService
-            .get<string>('CSP_OBJECT_SRC', "'none'")
-            .split(' '),
-          mediaSrc: this.configService
-            .get<string>('CSP_MEDIA_SRC', "'self'")
-            .split(' '),
-          frameSrc: this.configService
-            .get<string>('CSP_FRAME_SRC', "'none'")
-            .split(' '),
-          workerSrc: this.configService
-            .get<string>('CSP_WORKER_SRC', "'self'")
-            .split(' '),
-          manifestSrc: this.configService
-            .get<string>('CSP_MANIFEST_SRC', "'self'")
-            .split(' '),
-          formAction: this.configService
-            .get<string>('CSP_FORM_ACTION', "'self'")
-            .split(' '),
+          fontSrc: this.configService.get<string>('CSP_FONT_SRC', "'self' https: data:").split(' '),
+          objectSrc: this.configService.get<string>('CSP_OBJECT_SRC', "'none'").split(' '),
+          mediaSrc: this.configService.get<string>('CSP_MEDIA_SRC', "'self'").split(' '),
+          frameSrc: this.configService.get<string>('CSP_FRAME_SRC', "'none'").split(' '),
+          workerSrc: this.configService.get<string>('CSP_WORKER_SRC', "'self'").split(' '),
+          manifestSrc: this.configService.get<string>('CSP_MANIFEST_SRC', "'self'").split(' '),
+          formAction: this.configService.get<string>('CSP_FORM_ACTION', "'self'").split(' '),
           frameAncestors: this.configService
             .get<string>('CSP_FRAME_ANCESTORS', "'none'")
             .split(' '),
-          baseUri: this.configService
-            .get<string>('CSP_BASE_URI', "'self'")
-            .split(' '),
+          baseUri: this.configService.get<string>('CSP_BASE_URI', "'self'").split(' '),
           upgradeInsecureRequests: this.configService.get<boolean>(
             'CSP_UPGRADE_INSECURE_REQUESTS',
             isProduction,
@@ -221,10 +191,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       hsts: {
         enabled: this.configService.get<boolean>('HSTS_ENABLED', isProduction),
         maxAge: this.configService.get<number>('HSTS_MAX_AGE', 31536000), // 1 year
-        includeSubDomains: this.configService.get<boolean>(
-          'HSTS_INCLUDE_SUB_DOMAINS',
-          true,
-        ),
+        includeSubDomains: this.configService.get<boolean>('HSTS_INCLUDE_SUB_DOMAINS', true),
         preload: this.configService.get<boolean>('HSTS_PRELOAD', true),
       },
       frameOptions: {
@@ -236,26 +203,17 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
         allowFrom: this.configService.get<string>('FRAME_OPTIONS_ALLOW_FROM'),
       },
       contentTypeOptions: {
-        enabled: this.configService.get<boolean>(
-          'CONTENT_TYPE_OPTIONS_ENABLED',
-          true,
-        ),
+        enabled: this.configService.get<boolean>('CONTENT_TYPE_OPTIONS_ENABLED', true),
       },
       referrerPolicy: {
-        enabled: this.configService.get<boolean>(
-          'REFERRER_POLICY_ENABLED',
-          true,
-        ),
+        enabled: this.configService.get<boolean>('REFERRER_POLICY_ENABLED', true),
         policy: this.configService.get<string>(
           'REFERRER_POLICY',
           'strict-origin-when-cross-origin',
         ),
       },
       permissionsPolicy: {
-        enabled: this.configService.get<boolean>(
-          'PERMISSIONS_POLICY_ENABLED',
-          true,
-        ),
+        enabled: this.configService.get<boolean>('PERMISSIONS_POLICY_ENABLED', true),
         policies: {
           geolocation: this.configService
             .get<string>('PERMISSIONS_POLICY_GEOLOCATION', 'none')
@@ -263,15 +221,9 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
           microphone: this.configService
             .get<string>('PERMISSIONS_POLICY_MICROPHONE', 'none')
             .split(' '),
-          camera: this.configService
-            .get<string>('PERMISSIONS_POLICY_CAMERA', 'none')
-            .split(' '),
-          payment: this.configService
-            .get<string>('PERMISSIONS_POLICY_PAYMENT', 'none')
-            .split(' '),
-          usb: this.configService
-            .get<string>('PERMISSIONS_POLICY_USB', 'none')
-            .split(' '),
+          camera: this.configService.get<string>('PERMISSIONS_POLICY_CAMERA', 'none').split(' '),
+          payment: this.configService.get<string>('PERMISSIONS_POLICY_PAYMENT', 'none').split(' '),
+          usb: this.configService.get<string>('PERMISSIONS_POLICY_USB', 'none').split(' '),
           accelerometer: this.configService
             .get<string>('PERMISSIONS_POLICY_ACCELEROMETER', 'none')
             .split(' '),
@@ -295,21 +247,20 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       },
       crossOriginOpenerPolicy: {
         enabled: this.configService.get<boolean>('COOP_ENABLED', true),
-        policy: this.configService.get<
-          'same-origin' | 'same-origin-allow-popups' | 'unsafe-none'
-        >('COOP_POLICY', 'same-origin'),
+        policy: this.configService.get<'same-origin' | 'same-origin-allow-popups' | 'unsafe-none'>(
+          'COOP_POLICY',
+          'same-origin',
+        ),
       },
       crossOriginResourcePolicy: {
         enabled: this.configService.get<boolean>('CORP_ENABLED', true),
-        policy: this.configService.get<
-          'same-site' | 'same-origin' | 'cross-origin'
-        >('CORP_POLICY', 'same-site'),
+        policy: this.configService.get<'same-site' | 'same-origin' | 'cross-origin'>(
+          'CORP_POLICY',
+          'same-site',
+        ),
       },
       expectCt: {
-        enabled: this.configService.get<boolean>(
-          'EXPECT_CT_ENABLED',
-          isProduction,
-        ),
+        enabled: this.configService.get<boolean>('EXPECT_CT_ENABLED', isProduction),
         maxAge: this.configService.get<number>('EXPECT_CT_MAX_AGE', 86400), // 24 hours
         enforce: this.configService.get<boolean>('EXPECT_CT_ENFORCE', false),
         reportUri: this.configService.get<string>('EXPECT_CT_REPORT_URI'),
@@ -320,25 +271,21 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
   private setContentSecurityPolicy(res: Response): void {
     const directives: string[] = [];
 
-    Object.entries(this.config.contentSecurityPolicy.directives).forEach(
-      ([key, value]) => {
-        if (key === 'upgradeInsecureRequests') {
-          if (value) {
-            directives.push('upgrade-insecure-requests');
-          }
-        } else {
-          const kebabKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-          if (Array.isArray(value) && value.length > 0) {
-            directives.push(`${kebabKey} ${value.join(' ')}`);
-          }
+    Object.entries(this.config.contentSecurityPolicy.directives).forEach(([key, value]) => {
+      if (key === 'upgradeInsecureRequests') {
+        if (value) {
+          directives.push('upgrade-insecure-requests');
         }
-      },
-    );
+      } else {
+        const kebabKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+        if (Array.isArray(value) && value.length > 0) {
+          directives.push(`${kebabKey} ${value.join(' ')}`);
+        }
+      }
+    });
 
     if (this.config.contentSecurityPolicy.reportUri) {
-      directives.push(
-        `report-uri ${this.config.contentSecurityPolicy.reportUri}`,
-      );
+      directives.push(`report-uri ${this.config.contentSecurityPolicy.reportUri}`);
     }
 
     const headerName = this.config.contentSecurityPolicy.reportOnly
@@ -363,10 +310,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
   private setFrameOptions(res: Response): void {
     let frameOptionsValue = this.config.frameOptions.action;
 
-    if (
-      this.config.frameOptions.action === 'ALLOW-FROM' &&
-      this.config.frameOptions.allowFrom
-    ) {
+    if (this.config.frameOptions.action === 'ALLOW-FROM' && this.config.frameOptions.allowFrom) {
       frameOptionsValue += ` ${this.config.frameOptions.allowFrom}`;
     }
 
@@ -376,20 +320,18 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
   private setPermissionsPolicy(res: Response): void {
     const policies: string[] = [];
 
-    Object.entries(this.config.permissionsPolicy.policies).forEach(
-      ([feature, allowlist]) => {
-        if (allowlist.includes('none')) {
-          policies.push(`${feature}=()`);
-        } else if (allowlist.includes('*')) {
-          policies.push(`${feature}=*`);
-        } else {
-          const formattedAllowlist = allowlist
-            .map((origin) => (origin === 'self' ? 'self' : `"${origin}"`))
-            .join(' ');
-          policies.push(`${feature}=(${formattedAllowlist})`);
-        }
-      },
-    );
+    Object.entries(this.config.permissionsPolicy.policies).forEach(([feature, allowlist]) => {
+      if (allowlist.includes('none')) {
+        policies.push(`${feature}=()`);
+      } else if (allowlist.includes('*')) {
+        policies.push(`${feature}=*`);
+      } else {
+        const formattedAllowlist = allowlist
+          .map((origin) => (origin === 'self' ? 'self' : `"${origin}"`))
+          .join(' ');
+        policies.push(`${feature}=(${formattedAllowlist})`);
+      }
+    });
 
     if (policies.length > 0) {
       res.setHeader('Permissions-Policy', policies.join(', '));
@@ -400,9 +342,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     const expectCtValue = [
       `max-age=${this.config.expectCt.maxAge}`,
       this.config.expectCt.enforce ? 'enforce' : '',
-      this.config.expectCt.reportUri
-        ? `report-uri="${this.config.expectCt.reportUri}"`
-        : '',
+      this.config.expectCt.reportUri ? `report-uri="${this.config.expectCt.reportUri}"` : '',
     ]
       .filter(Boolean)
       .join(', ');

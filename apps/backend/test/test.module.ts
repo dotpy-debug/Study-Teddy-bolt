@@ -54,13 +54,8 @@ export class MockEmailService {
     return true;
   }
 
-  async sendPasswordResetEmail(
-    email: string,
-    resetToken: string,
-  ): Promise<boolean> {
-    console.log(
-      `Mock: Sending password reset email to ${email} with token ${resetToken}`,
-    );
+  async sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
+    console.log(`Mock: Sending password reset email to ${email} with token ${resetToken}`);
     return true;
   }
 
@@ -69,13 +64,8 @@ export class MockEmailService {
     return true;
   }
 
-  async sendEmailVerificationEmail(
-    email: string,
-    verificationToken: string,
-  ): Promise<boolean> {
-    console.log(
-      `Mock: Sending email verification to ${email} with token ${verificationToken}`,
-    );
+  async sendEmailVerificationEmail(email: string, verificationToken: string): Promise<boolean> {
+    console.log(`Mock: Sending email verification to ${email} with token ${verificationToken}`);
     return true;
   }
 }
@@ -97,11 +87,7 @@ export class MockAITokenTrackerService {
     return true;
   }
 
-  async trackUsage(
-    userId: string,
-    tokensUsed: number,
-    costInCents: number,
-  ): Promise<boolean> {
+  async trackUsage(userId: string, tokensUsed: number, costInCents: number): Promise<boolean> {
     console.log(
       `Mock: Tracking ${tokensUsed} tokens for user ${userId}, cost: ${costInCents} cents`,
     );

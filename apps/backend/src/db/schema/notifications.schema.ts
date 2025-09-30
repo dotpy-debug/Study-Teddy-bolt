@@ -1,13 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  boolean,
-  pgEnum,
-  index,
-  jsonb,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, pgEnum, index, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users.schema';
 
@@ -45,10 +36,7 @@ export const notifications = pgTable(
     typeIdx: index('notifications_type_idx').on(table.type),
     isReadIdx: index('notifications_is_read_idx').on(table.isRead),
     createdAtIdx: index('notifications_created_at_idx').on(table.createdAt),
-    userReadIdx: index('notifications_user_read_idx').on(
-      table.userId,
-      table.isRead,
-    ),
+    userReadIdx: index('notifications_user_read_idx').on(table.userId, table.isRead),
   }),
 );
 

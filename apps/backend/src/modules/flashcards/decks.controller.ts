@@ -10,12 +10,7 @@ import {
   UseGuards,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { DecksService } from './decks.service';
@@ -35,10 +30,7 @@ export class DecksController {
     status: HttpStatus.CREATED,
     description: 'Deck created successfully',
   })
-  async create(
-    @CurrentUser() userId: string,
-    @Body() createDeckDto: CreateDeckDto,
-  ) {
+  async create(@CurrentUser() userId: string, @Body() createDeckDto: CreateDeckDto) {
     return this.decksService.create(userId, createDeckDto);
   }
 

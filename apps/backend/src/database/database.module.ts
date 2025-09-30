@@ -55,8 +55,7 @@ import { DatabaseService } from './database.service';
           },
 
           // Performance monitoring
-          onnotice:
-            process.env.NODE_ENV === 'development' ? console.log : undefined,
+          onnotice: process.env.NODE_ENV === 'development' ? console.log : undefined,
         });
 
         // Initialize Drizzle with performance optimizations

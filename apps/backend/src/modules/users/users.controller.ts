@@ -159,10 +159,7 @@ export class UsersController {
     @Body() updatePreferencesDto: UpdateUserPreferencesDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.usersService.updatePreferences(
-      user.userId,
-      updatePreferencesDto,
-    );
+    return this.usersService.updatePreferences(user.userId, updatePreferencesDto);
   }
 
   @Put('privacy')
@@ -187,10 +184,7 @@ export class UsersController {
     @Body() privacySettingsDto: UserPrivacySettingsDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.usersService.updatePrivacySettings(
-      user.userId,
-      privacySettingsDto,
-    );
+    return this.usersService.updatePrivacySettings(user.userId, privacySettingsDto);
   }
 
   @Put('change-password')
@@ -226,8 +220,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete account',
-    description:
-      "Permanently delete the authenticated user's account and all associated data",
+    description: "Permanently delete the authenticated user's account and all associated data",
   })
   @ApiResponse({
     status: 200,
@@ -295,8 +288,7 @@ export class UsersController {
   @Get('activity-export')
   @ApiOperation({
     summary: 'Export user data',
-    description:
-      'Export all user data for GDPR compliance (returns downloadable data)',
+    description: 'Export all user data for GDPR compliance (returns downloadable data)',
   })
   @ApiResponse({
     status: 200,

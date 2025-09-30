@@ -27,9 +27,7 @@ export interface NotificationPayload {
 
 @Injectable()
 export class EmailNotificationIntegrationService {
-  private readonly logger = new Logger(
-    EmailNotificationIntegrationService.name,
-  );
+  private readonly logger = new Logger(EmailNotificationIntegrationService.name);
 
   constructor(
     private readonly emailQueueService: EmailQueueService,
@@ -73,10 +71,7 @@ export class EmailNotificationIntegrationService {
         }
       } catch (error) {
         errors.push(`Email: ${error.message}`);
-        this.logger.error(
-          `Failed to send email notification to ${email}`,
-          error,
-        );
+        this.logger.error(`Failed to send email notification to ${email}`, error);
       }
     }
 
@@ -92,10 +87,7 @@ export class EmailNotificationIntegrationService {
         }
       } catch (error) {
         errors.push(`In-app: ${error.message}`);
-        this.logger.error(
-          `Failed to send in-app notification to user ${userId}`,
-          error,
-        );
+        this.logger.error(`Failed to send in-app notification to user ${userId}`, error);
       }
     }
 
@@ -126,14 +118,7 @@ export class EmailNotificationIntegrationService {
     error?: string;
   }> {
     try {
-      const {
-        userId,
-        email,
-        subject,
-        message,
-        config = {},
-        data = {},
-      } = payload;
+      const { userId, email, subject, message, config = {}, data = {} } = payload;
 
       // Prepare email data
       const emailData = {
@@ -340,11 +325,7 @@ export class EmailNotificationIntegrationService {
     userId: string,
     email: string,
     securityEvent: {
-      type:
-        | 'login'
-        | 'password_change'
-        | 'email_change'
-        | 'suspicious_activity';
+      type: 'login' | 'password_change' | 'email_change' | 'suspicious_activity';
       description: string;
       location?: string;
       timestamp: Date;
@@ -380,9 +361,7 @@ export class EmailNotificationIntegrationService {
   /**
    * Format email content with proper HTML structure
    */
-  private async formatEmailContent(
-    payload: NotificationPayload,
-  ): Promise<string> {
+  private async formatEmailContent(payload: NotificationPayload): Promise<string> {
     if (payload.config?.template) {
       // Template will handle formatting
       return '';
@@ -450,10 +429,7 @@ export class EmailNotificationIntegrationService {
         },
       };
     } catch (error) {
-      this.logger.error(
-        `Failed to get notification preferences for user ${userId}`,
-        error,
-      );
+      this.logger.error(`Failed to get notification preferences for user ${userId}`, error);
       throw error;
     }
   }
@@ -471,15 +447,9 @@ export class EmailNotificationIntegrationService {
   ): Promise<void> {
     try {
       // This would integrate with the user preferences service
-      this.logger.log(
-        `Updated notification preferences for user ${userId}`,
-        preferences,
-      );
+      this.logger.log(`Updated notification preferences for user ${userId}`, preferences);
     } catch (error) {
-      this.logger.error(
-        `Failed to update notification preferences for user ${userId}`,
-        error,
-      );
+      this.logger.error(`Failed to update notification preferences for user ${userId}`, error);
       throw error;
     }
   }

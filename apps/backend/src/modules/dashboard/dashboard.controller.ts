@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-  ValidationPipe,
-  UsePipes,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, ValidationPipe, UsePipes } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -37,8 +30,7 @@ export class DashboardController {
   @Get('stats')
   @ApiOperation({
     summary: 'Get dashboard statistics',
-    description:
-      'Retrieve comprehensive dashboard statistics for the authenticated user',
+    description: 'Retrieve comprehensive dashboard statistics for the authenticated user',
   })
   @ApiQuery({ type: DashboardStatsQueryDto, required: false })
   @ApiResponse({
@@ -71,18 +63,14 @@ export class DashboardController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getStats(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query() query: DashboardStatsQueryDto,
-  ) {
+  async getStats(@CurrentUser() user: AuthenticatedUser, @Query() query: DashboardStatsQueryDto) {
     return this.dashboardService.getStats(user.userId, query);
   }
 
   @Get('streak')
   @ApiOperation({
     summary: 'Get user streak information',
-    description:
-      'Retrieve streak information and statistics for the authenticated user',
+    description: 'Retrieve streak information and statistics for the authenticated user',
   })
   @ApiQuery({ type: StreakQueryDto, required: false })
   @ApiResponse({
@@ -114,18 +102,14 @@ export class DashboardController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getStreak(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query() query: StreakQueryDto,
-  ) {
+  async getStreak(@CurrentUser() user: AuthenticatedUser, @Query() query: StreakQueryDto) {
     return this.dashboardService.getStreak(user.userId, query);
   }
 
   @Get('weekly')
   @ApiOperation({
     summary: 'Get weekly overview',
-    description:
-      'Retrieve weekly overview of tasks, study time, and activities',
+    description: 'Retrieve weekly overview of tasks, study time, and activities',
   })
   @ApiQuery({ type: WeeklyOverviewQueryDto, required: false })
   @ApiResponse({
@@ -242,10 +226,7 @@ export class DashboardController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getActivity(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query() query: ActivityQueryDto,
-  ) {
+  async getActivity(@CurrentUser() user: AuthenticatedUser, @Query() query: ActivityQueryDto) {
     return this.dashboardService.getActivity(user.userId, query);
   }
 

@@ -62,9 +62,7 @@ export class GoogleCalendarService {
   /**
    * Create or get Study Teddy calendar (idempotent)
    */
-  async ensureStudyTeddyCalendar(
-    tokens: CalendarTokens,
-  ): Promise<StudyTeddyCalendar> {
+  async ensureStudyTeddyCalendar(tokens: CalendarTokens): Promise<StudyTeddyCalendar> {
     try {
       const authClient = this.googleOAuthService.getAuthenticatedClient(tokens);
       const calendar = this.getCalendarClient(authClient);
@@ -80,14 +78,11 @@ export class GoogleCalendarService {
       );
 
       if (existingCalendar) {
-        this.logger.debug(
-          `Study Teddy calendar already exists: ${existingCalendar.id}`,
-        );
+        this.logger.debug(`Study Teddy calendar already exists: ${existingCalendar.id}`);
         return {
           id: existingCalendar.id || '',
           summary: existingCalendar.summary || '',
-          description:
-            existingCalendar.description || 'Your Study Teddy study sessions',
+          description: existingCalendar.description || 'Your Study Teddy study sessions',
           timeZone: existingCalendar.timeZone || 'UTC',
         };
       }
@@ -125,14 +120,11 @@ export class GoogleCalendarService {
       return {
         id: newCalendar.data.id,
         summary: newCalendar.data.summary || this.STUDY_TEDDY_CALENDAR_NAME,
-        description:
-          newCalendar.data.description || 'Your Study Teddy study sessions',
+        description: newCalendar.data.description || 'Your Study Teddy study sessions',
         timeZone: newCalendar.data.timeZone || 'UTC',
       };
     } catch (error) {
-      this.logger.error(
-        `Failed to ensure Study Teddy calendar: ${error.message}`,
-      );
+      this.logger.error(`Failed to ensure Study Teddy calendar: ${error.message}`);
       throw new HttpException(
         `Failed to create Study Teddy calendar: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -161,8 +153,7 @@ export class GoogleCalendarService {
       const calendar = this.getCalendarClient(authClient);
 
       // Use Study Teddy calendar if no calendar ID provided
-      const targetCalendarId =
-        calendarId || (await this.getStudyTeddyCalendarId(tokens));
+      const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(tokens));
 
       const response = await calendar.events.insert({
         calendarId: targetCalendarId,
@@ -184,9 +175,7 @@ export class GoogleCalendarService {
         },
       });
 
-      this.logger.debug(
-        `Created event: ${response.data.id} in calendar ${targetCalendarId}`,
-      );
+      this.logger.debug(`Created event: ${response.data.id} in calendar ${targetCalendarId}`);
       return response.data;
     } catch (error) {
       this.logger.error(`Failed to create event: ${error.message}`);
@@ -210,8 +199,7 @@ export class GoogleCalendarService {
       const authClient = this.googleOAuthService.getAuthenticatedClient(tokens);
       const calendar = this.getCalendarClient(authClient);
 
-      const targetCalendarId =
-        calendarId || (await this.getStudyTeddyCalendarId(tokens));
+      const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(tokens));
 
       // First get the existing event
       const existingEvent = await calendar.events.get({
@@ -239,9 +227,7 @@ export class GoogleCalendarService {
         requestBody: updatedEvent,
       });
 
-      this.logger.debug(
-        `Updated event: ${eventId} in calendar ${targetCalendarId}`,
-      );
+      this.logger.debug(`Updated event: ${eventId} in calendar ${targetCalendarId}`);
       return response.data;
     } catch (error) {
       this.logger.error(`Failed to update event: ${error.message}`);
@@ -265,8 +251,7 @@ export class GoogleCalendarService {
       const authClient = this.googleOAuthService.getAuthenticatedClient(tokens);
       const calendar = this.getCalendarClient(authClient);
 
-      const targetCalendarId =
-        calendarId || (await this.getStudyTeddyCalendarId(tokens));
+      const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(tokens));
 
       await calendar.events.delete({
         calendarId: targetCalendarId,
@@ -274,9 +259,7 @@ export class GoogleCalendarService {
         sendUpdates: sendUpdates ? 'all' : 'none',
       });
 
-      this.logger.debug(
-        `Deleted event: ${eventId} from calendar ${targetCalendarId}`,
-      );
+      this.logger.debug(`Deleted event: ${eventId} from calendar ${targetCalendarId}`);
     } catch (error) {
       this.logger.error(`Failed to delete event: ${error.message}`);
       throw new HttpException(
@@ -298,8 +281,7 @@ export class GoogleCalendarService {
       const authClient = this.googleOAuthService.getAuthenticatedClient(tokens);
       const calendar = this.getCalendarClient(authClient);
 
-      const targetCalendarId =
-        calendarId || (await this.getStudyTeddyCalendarId(tokens));
+      const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(tokens));
 
       const response = await calendar.events.get({
         calendarId: targetCalendarId,
@@ -329,8 +311,7 @@ export class GoogleCalendarService {
       const authClient = this.googleOAuthService.getAuthenticatedClient(tokens);
       const calendar = this.getCalendarClient(authClient);
 
-      const targetCalendarId =
-        calendarId || (await this.getStudyTeddyCalendarId(tokens));
+      const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(tokens));
 
       const response = await calendar.events.list({
         calendarId: targetCalendarId,
@@ -386,9 +367,7 @@ export class GoogleCalendarService {
 
       // Process response
       if (response.data.calendars) {
-        for (const [calendarId, calendarData] of Object.entries(
-          response.data.calendars,
-        )) {
+        for (const [calendarId, calendarData] of Object.entries(response.data.calendars)) {
           result.calendars[calendarId] = {
             busy:
               calendarData.busy?.map((slot) => ({
@@ -402,9 +381,7 @@ export class GoogleCalendarService {
 
       return result;
     } catch (error) {
-      this.logger.error(
-        `Failed to get free/busy information: ${error.message}`,
-      );
+      this.logger.error(`Failed to get free/busy information: ${error.message}`);
       throw new HttpException(
         `Failed to get availability: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -428,9 +405,7 @@ export class GoogleCalendarService {
         calendarId?: string;
       }> = [];
 
-      for (const [calendarId, calendarData] of Object.entries(
-        freeBusy.calendars,
-      )) {
+      for (const [calendarId, calendarData] of Object.entries(freeBusy.calendars)) {
         if (calendarData.busy) {
           calendarData.busy.forEach((slot) => {
             busyTimes.push({
@@ -442,9 +417,7 @@ export class GoogleCalendarService {
       }
 
       // Sort by start time
-      busyTimes.sort(
-        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
-      );
+      busyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
       return busyTimes;
     } catch (error) {
@@ -484,9 +457,7 @@ export class GoogleCalendarService {
 
       return true; // No conflicts
     } catch (error) {
-      this.logger.error(
-        `Failed to check time slot availability: ${error.message}`,
-      );
+      this.logger.error(`Failed to check time slot availability: ${error.message}`);
       throw error;
     }
   }

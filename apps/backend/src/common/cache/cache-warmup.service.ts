@@ -36,17 +36,11 @@ export class CacheWarmupService implements OnModuleInit {
       for (const user of activeUsers) {
         try {
           // Warm up dashboard stats cache
-          const statsKey = this.cacheService.generateKey(
-            'dashboard_stats',
-            user.id,
-          );
+          const statsKey = this.cacheService.generateKey('dashboard_stats', user.id);
           await this.cacheService.set(statsKey, null, 1); // Set temporary value to mark as warming
 
           // Warm up streak cache
-          const streakKey = this.cacheService.generateKey(
-            'dashboard_streak',
-            user.id,
-          );
+          const streakKey = this.cacheService.generateKey('dashboard_streak', user.id);
           await this.cacheService.set(streakKey, null, 1);
 
           // Warm up current week's data
@@ -68,10 +62,7 @@ export class CacheWarmupService implements OnModuleInit {
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
         } catch (error) {
-          this.logger.warn(
-            `Failed to warm up cache for user ${user.id}:`,
-            error,
-          );
+          this.logger.warn(`Failed to warm up cache for user ${user.id}:`, error);
         }
       }
 
@@ -87,10 +78,7 @@ export class CacheWarmupService implements OnModuleInit {
 
       // Pre-populate cache with placeholder values that will be replaced on first access
       const statsKey = this.cacheService.generateKey('dashboard_stats', userId);
-      const streakKey = this.cacheService.generateKey(
-        'dashboard_streak',
-        userId,
-      );
+      const streakKey = this.cacheService.generateKey('dashboard_streak', userId);
       const chatKey = this.cacheService.generateKey('ai_chat_history', userId);
 
       // Set placeholder values that will trigger actual data loading on first access

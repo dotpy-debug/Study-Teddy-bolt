@@ -104,9 +104,7 @@ export class TestUtils {
    */
   static createMockJwtService() {
     return {
-      sign: jest.fn(
-        (payload: any) => `mock-jwt-token-${JSON.stringify(payload)}`,
-      ),
+      sign: jest.fn((payload: any) => `mock-jwt-token-${JSON.stringify(payload)}`),
       verify: jest.fn((token: string) => ({
         sub: 'test-user-id',
         email: 'test@example.com',
@@ -145,9 +143,7 @@ export class TestUtils {
         keys.forEach((key) => cache.delete(key));
         return Promise.resolve(true);
       }),
-      generateKey: jest.fn(
-        (prefix: string, ...args: any[]) => `${prefix}:${args.join(':')}`,
-      ),
+      generateKey: jest.fn((prefix: string, ...args: any[]) => `${prefix}:${args.join(':')}`),
       warm: jest.fn(async (key: string, factory: () => Promise<any>) => {
         const cached = cache.get(key);
         if (cached) return cached;
@@ -178,17 +174,15 @@ export class TestUtils {
    */
   static createMockAIRouterService() {
     return {
-      routeRequest: jest
-        .fn()
-        .mockImplementation(async (prompt: string, options: any = {}) => {
-          return {
-            content: `Mock AI response for: ${prompt}`,
-            tokensUsed: 100,
-            costInCents: 0.01,
-            model: options.model || 'gpt-4o-mini',
-            provider: 'openai',
-          };
-        }),
+      routeRequest: jest.fn().mockImplementation(async (prompt: string, options: any = {}) => {
+        return {
+          content: `Mock AI response for: ${prompt}`,
+          tokensUsed: 100,
+          costInCents: 0.01,
+          model: options.model || 'gpt-4o-mini',
+          provider: 'openai',
+        };
+      }),
       generateStudyPlan: jest.fn().mockResolvedValue({
         content: 'Mock study plan content',
         tokensUsed: 150,
@@ -267,10 +261,7 @@ export class TestUtils {
   /**
    * Wait for async operations to complete
    */
-  static async waitFor(
-    condition: () => boolean | Promise<boolean>,
-    timeout = 5000,
-  ): Promise<void> {
+  static async waitFor(condition: () => boolean | Promise<boolean>, timeout = 5000): Promise<void> {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       if (await condition()) {

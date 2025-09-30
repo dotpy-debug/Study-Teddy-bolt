@@ -35,8 +35,7 @@ export class RefreshTokenDto {
 
 export class GetCalendarAuthUrlResponseDto {
   @ApiProperty({
-    description:
-      'OAuth URL to redirect user to for Google Calendar authorization',
+    description: 'OAuth URL to redirect user to for Google Calendar authorization',
     example: 'https://accounts.google.com/o/oauth2/v2/auth?...',
   })
   authUrl: string;

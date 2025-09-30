@@ -1,19 +1,5 @@
-import {
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-  Param,
-  Post,
-  Body,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { Controller, Get, Query, UseGuards, Param, Post, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { EnhancedAnalyticsService } from './enhanced-analytics.service';
 import { NextBestActionService } from './nba.service';
 import { TimeRangeDto } from './dto';
@@ -40,10 +26,7 @@ export class EnhancedAnalyticsController {
     status: 200,
     description: 'Dashboard tiles data retrieved successfully',
   })
-  async getDashboardTiles(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getDashboardTiles(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.enhancedAnalyticsService.getDashboardTiles(userId, query);
   }
 
@@ -57,10 +40,7 @@ export class EnhancedAnalyticsController {
     status: 200,
     description: 'Subject mix data retrieved successfully',
   })
-  async getSubjectMix(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getSubjectMix(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.enhancedAnalyticsService.getSubjectMixAnalytics(userId, query);
   }
 
@@ -97,10 +77,7 @@ export class EnhancedAnalyticsController {
     status: 200,
     description: 'Advanced analytics retrieved successfully',
   })
-  async getAdvancedAnalytics(
-    @CurrentUser() userId: string,
-    @Query() query: TimeRangeDto,
-  ) {
+  async getAdvancedAnalytics(@CurrentUser() userId: string, @Query() query: TimeRangeDto) {
     return this.enhancedAnalyticsService.getAdvancedAnalytics(userId, query);
   }
 
@@ -132,10 +109,7 @@ export class EnhancedAnalyticsController {
     status: 200,
     description: 'Action recommendations retrieved successfully',
   })
-  async getActionRecommendations(
-    @CurrentUser() userId: string,
-    @Query('limit') limit: number = 3,
-  ) {
+  async getActionRecommendations(@CurrentUser() userId: string, @Query('limit') limit: number = 3) {
     const maxLimit = Math.min(limit, 5);
     return this.nbaService.getActionRecommendations(userId, maxLimit);
   }
@@ -161,10 +135,6 @@ export class EnhancedAnalyticsController {
     @Query('format') format: 'json' | 'csv' = 'json',
     @Query() query: TimeRangeDto,
   ) {
-    return this.enhancedAnalyticsService.exportAnalyticsData(
-      userId,
-      format,
-      query,
-    );
+    return this.enhancedAnalyticsService.exportAnalyticsData(userId, format, query);
   }
 }

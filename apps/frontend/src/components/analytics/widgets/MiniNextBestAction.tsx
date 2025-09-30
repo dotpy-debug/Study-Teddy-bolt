@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lightbulb, ArrowRight, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { fetchNextBestAction } from '@/hooks/useAnalytics';
+import { fetchNextBestAction } from '../hooks/use-analytics';
 import { cn } from '@/lib/utils';
 
 interface NextBestAction {

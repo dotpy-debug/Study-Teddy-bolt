@@ -33,10 +33,7 @@ export class DrizzleService implements OnModuleInit {
       transform: {
         undefined: null,
       },
-      onnotice:
-        this.configService.get('NODE_ENV') === 'development'
-          ? console.log
-          : () => {},
+      onnotice: this.configService.get('NODE_ENV') === 'development' ? console.log : () => {},
       debug:
         this.configService.get('NODE_ENV') === 'development' &&
         this.configService.get('DB_DEBUG') === 'true',
@@ -62,9 +59,7 @@ export class DrizzleService implements OnModuleInit {
 
   get db() {
     if (!this._db) {
-      throw new Error(
-        'Database not initialized. Ensure DrizzleService is properly configured.',
-      );
+      throw new Error('Database not initialized. Ensure DrizzleService is properly configured.');
     }
     return this._db;
   }

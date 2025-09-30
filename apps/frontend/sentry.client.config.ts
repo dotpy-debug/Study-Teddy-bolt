@@ -146,8 +146,8 @@ Sentry.init({
 
 // Custom performance monitoring for Web Vitals
 if (typeof window !== 'undefined') {
-  import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-    getCLS((metric) => {
+  import('web-vitals').then(({ onCLS, onFCP, onLCP, onTTFB }) => {
+    onCLS((metric) => {
       Sentry.addBreadcrumb({
         message: 'Core Web Vital: CLS',
         level: 'info',
@@ -160,20 +160,9 @@ if (typeof window !== 'undefined') {
       }
     });
 
-    getFID((metric) => {
-      Sentry.addBreadcrumb({
-        message: 'Core Web Vital: FID',
-        level: 'info',
-        data: metric,
-      });
-
-      // Alert if FID is poor (>300ms)
-      if (metric.value > 300) {
-        Sentry.captureMessage('Poor FID detected', 'warning');
-      }
-    });
-
-    getFCP((metric) => {
+    // Note: FID is deprecated in web-vitals v4+, replaced by INP
+    
+    onFCP((metric) => {
       Sentry.addBreadcrumb({
         message: 'Core Web Vital: FCP',
         level: 'info',
@@ -186,7 +175,7 @@ if (typeof window !== 'undefined') {
       }
     });
 
-    getLCP((metric) => {
+    onLCP((metric) => {
       Sentry.addBreadcrumb({
         message: 'Core Web Vital: LCP',
         level: 'info',
@@ -199,7 +188,7 @@ if (typeof window !== 'undefined') {
       }
     });
 
-    getTTFB((metric) => {
+    onTTFB((metric) => {
       Sentry.addBreadcrumb({
         message: 'Core Web Vital: TTFB',
         level: 'info',

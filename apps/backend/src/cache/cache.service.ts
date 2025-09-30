@@ -59,11 +59,7 @@ export class CacheService {
   /**
    * Get or set a value (cache-aside pattern)
    */
-  async getOrSet<T>(
-    key: string,
-    factory: () => Promise<T>,
-    options?: CacheOptions,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, factory: () => Promise<T>, options?: CacheOptions): Promise<T> {
     try {
       // Try to get from cache first
       const cached = await this.get<T>(key);
@@ -178,11 +174,7 @@ export class CacheService {
    * Cache decorator for methods
    */
   static CacheResult(keyPrefix: string, ttl: number = 300) {
-    return function (
-      target: any,
-      propertyKey: string,
-      descriptor: PropertyDescriptor,
-    ) {
+    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
       const originalMethod = descriptor.value;
 
       descriptor.value = async function (...args: any[]) {
@@ -194,11 +186,7 @@ export class CacheService {
 
         const cacheKey = cacheService.generateKey(keyPrefix, ...args);
 
-        return cacheService.getOrSet(
-          cacheKey,
-          () => originalMethod.apply(this, args),
-          { ttl },
-        );
+        return cacheService.getOrSet(cacheKey, () => originalMethod.apply(this, args), { ttl });
       };
     };
   }

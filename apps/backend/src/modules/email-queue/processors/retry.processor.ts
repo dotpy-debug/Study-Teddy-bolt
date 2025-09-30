@@ -20,12 +20,7 @@ export class RetryProcessor extends WorkerHost {
   }
 
   async process(job: Job<RetryEmailJobData>): Promise<void> {
-    const {
-      originalJobId,
-      emailDeliveryLogId,
-      attemptNumber,
-      originalJobData,
-    } = job.data;
+    const { originalJobId, emailDeliveryLogId, attemptNumber, originalJobData } = job.data;
 
     this.logger.debug(`Processing email retry: ${job.id}`, {
       originalJobId,
@@ -36,42 +31,31 @@ export class RetryProcessor extends WorkerHost {
 
     try {
       // Get the delivery log to check current status
-      const deliveryLog =
-        await this.emailDeliveryService.getDeliveryLog(emailDeliveryLogId);
+      const deliveryLog = await this.emailDeliveryService.getDeliveryLog(emailDeliveryLogId);
 
       if (!deliveryLog) {
-        this.logger.warn(
-          `Delivery log not found for retry: ${emailDeliveryLogId}`,
-        );
+        this.logger.warn(`Delivery log not found for retry: ${emailDeliveryLogId}`);
         return;
       }
 
       // Check if this email has already been sent successfully
       if (deliveryLog.status === 'sent' || deliveryLog.status === 'delivered') {
-        this.logger.debug(
-          `Email already sent successfully, skipping retry: ${emailDeliveryLogId}`,
-        );
+        this.logger.debug(`Email already sent successfully, skipping retry: ${emailDeliveryLogId}`);
         return;
       }
 
       // Check if we've exceeded max retries
       if (deliveryLog.retryCount >= deliveryLog.maxRetries) {
-        this.logger.warn(
-          `Max retries exceeded for email: ${emailDeliveryLogId}`,
-          {
-            retryCount: deliveryLog.retryCount,
-            maxRetries: deliveryLog.maxRetries,
-          },
-        );
+        this.logger.warn(`Max retries exceeded for email: ${emailDeliveryLogId}`, {
+          retryCount: deliveryLog.retryCount,
+          maxRetries: deliveryLog.maxRetries,
+        });
 
-        await this.emailDeliveryService.updateDeliveryStatus(
-          emailDeliveryLogId,
-          {
-            status: 'failed',
-            errorMessage: `Max retries (${deliveryLog.maxRetries}) exceeded`,
-            failedAt: new Date(),
-          },
-        );
+        await this.emailDeliveryService.updateDeliveryStatus(emailDeliveryLogId, {
+          status: 'failed',
+          errorMessage: `Max retries (${deliveryLog.maxRetries}) exceeded`,
+          failedAt: new Date(),
+        });
 
         return;
       }
@@ -98,14 +82,11 @@ export class RetryProcessor extends WorkerHost {
 
       if (sendResult.success) {
         // Update delivery log as sent
-        await this.emailDeliveryService.updateDeliveryStatus(
-          emailDeliveryLogId,
-          {
-            status: 'sent',
-            resendId: sendResult.resendId,
-            sentAt: new Date(),
-          },
-        );
+        await this.emailDeliveryService.updateDeliveryStatus(emailDeliveryLogId, {
+          status: 'sent',
+          resendId: sendResult.resendId,
+          sentAt: new Date(),
+        });
 
         this.logger.log(`Email retry successful: ${job.id}`, {
           originalJobId,
@@ -120,32 +101,23 @@ export class RetryProcessor extends WorkerHost {
 
         // Mark for another retry if we haven't exceeded max attempts
         if (attemptNumber < deliveryLog.maxRetries) {
-          await this.emailDeliveryService.markForRetry(
-            emailDeliveryLogId,
-            nextRetryAt,
-          );
+          await this.emailDeliveryService.markForRetry(emailDeliveryLogId, nextRetryAt);
 
-          this.logger.warn(
-            `Email retry failed, scheduling next attempt: ${job.id}`,
-            {
-              originalJobId,
-              emailDeliveryLogId,
-              attemptNumber,
-              nextAttempt: attemptNumber + 1,
-              nextRetryAt,
-              error: sendResult.error,
-            },
-          );
+          this.logger.warn(`Email retry failed, scheduling next attempt: ${job.id}`, {
+            originalJobId,
+            emailDeliveryLogId,
+            attemptNumber,
+            nextAttempt: attemptNumber + 1,
+            nextRetryAt,
+            error: sendResult.error,
+          });
         } else {
           // Final failure
-          await this.emailDeliveryService.updateDeliveryStatus(
-            emailDeliveryLogId,
-            {
-              status: 'failed',
-              errorMessage: `Final retry failed: ${sendResult.error}`,
-              failedAt: new Date(),
-            },
-          );
+          await this.emailDeliveryService.updateDeliveryStatus(emailDeliveryLogId, {
+            status: 'failed',
+            errorMessage: `Final retry failed: ${sendResult.error}`,
+            failedAt: new Date(),
+          });
 
           this.logger.error(`Email retry exhausted: ${job.id}`, {
             originalJobId,
@@ -165,14 +137,11 @@ export class RetryProcessor extends WorkerHost {
 
       // Update delivery log with retry failure
       if (emailDeliveryLogId) {
-        await this.emailDeliveryService.updateDeliveryStatus(
-          emailDeliveryLogId,
-          {
-            status: 'failed',
-            errorMessage: `Retry processing failed: ${error.message}`,
-            failedAt: new Date(),
-          },
-        );
+        await this.emailDeliveryService.updateDeliveryStatus(emailDeliveryLogId, {
+          status: 'failed',
+          errorMessage: `Retry processing failed: ${error.message}`,
+          failedAt: new Date(),
+        });
       }
 
       throw error;
@@ -217,9 +186,7 @@ export class RetryProcessor extends WorkerHost {
         return {
           ...baseData,
           resetUrl: emailData.resetUrl,
-          requestedAt:
-            emailData.requestedAt?.toLocaleString() ||
-            new Date().toLocaleString(),
+          requestedAt: emailData.requestedAt?.toLocaleString() || new Date().toLocaleString(),
           expiryHours: 2,
         };
 
@@ -259,9 +226,7 @@ export class RetryProcessor extends WorkerHost {
           achievementIcon: emailData.achievementIcon || '🏆',
           achievementType: emailData.achievementType,
           relatedStats: this.formatAchievementStats(emailData.relatedData),
-          celebrationMessage: this.generateCelebrationMessage(
-            emailData.achievementType,
-          ),
+          celebrationMessage: this.generateCelebrationMessage(emailData.achievementType),
           achievementsUrl: `${baseData.dashboardUrl}/achievements`,
         };
 
@@ -338,18 +303,12 @@ export class RetryProcessor extends WorkerHost {
 
   private generateCelebrationMessage(achievementType: string): string {
     const messages = {
-      goal_completed:
-        "🎉 Congratulations! You've successfully completed your goal.",
-      streak_milestone:
-        '🔥 Amazing! Your consistency is paying off with this streak milestone.',
-      focus_milestone:
-        '🎯 Fantastic! Your focus and dedication have earned you this milestone.',
-      task_completion_streak:
-        '✅ Outstanding! Your task completion streak shows real progress.',
+      goal_completed: "🎉 Congratulations! You've successfully completed your goal.",
+      streak_milestone: '🔥 Amazing! Your consistency is paying off with this streak milestone.',
+      focus_milestone: '🎯 Fantastic! Your focus and dedication have earned you this milestone.',
+      task_completion_streak: '✅ Outstanding! Your task completion streak shows real progress.',
     };
 
-    return (
-      messages[achievementType] || '🏆 Congratulations on your achievement!'
-    );
+    return messages[achievementType] || '🏆 Congratulations on your achievement!';
   }
 }

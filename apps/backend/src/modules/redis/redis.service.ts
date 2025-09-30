@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -122,9 +117,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async del(...keys: string[]): Promise<number> {
     try {
       const deleted = await this.client.del(...keys);
-      this.logger.debug(
-        `Cache DELETE for keys: ${keys.join(', ')}, deleted: ${deleted}`,
-      );
+      this.logger.debug(`Cache DELETE for keys: ${keys.join(', ')}, deleted: ${deleted}`);
       return deleted;
     } catch (error) {
       this.logger.error(`Error deleting keys ${keys.join(', ')}:`, error);
@@ -137,9 +130,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       const keys = await this.client.keys(pattern);
       if (keys.length > 0) {
         await this.client.del(...keys);
-        this.logger.debug(
-          `Deleted ${keys.length} keys matching pattern: ${pattern}`,
-        );
+        this.logger.debug(`Deleted ${keys.length} keys matching pattern: ${pattern}`);
       }
     } catch (error) {
       this.logger.error(`Error deleting pattern ${pattern}:`, error);
@@ -271,10 +262,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async subscribe(
-    channel: string,
-    callback: (message: any) => void,
-  ): Promise<void> {
+  async subscribe(channel: string, callback: (message: any) => void): Promise<void> {
     try {
       await this.subscriber.subscribe(channel);
       this.subscriber.on('message', (ch, message) => {
@@ -283,10 +271,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
             const parsed = JSON.parse(message);
             callback(parsed);
           } catch (error) {
-            this.logger.error(
-              `Error parsing message from channel ${channel}:`,
-              error,
-            );
+            this.logger.error(`Error parsing message from channel ${channel}:`, error);
           }
         }
       });
@@ -328,10 +313,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     try {
       return await this.client.incrby(key, increment);
     } catch (error) {
-      this.logger.error(
-        `Error incrementing key ${key} by ${increment}:`,
-        error,
-      );
+      this.logger.error(`Error incrementing key ${key} by ${increment}:`, error);
       return 0;
     }
   }
@@ -381,11 +363,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   // Cache warming helper
-  async warm<T>(
-    key: string,
-    dataFunction: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async warm<T>(key: string, dataFunction: () => Promise<T>, ttl?: number): Promise<T> {
     const cachedValue = await this.get<T>(key);
     if (cachedValue !== null) {
       return cachedValue;
@@ -468,11 +446,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   /**
    * Count sorted set members between scores
    */
-  async zcount(
-    key: string,
-    min: string | number,
-    max: string | number,
-  ): Promise<number> {
+  async zcount(key: string, min: string | number, max: string | number): Promise<number> {
     try {
       return await this.client.zcount(key, min, max);
     } catch (error) {
@@ -484,18 +458,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   /**
    * Increment hash field by amount
    */
-  async hincrby(
-    key: string,
-    field: string,
-    increment: number,
-  ): Promise<number> {
+  async hincrby(key: string, field: string, increment: number): Promise<number> {
     try {
       return await this.client.hincrby(key, field, increment);
     } catch (error) {
-      this.logger.error(
-        `Error incrementing hash field ${key}:${field}:`,
-        error,
-      );
+      this.logger.error(`Error incrementing hash field ${key}:${field}:`, error);
       return 0;
     }
   }
@@ -527,11 +494,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   /**
    * Get sorted set members by score range
    */
-  async zrangebyscore(
-    key: string,
-    min: number | string,
-    max: number | string,
-  ): Promise<string[]> {
+  async zrangebyscore(key: string, min: number | string, max: number | string): Promise<string[]> {
     try {
       return await this.client.zrangebyscore(key, min, max);
     } catch (error) {
@@ -543,11 +506,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   /**
    * Remove sorted set members by score range
    */
-  async zremrangebyscore(
-    key: string,
-    min: number | string,
-    max: number | string,
-  ): Promise<number> {
+  async zremrangebyscore(key: string, min: number | string, max: number | string): Promise<number> {
     try {
       return await this.client.zremrangebyscore(key, min, max);
     } catch (error) {

@@ -1,20 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '../../db/drizzle.service';
-import {
-  flashcardDecks,
-  flashcards,
-  flashcardReviews,
-} from '../../db/schema/flashcards.schema';
+import { flashcardDecks, flashcards, flashcardReviews } from '../../db/schema/flashcards.schema';
 import { eq, and, sql, desc } from 'drizzle-orm';
 
 @Injectable()
 export class DecksRepository {
   constructor(private drizzleService: DrizzleService) {}
   async create(data: any) {
-    const [deck] = await this.drizzleService.db
-      .insert(flashcardDecks)
-      .values(data)
-      .returning();
+    const [deck] = await this.drizzleService.db.insert(flashcardDecks).values(data).returning();
     return deck;
   }
 
@@ -72,10 +65,7 @@ export class DecksRepository {
         averageEaseFactor: sql<number>`coalesce(avg(${flashcardReviews.easeFactor}), 2.5)`,
       })
       .from(flashcards)
-      .leftJoin(
-        flashcardReviews,
-        eq(flashcardReviews.flashcardId, flashcards.id),
-      )
+      .leftJoin(flashcardReviews, eq(flashcardReviews.flashcardId, flashcards.id))
       .where(eq(flashcards.deckId, deckId));
 
     return (

@@ -40,11 +40,7 @@ export class CircuitBreakerService {
     let circuit = this.circuits.get(config.name);
 
     if (!circuit) {
-      circuit = new CircuitBreakerInstance(
-        config,
-        this.sentryService,
-        this.logger,
-      );
+      circuit = new CircuitBreakerInstance(config, this.sentryService, this.logger);
       this.circuits.set(config.name, circuit);
       this.logger.log(`Created circuit breaker: ${config.name}`);
     }
@@ -143,10 +139,7 @@ class CircuitBreakerInstance {
   /**
    * Execute operation with circuit breaker protection
    */
-  async execute<T>(
-    operation: () => Promise<T>,
-    fallback?: () => Promise<T>,
-  ): Promise<T> {
+  async execute<T>(operation: () => Promise<T>, fallback?: () => Promise<T>): Promise<T> {
     this.totalRequests++;
     this.cleanOldRequests();
 
@@ -155,9 +148,7 @@ class CircuitBreakerInstance {
       this.trackMetric('circuit_breaker.request_rejected', 1);
 
       if (fallback) {
-        this.logger.debug(
-          `Circuit ${this.config.name} is open, executing fallback`,
-        );
+        this.logger.debug(`Circuit ${this.config.name} is open, executing fallback`);
         return fallback();
       } else {
         const error = new Error(`Circuit breaker ${this.config.name} is OPEN`);
@@ -266,9 +257,7 @@ class CircuitBreakerInstance {
     const recentFailures = recentRequests.filter((r) => !r.success).length;
     const failureRate = recentFailures / recentRequests.length;
 
-    return (
-      failureRate >= this.config.failureThreshold / this.config.volumeThreshold
-    );
+    return failureRate >= this.config.failureThreshold / this.config.volumeThreshold;
   }
 
   /**
@@ -279,9 +268,7 @@ class CircuitBreakerInstance {
     this.state = newState;
     this.stateChangeTime = Date.now();
 
-    this.logger.log(
-      `Circuit ${this.config.name} state changed: ${oldState} -> ${newState}`,
-    );
+    this.logger.log(`Circuit ${this.config.name} state changed: ${oldState} -> ${newState}`);
 
     this.trackMetric('circuit_breaker.state_change', 1, {
       from_state: oldState,
@@ -360,19 +347,13 @@ class CircuitBreakerInstance {
    */
   private cleanOldRequests(): void {
     const cutoff = Date.now() - this.config.monitoringPeriod;
-    this.recentRequests = this.recentRequests.filter(
-      (r) => r.timestamp > cutoff,
-    );
+    this.recentRequests = this.recentRequests.filter((r) => r.timestamp > cutoff);
   }
 
   /**
    * Track metrics with Sentry
    */
-  private trackMetric(
-    name: string,
-    value: number,
-    tags?: Record<string, string>,
-  ): void {
+  private trackMetric(name: string, value: number, tags?: Record<string, string>): void {
     this.sentryService.trackMetric({
       name,
       value,
@@ -389,16 +370,11 @@ class CircuitBreakerInstance {
  * Decorator for circuit breaker protection
  */
 export function WithCircuitBreaker(circuitName: string, fallback?: () => any) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const circuitBreakerService = this
-        .circuitBreakerService as CircuitBreakerService;
+      const circuitBreakerService = this.circuitBreakerService as CircuitBreakerService;
 
       if (!circuitBreakerService) {
         // If no circuit breaker service available, just call original method

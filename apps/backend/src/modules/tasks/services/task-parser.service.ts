@@ -92,50 +92,35 @@ export class TaskParserService {
     if (subject) {
       parsed.subjectId = subject.id;
       // Remove subject from title
-      parsed.title = this.removeWordsFromTitle(
-        parsed.title,
-        subject.matchedWords,
-      );
+      parsed.title = this.removeWordsFromTitle(parsed.title, subject.matchedWords);
     }
 
     // Extract priority
     const priority = this.extractPriority(words);
     if (priority) {
       parsed.priority = priority.value;
-      parsed.title = this.removeWordsFromTitle(
-        parsed.title,
-        priority.matchedWords,
-      );
+      parsed.title = this.removeWordsFromTitle(parsed.title, priority.matchedWords);
     }
 
     // Extract status
     const status = this.extractStatus(words);
     if (status) {
       parsed.status = status.value;
-      parsed.title = this.removeWordsFromTitle(
-        parsed.title,
-        status.matchedWords,
-      );
+      parsed.title = this.removeWordsFromTitle(parsed.title, status.matchedWords);
     }
 
     // Extract duration/time estimate
     const duration = this.extractDuration(words);
     if (duration) {
       parsed.estimatedMinutes = duration.value;
-      parsed.title = this.removeWordsFromTitle(
-        parsed.title,
-        duration.matchedWords,
-      );
+      parsed.title = this.removeWordsFromTitle(parsed.title, duration.matchedWords);
     }
 
     // Extract date/time
     const dateTime = this.extractDateTime(words, originalWords);
     if (dateTime) {
       parsed.dueDate = dateTime.value;
-      parsed.title = this.removeWordsFromTitle(
-        parsed.title,
-        dateTime.matchedWords,
-      );
+      parsed.title = this.removeWordsFromTitle(parsed.title, dateTime.matchedWords);
     }
 
     // Clean up title
@@ -171,9 +156,7 @@ export class TaskParserService {
       for (const subjectWord of subjectWords) {
         const index = words.findIndex(
           (word) =>
-            word === subjectWord ||
-            word.includes(subjectWord) ||
-            subjectWord.includes(word),
+            word === subjectWord || word.includes(subjectWord) || subjectWord.includes(word),
         );
         if (index !== -1) {
           matchedWords.push(words[index]);
@@ -191,9 +174,7 @@ export class TaskParserService {
     return null;
   }
 
-  private extractPriority(
-    words: string[],
-  ): { value: PriorityEnum; matchedWords: string[] } | null {
+  private extractPriority(words: string[]): { value: PriorityEnum; matchedWords: string[] } | null {
     for (const [keyword, priority] of this.priorityKeywords) {
       const index = words.findIndex((word) => word.includes(keyword));
       if (index !== -1) {
@@ -207,9 +188,7 @@ export class TaskParserService {
     return null;
   }
 
-  private extractStatus(
-    words: string[],
-  ): { value: TaskStatusEnum; matchedWords: string[] } | null {
+  private extractStatus(words: string[]): { value: TaskStatusEnum; matchedWords: string[] } | null {
     for (const [keyword, status] of this.statusKeywords) {
       const index = words.findIndex((word) => word.includes(keyword));
       if (index !== -1) {
@@ -223,9 +202,7 @@ export class TaskParserService {
     return null;
   }
 
-  private extractDuration(
-    words: string[],
-  ): { value: number; matchedWords: string[] } | null {
+  private extractDuration(words: string[]): { value: number; matchedWords: string[] } | null {
     const matchedWords: string[] = [];
     let totalMinutes = 0;
 
@@ -233,9 +210,7 @@ export class TaskParserService {
       const word = words[i];
 
       // Match patterns like "60m", "2h", "30min", "1.5hr", "90minutes"
-      const durationMatch = word.match(
-        /^(\d+(?:\.\d+)?)([hmhrs]+|min|minutes?|hrs?|hours?)$/,
-      );
+      const durationMatch = word.match(/^(\d+(?:\.\d+)?)([hmhrs]+|min|minutes?|hrs?|hours?)$/);
       if (durationMatch) {
         const value = parseFloat(durationMatch[1]);
         const unit = durationMatch[2];
@@ -404,15 +379,7 @@ export class TaskParserService {
   }
 
   private getNextDayOfWeek(dayName: string): Date {
-    const dayNames = [
-      'sunday',
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
-    ];
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const targetDay = dayNames.indexOf(dayName.toLowerCase());
 
     if (targetDay === -1) {
@@ -438,10 +405,7 @@ export class TaskParserService {
 
     for (const word of wordsToRemove) {
       // Use word boundaries to avoid partial matches
-      const regex = new RegExp(
-        `\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
-        'gi',
-      );
+      const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
       cleanTitle = cleanTitle.replace(regex, '');
     }
 
@@ -495,10 +459,7 @@ export class TaskParserService {
   /**
    * Get suggestions for auto-completion based on partial input
    */
-  getSuggestions(
-    input: string,
-    availableSubjects?: Array<{ id: string; name: string }>,
-  ): string[] {
+  getSuggestions(input: string, availableSubjects?: Array<{ id: string; name: string }>): string[] {
     const suggestions: string[] = [];
     const words = input.toLowerCase().split(/\s+/);
     const lastWord = words[words.length - 1];
@@ -507,9 +468,7 @@ export class TaskParserService {
     if (availableSubjects) {
       for (const subject of availableSubjects) {
         if (subject.name.toLowerCase().includes(lastWord)) {
-          suggestions.push(
-            `${input.slice(0, -lastWord.length)}${subject.name}`,
-          );
+          suggestions.push(`${input.slice(0, -lastWord.length)}${subject.name}`);
         }
       }
     }
@@ -529,17 +488,7 @@ export class TaskParserService {
     }
 
     // Common time suggestions
-    const timePatterns = [
-      '9am',
-      '10am',
-      '11am',
-      '12pm',
-      '1pm',
-      '2pm',
-      '3pm',
-      '4pm',
-      '5pm',
-    ];
+    const timePatterns = ['9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm'];
     for (const time of timePatterns) {
       if (time.startsWith(lastWord)) {
         suggestions.push(`${input.slice(0, -lastWord.length)}${time}`);

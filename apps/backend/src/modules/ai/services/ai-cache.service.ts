@@ -81,12 +81,7 @@ export class AICacheService {
       return null;
     }
 
-    const cacheKey = this.generateCacheKey(
-      actionType,
-      prompt,
-      systemPrompt,
-      userId,
-    );
+    const cacheKey = this.generateCacheKey(actionType, prompt, systemPrompt, userId);
 
     try {
       const cached = await this.cacheService.get(cacheKey);
@@ -124,12 +119,7 @@ export class AICacheService {
       return;
     }
 
-    const cacheKey = this.generateCacheKey(
-      actionType,
-      prompt,
-      systemPrompt,
-      userId,
-    );
+    const cacheKey = this.generateCacheKey(actionType, prompt, systemPrompt, userId);
 
     try {
       // Don't cache responses that had errors or are incomplete
@@ -140,9 +130,7 @@ export class AICacheService {
 
       // Don't cache responses that are too expensive (might indicate errors)
       if (response.tokensUsed > 5000) {
-        this.logger.debug(
-          `Skipping cache for expensive response: ${response.tokensUsed} tokens`,
-        );
+        this.logger.debug(`Skipping cache for expensive response: ${response.tokensUsed} tokens`);
         return;
       }
 
@@ -171,9 +159,7 @@ export class AICacheService {
         const config = this.cacheConfigs[actionType];
         const keyPattern = `${config.keyPrefix}_*_user_${userId}`;
         await this.cacheService.delPattern(keyPattern);
-        this.logger.debug(
-          `Invalidated cache for ${actionType} and user ${userId}`,
-        );
+        this.logger.debug(`Invalidated cache for ${actionType} and user ${userId}`);
       } else if (actionType) {
         // Invalidate all cache entries for a specific action type
         const config = this.cacheConfigs[actionType];
@@ -230,20 +216,14 @@ export class AICacheService {
   /**
    * Update cache configuration at runtime
    */
-  updateCacheConfig(
-    actionType: AIActionType,
-    updates: Partial<CacheConfig>,
-  ): void {
+  updateCacheConfig(actionType: AIActionType, updates: Partial<CacheConfig>): void {
     const currentConfig = this.cacheConfigs[actionType];
     this.cacheConfigs[actionType] = {
       ...currentConfig,
       ...updates,
     };
 
-    this.logger.log(
-      `Updated cache config for ${actionType}:`,
-      this.cacheConfigs[actionType],
-    );
+    this.logger.log(`Updated cache config for ${actionType}:`, this.cacheConfigs[actionType]);
   }
 
   /**
@@ -256,9 +236,7 @@ export class AICacheService {
       systemPrompt?: string;
     }>,
   ): Promise<void> {
-    this.logger.log(
-      `Warming up cache with ${commonRequests.length} common requests`,
-    );
+    this.logger.log(`Warming up cache with ${commonRequests.length} common requests`);
 
     // This would typically be called during application startup
     // with pre-computed responses for common queries
@@ -278,10 +256,7 @@ export class AICacheService {
    */
   private hashContent(prompt: string, systemPrompt?: string): string {
     const content = systemPrompt ? `${systemPrompt}|${prompt}` : prompt;
-    return createHash('sha256')
-      .update(content.toLowerCase().trim())
-      .digest('hex')
-      .substring(0, 16); // Use first 16 characters for shorter keys
+    return createHash('sha256').update(content.toLowerCase().trim()).digest('hex').substring(0, 16); // Use first 16 characters for shorter keys
   }
 
   /**

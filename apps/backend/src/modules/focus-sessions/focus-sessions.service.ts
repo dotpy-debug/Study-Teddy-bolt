@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   StartFocusSessionDto,
@@ -19,10 +15,7 @@ import { SessionStatus } from './dto/focus-session-query.dto';
 export class FocusSessionsService {
   constructor(private eventEmitter: EventEmitter2) {}
 
-  async startSession(
-    userId: string,
-    dto: StartFocusSessionDto,
-  ): Promise<FocusSessionResponseDto> {
+  async startSession(userId: string, dto: StartFocusSessionDto): Promise<FocusSessionResponseDto> {
     // Check if user has an active session
     const activeSession = await this.getCurrentSession(userId);
     if (activeSession) {
@@ -60,10 +53,7 @@ export class FocusSessionsService {
     return session as FocusSessionResponseDto;
   }
 
-  async stopSession(
-    userId: string,
-    dto: StopFocusSessionDto,
-  ): Promise<FocusSessionResponseDto> {
+  async stopSession(userId: string, dto: StopFocusSessionDto): Promise<FocusSessionResponseDto> {
     const activeSession = await this.getCurrentSession(userId);
     if (!activeSession) {
       throw new NotFoundException('No active focus session found');
@@ -131,9 +121,7 @@ export class FocusSessionsService {
 
     // Schedule reminder if requested
     if (dto.reminderMinutes && dto.reminderMinutes > 0) {
-      const reminderTime = new Date(
-        startTime.getTime() - dto.reminderMinutes * 60 * 1000,
-      );
+      const reminderTime = new Date(startTime.getTime() - dto.reminderMinutes * 60 * 1000);
       this.eventEmitter.emit('focus.session.schedule.reminder', {
         sessionId: session.id,
         userId,
@@ -157,9 +145,7 @@ export class FocusSessionsService {
     return session as FocusSessionResponseDto;
   }
 
-  async getCurrentSession(
-    userId: string,
-  ): Promise<FocusSessionResponseDto | null> {
+  async getCurrentSession(userId: string): Promise<FocusSessionResponseDto | null> {
     // TODO: Implement database query
     // For now, return mock data or null
     return null;
@@ -201,10 +187,7 @@ export class FocusSessionsService {
     };
   }
 
-  async getSession(
-    userId: string,
-    sessionId: string,
-  ): Promise<FocusSessionResponseDto> {
+  async getSession(userId: string, sessionId: string): Promise<FocusSessionResponseDto> {
     // TODO: Implement database query
     throw new NotFoundException('Focus session not found');
   }
@@ -251,9 +234,7 @@ export class FocusSessionsService {
     }
 
     if (minutes < 5 || minutes > 60) {
-      throw new BadRequestException(
-        'Extension must be between 5 and 60 minutes',
-      );
+      throw new BadRequestException('Extension must be between 5 and 60 minutes');
     }
 
     // TODO: Update scheduled duration in database

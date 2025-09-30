@@ -36,27 +36,17 @@ export class EncryptionService {
 
   constructor(private readonly configService: ConfigService) {
     this.config = {
-      algorithm: this.configService.get<string>(
-        'ENCRYPTION_ALGORITHM',
-        'aes-256-gcm',
-      ),
+      algorithm: this.configService.get<string>('ENCRYPTION_ALGORITHM', 'aes-256-gcm'),
       keyLength: this.configService.get<number>('ENCRYPTION_KEY_LENGTH', 32),
       ivLength: this.configService.get<number>('ENCRYPTION_IV_LENGTH', 16),
       saltLength: this.configService.get<number>('ENCRYPTION_SALT_LENGTH', 32),
       tagLength: this.configService.get<number>('ENCRYPTION_TAG_LENGTH', 16),
-      iterations: this.configService.get<number>(
-        'ENCRYPTION_ITERATIONS',
-        100000,
-      ),
+      iterations: this.configService.get<number>('ENCRYPTION_ITERATIONS', 100000),
     };
 
     // Initialize master encryption key
-    const masterKeyStr = this.configService.get<string>(
-      'MASTER_ENCRYPTION_KEY',
-    );
-    this.masterKey = masterKeyStr
-      ? Buffer.from(masterKeyStr, 'hex')
-      : this.generateKey();
+    const masterKeyStr = this.configService.get<string>('MASTER_ENCRYPTION_KEY');
+    this.masterKey = masterKeyStr ? Buffer.from(masterKeyStr, 'hex') : this.generateKey();
 
     // Define field-level encryption configurations
     this.fieldConfigs = {
@@ -167,9 +157,7 @@ export class EncryptionService {
       switch (algorithm) {
         case 'aes-256-gcm':
           if (!encryptionResult.authTag) {
-            throw new Error(
-              'Authentication tag is required for AES-256-GCM decryption',
-            );
+            throw new Error('Authentication tag is required for AES-256-GCM decryption');
           }
           decrypted = this.decryptAES256GCM(encryptionResult, decryptionKey);
           break;
@@ -178,14 +166,9 @@ export class EncryptionService {
           break;
         case 'chacha20-poly1305':
           if (!encryptionResult.authTag) {
-            throw new Error(
-              'Authentication tag is required for ChaCha20-Poly1305 decryption',
-            );
+            throw new Error('Authentication tag is required for ChaCha20-Poly1305 decryption');
           }
-          decrypted = this.decryptChaCha20Poly1305(
-            encryptionResult,
-            decryptionKey,
-          );
+          decrypted = this.decryptChaCha20Poly1305(encryptionResult, decryptionKey);
           break;
         default:
           throw new Error(`Unsupported decryption algorithm: ${algorithm}`);
@@ -221,11 +204,7 @@ export class EncryptionService {
         const config = this.fieldConfigs[field];
 
         if (config) {
-          const encryptionResult = await this.encrypt(
-            obj[field],
-            undefined,
-            config.algorithm,
-          );
+          const encryptionResult = await this.encrypt(obj[field], undefined, config.algorithm);
 
           encryptionMetadata[field] = encryptionResult;
           encrypted[field] = encryptionResult.encrypted;
@@ -286,9 +265,7 @@ export class EncryptionService {
     hash: string;
     salt: string;
   }> {
-    const saltBuffer = salt
-      ? Buffer.from(salt, 'hex')
-      : crypto.randomBytes(this.config.saltLength);
+    const saltBuffer = salt ? Buffer.from(salt, 'hex') : crypto.randomBytes(this.config.saltLength);
 
     const hash = crypto.pbkdf2Sync(
       data,
@@ -336,10 +313,7 @@ export class EncryptionService {
       const cipher = crypto.createCipheriv('aes-256-gcm', encryptionKey, iv);
       cipher.setAutoPadding(true);
 
-      const encrypted = Buffer.concat([
-        cipher.update(fileBuffer),
-        cipher.final(),
-      ]);
+      const encrypted = Buffer.concat([cipher.update(fileBuffer), cipher.final()]);
 
       const authTag = cipher.getAuthTag();
 
@@ -372,17 +346,10 @@ export class EncryptionService {
       const iv = Buffer.from(encryptionMetadata.iv, 'hex');
       const authTag = Buffer.from(encryptionMetadata.authTag!, 'hex');
 
-      const decipher = crypto.createDecipheriv(
-        'aes-256-gcm',
-        decryptionKey,
-        iv,
-      );
+      const decipher = crypto.createDecipheriv('aes-256-gcm', decryptionKey, iv);
       decipher.setAuthTag(authTag);
 
-      const decrypted = Buffer.concat([
-        decipher.update(encryptedBuffer),
-        decipher.final(),
-      ]);
+      const decrypted = Buffer.concat([decipher.update(encryptedBuffer), decipher.final()]);
 
       return decrypted;
     } catch (error) {
@@ -403,9 +370,7 @@ export class EncryptionService {
     key: Buffer;
     salt: string;
   } {
-    const saltBuffer = salt
-      ? Buffer.from(salt, 'hex')
-      : crypto.randomBytes(this.config.saltLength);
+    const saltBuffer = salt ? Buffer.from(salt, 'hex') : crypto.randomBytes(this.config.saltLength);
 
     const key = crypto.pbkdf2Sync(
       password,
@@ -456,11 +421,7 @@ export class EncryptionService {
   /**
    * Private encryption methods
    */
-  private encryptAES256GCM(
-    data: string,
-    key: Buffer,
-    iv: Buffer,
-  ): EncryptionResult {
+  private encryptAES256GCM(data: string, key: Buffer, iv: Buffer): EncryptionResult {
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 
     let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -475,10 +436,7 @@ export class EncryptionService {
     };
   }
 
-  private decryptAES256GCM(
-    encryptionResult: EncryptionResult,
-    key: Buffer,
-  ): string {
+  private decryptAES256GCM(encryptionResult: EncryptionResult, key: Buffer): string {
     const iv = Buffer.from(encryptionResult.iv, 'hex');
     const authTag = Buffer.from(encryptionResult.authTag!, 'hex');
 
@@ -491,11 +449,7 @@ export class EncryptionService {
     return decrypted;
   }
 
-  private encryptAES256CBC(
-    data: string,
-    key: Buffer,
-    iv: Buffer,
-  ): EncryptionResult {
+  private encryptAES256CBC(data: string, key: Buffer, iv: Buffer): EncryptionResult {
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
 
     let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -507,10 +461,7 @@ export class EncryptionService {
     };
   }
 
-  private decryptAES256CBC(
-    encryptionResult: EncryptionResult,
-    key: Buffer,
-  ): string {
+  private decryptAES256CBC(encryptionResult: EncryptionResult, key: Buffer): string {
     const iv = Buffer.from(encryptionResult.iv, 'hex');
 
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
@@ -521,11 +472,7 @@ export class EncryptionService {
     return decrypted;
   }
 
-  private encryptChaCha20Poly1305(
-    data: string,
-    key: Buffer,
-    iv: Buffer,
-  ): EncryptionResult {
+  private encryptChaCha20Poly1305(data: string, key: Buffer, iv: Buffer): EncryptionResult {
     const cipher = crypto.createCipheriv('chacha20-poly1305', key, iv);
 
     let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -540,10 +487,7 @@ export class EncryptionService {
     };
   }
 
-  private decryptChaCha20Poly1305(
-    encryptionResult: EncryptionResult,
-    key: Buffer,
-  ): string {
+  private decryptChaCha20Poly1305(encryptionResult: EncryptionResult, key: Buffer): string {
     const iv = Buffer.from(encryptionResult.iv, 'hex');
     const authTag = Buffer.from(encryptionResult.authTag!, 'hex');
 

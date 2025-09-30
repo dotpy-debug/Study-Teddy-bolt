@@ -132,10 +132,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const isValidRefreshToken = await this.usersService.validateRefreshToken(
-      user.id,
-      refreshToken,
-    );
+    const isValidRefreshToken = await this.usersService.validateRefreshToken(user.id, refreshToken);
 
     if (!isValidRefreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -163,15 +160,13 @@ export class AuthService {
     if (!user) {
       // Don't reveal if user exists or not for security
       return {
-        message:
-          'If a user with this email exists, a password reset link has been sent.',
+        message: 'If a user with this email exists, a password reset link has been sent.',
       };
     }
 
     // Check for rate limiting - prevent multiple requests within 5 minutes
     if (user.lastPasswordResetRequest) {
-      const timeSinceLastRequest =
-        Date.now() - new Date(user.lastPasswordResetRequest).getTime();
+      const timeSinceLastRequest = Date.now() - new Date(user.lastPasswordResetRequest).getTime();
       const fiveMinutes = 5 * 60 * 1000;
 
       if (timeSinceLastRequest < fiveMinutes) {
@@ -187,22 +182,13 @@ export class AuthService {
     resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // Token expires in 1 hour
 
     // Save reset token to database
-    await this.usersService.updatePasswordResetToken(
-      user.id,
-      resetToken,
-      resetTokenExpiry,
-    );
+    await this.usersService.updatePasswordResetToken(user.id, resetToken, resetTokenExpiry);
 
     // Send password reset email
-    await this.emailService.sendPasswordResetEmail(
-      user.email,
-      user.name,
-      resetToken,
-    );
+    await this.emailService.sendPasswordResetEmail(user.email, user.name, resetToken);
 
     return {
-      message:
-        'If a user with this email exists, a password reset link has been sent.',
+      message: 'If a user with this email exists, a password reset link has been sent.',
     };
   }
 
@@ -217,10 +203,7 @@ export class AuthService {
     }
 
     // Check if token has expired
-    if (
-      user.resetPasswordExpires &&
-      new Date() > new Date(user.resetPasswordExpires)
-    ) {
+    if (user.resetPasswordExpires && new Date() > new Date(user.resetPasswordExpires)) {
       throw new BadRequestException('Reset token has expired');
     }
 
@@ -231,10 +214,7 @@ export class AuthService {
     await this.usersService.clearPasswordResetToken(user.id);
 
     // Send success email
-    await this.emailService.sendPasswordResetSuccessEmail(
-      user.email,
-      user.name,
-    );
+    await this.emailService.sendPasswordResetSuccessEmail(user.email, user.name);
 
     return { message: 'Password has been successfully reset' };
   }

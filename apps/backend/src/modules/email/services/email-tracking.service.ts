@@ -52,10 +52,7 @@ export class EmailTrackingService {
   /**
    * Track email delivery
    */
-  async trackEmailDelivered(
-    emailId: string,
-    deliveredAt?: Date,
-  ): Promise<void> {
+  async trackEmailDelivered(emailId: string, deliveredAt?: Date): Promise<void> {
     try {
       const tracking = this.trackingData.get(emailId);
       if (tracking) {
@@ -97,9 +94,7 @@ export class EmailTrackingService {
         }
 
         this.trackingData.set(emailId, tracking);
-        this.logger.debug(
-          `Email open tracked for ${emailId} (count: ${tracking.openCount})`,
-        );
+        this.logger.debug(`Email open tracked for ${emailId} (count: ${tracking.openCount})`);
       }
     } catch (error) {
       this.logger.error(`Failed to track open for ${emailId}`, error);
@@ -136,9 +131,7 @@ export class EmailTrackingService {
         }
 
         this.trackingData.set(emailId, tracking);
-        this.logger.debug(
-          `Email click tracked for ${emailId} (count: ${tracking.clickCount})`,
-        );
+        this.logger.debug(`Email click tracked for ${emailId} (count: ${tracking.clickCount})`);
       }
     } catch (error) {
       this.logger.error(`Failed to track click for ${emailId}`, error);
@@ -165,9 +158,7 @@ export class EmailTrackingService {
         };
 
         this.trackingData.set(emailId, tracking);
-        this.logger.debug(
-          `Email bounce tracked for ${emailId}: ${bounceReason}`,
-        );
+        this.logger.debug(`Email bounce tracked for ${emailId}: ${bounceReason}`);
       }
     } catch (error) {
       this.logger.error(`Failed to track bounce for ${emailId}`, error);
@@ -177,10 +168,7 @@ export class EmailTrackingService {
   /**
    * Track email complaint (spam report)
    */
-  async trackEmailComplained(
-    emailId: string,
-    complaintReason?: string,
-  ): Promise<void> {
+  async trackEmailComplained(emailId: string, complaintReason?: string): Promise<void> {
     try {
       const tracking = this.trackingData.get(emailId);
       if (tracking) {
@@ -192,9 +180,7 @@ export class EmailTrackingService {
         };
 
         this.trackingData.set(emailId, tracking);
-        this.logger.debug(
-          `Email complaint tracked for ${emailId}: ${complaintReason}`,
-        );
+        this.logger.debug(`Email complaint tracked for ${emailId}: ${complaintReason}`);
 
         // Automatically mark email as unsubscribed
         await this.markAsUnsubscribed(tracking.to, 'complaint');
@@ -207,11 +193,7 @@ export class EmailTrackingService {
   /**
    * Mark email as unsubscribed
    */
-  async markAsUnsubscribed(
-    email: string,
-    reason?: string,
-    emailId?: string,
-  ): Promise<void> {
+  async markAsUnsubscribed(email: string, reason?: string, emailId?: string): Promise<void> {
     try {
       this.unsubscribedEmails.add(email.toLowerCase());
 
@@ -277,19 +259,12 @@ export class EmailTrackingService {
    */
   async addClickTracking(html: string, emailId: string): Promise<string> {
     try {
-      const baseUrl = this.configService.get<string>(
-        'FRONTEND_URL',
-        'http://localhost:3000',
-      );
+      const baseUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
 
       // Replace all href attributes with tracking URLs
       return html.replace(/href="([^"]+)"/g, (match, url) => {
         // Skip mailto, tel, and anchor links
-        if (
-          url.startsWith('mailto:') ||
-          url.startsWith('tel:') ||
-          url.startsWith('#')
-        ) {
+        if (url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('#')) {
           return match;
         }
 
@@ -352,8 +327,7 @@ export class EmailTrackingService {
    */
   async getEmailStats(startDate?: Date, endDate?: Date): Promise<EmailStats> {
     try {
-      const start =
-        startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+      const start = startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
       const end = endDate || new Date();
 
       const emailsInRange = Array.from(this.trackingData.values()).filter(
@@ -366,9 +340,7 @@ export class EmailTrackingService {
       ).length;
       const totalOpened = emailsInRange.filter((e) => e.openCount > 0).length;
       const totalClicked = emailsInRange.filter((e) => e.clickCount > 0).length;
-      const totalBounced = emailsInRange.filter(
-        (e) => e.status === EmailStatus.BOUNCED,
-      ).length;
+      const totalBounced = emailsInRange.filter((e) => e.status === EmailStatus.BOUNCED).length;
       const totalComplaints = emailsInRange.filter(
         (e) => e.status === EmailStatus.COMPLAINED,
       ).length;
@@ -389,8 +361,7 @@ export class EmailTrackingService {
         clickRate: totalOpened > 0 ? (totalClicked / totalOpened) * 100 : 0,
         bounceRate: totalSent > 0 ? (totalBounced / totalSent) * 100 : 0,
         complaintRate: totalSent > 0 ? (totalComplaints / totalSent) * 100 : 0,
-        unsubscribeRate:
-          totalSent > 0 ? (totalUnsubscribed / totalSent) * 100 : 0,
+        unsubscribeRate: totalSent > 0 ? (totalUnsubscribed / totalSent) * 100 : 0,
         periodStart: start,
         periodEnd: end,
       };
@@ -431,9 +402,7 @@ export class EmailTrackingService {
    */
   async cleanupOldTrackingData(olderThanDays: number = 90): Promise<void> {
     try {
-      const cutoffDate = new Date(
-        Date.now() - olderThanDays * 24 * 60 * 60 * 1000,
-      );
+      const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
       let cleanedCount = 0;
 
       for (const [emailId, tracking] of this.trackingData.entries()) {
@@ -472,10 +441,7 @@ export class EmailTrackingService {
   }
 
   private getTrackingPixelUrl(trackingId: string): string {
-    const baseUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:3000',
-    );
+    const baseUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
     return `${baseUrl}/api/email/track/open?id=${trackingId}`;
   }
 }

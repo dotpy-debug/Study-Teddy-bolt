@@ -1,28 +1,17 @@
-// Global type declarations for Study Teddy
-
+// Global type definitions
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
   }
   
-  interface Error {
-    digest?: string;
-  }
-}
-
-// Extend NextRequest for missing properties
-declare module 'next/server' {
-  interface NextRequest {
-    ip?: string;
-  }
-}
-
-// Axios config extensions
-declare module 'axios' {
-  interface InternalAxiosRequestConfig {
-    metadata?: {
-      startTime: number;
-    };
+  namespace NodeJS {
+    interface ProcessEnv {
+      NODE_ENV: 'development' | 'production' | 'test';
+      DATABASE_URL: string;
+      NEXTAUTH_SECRET: string;
+      NEXTAUTH_URL: string;
+    }
   }
 }
 

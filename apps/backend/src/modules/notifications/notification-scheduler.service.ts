@@ -37,16 +37,13 @@ export class NotificationSchedulerService implements OnModuleInit {
     try {
       this.logger.log('Initializing scheduled notification jobs...');
 
-      const pendingNotifications =
-        await this.repository.getPendingScheduledNotifications(1000);
+      const pendingNotifications = await this.repository.getPendingScheduledNotifications(1000);
 
       for (const scheduled of pendingNotifications) {
         await this.scheduleJob(scheduled);
       }
 
-      this.logger.log(
-        `Initialized ${pendingNotifications.length} scheduled notification jobs`,
-      );
+      this.logger.log(`Initialized ${pendingNotifications.length} scheduled notification jobs`);
     } catch (error) {
       this.logger.error('Failed to initialize scheduled jobs', error);
     }
@@ -93,9 +90,7 @@ export class NotificationSchedulerService implements OnModuleInit {
       this.schedulerRegistry.addCronJob(jobName, job);
       job.start();
 
-      this.logger.debug(
-        `Scheduled notification job ${jobName} for ${scheduledTime.toISOString()}`,
-      );
+      this.logger.debug(`Scheduled notification job ${jobName} for ${scheduledTime.toISOString()}`);
     } catch (error) {
       this.logger.error(
         `Failed to schedule notification job for ${scheduledNotification.id}`,
@@ -126,28 +121,23 @@ export class NotificationSchedulerService implements OnModuleInit {
   }
 
   // Execute a scheduled notification
-  private async executeScheduledNotification(
-    scheduledNotification: any,
-  ): Promise<void> {
+  private async executeScheduledNotification(scheduledNotification: any): Promise<void> {
     try {
       this.logger.debug(
         `Executing scheduled notification ${scheduledNotification.id} for user ${scheduledNotification.userId}`,
       );
 
       // Create the notification
-      await this.notificationsService.createNotification(
-        scheduledNotification.userId,
-        {
-          title: scheduledNotification.title,
-          message: scheduledNotification.message,
-          type: scheduledNotification.type,
-          category: scheduledNotification.category,
-          priority: scheduledNotification.priority,
-          channels: scheduledNotification.channels,
-          metadata: scheduledNotification.metadata,
-          templateId: scheduledNotification.templateId,
-        },
-      );
+      await this.notificationsService.createNotification(scheduledNotification.userId, {
+        title: scheduledNotification.title,
+        message: scheduledNotification.message,
+        type: scheduledNotification.type,
+        category: scheduledNotification.category,
+        priority: scheduledNotification.priority,
+        channels: scheduledNotification.channels,
+        metadata: scheduledNotification.metadata,
+        templateId: scheduledNotification.templateId,
+      });
 
       // Update execution count and last executed time
       const updateData: any = {
@@ -157,37 +147,24 @@ export class NotificationSchedulerService implements OnModuleInit {
 
       // Handle recurring notifications
       if (scheduledNotification.recurring) {
-        const nextExecution = this.calculateNextExecution(
-          scheduledNotification,
-        );
+        const nextExecution = this.calculateNextExecution(scheduledNotification);
         if (nextExecution) {
           updateData.scheduledAt = nextExecution;
           // Reschedule for next occurrence
-          await this.repository.updateScheduledNotification(
-            scheduledNotification.id,
-            updateData,
-          );
+          await this.repository.updateScheduledNotification(scheduledNotification.id, updateData);
           await this.scheduleJob({ ...scheduledNotification, ...updateData });
         } else {
           // No more occurrences, deactivate
           updateData.isActive = false;
-          await this.repository.updateScheduledNotification(
-            scheduledNotification.id,
-            updateData,
-          );
+          await this.repository.updateScheduledNotification(scheduledNotification.id, updateData);
         }
       } else {
         // One-time notification, deactivate
         updateData.isActive = false;
-        await this.repository.updateScheduledNotification(
-          scheduledNotification.id,
-          updateData,
-        );
+        await this.repository.updateScheduledNotification(scheduledNotification.id, updateData);
       }
 
-      this.logger.log(
-        `Successfully executed scheduled notification ${scheduledNotification.id}`,
-      );
+      this.logger.log(`Successfully executed scheduled notification ${scheduledNotification.id}`);
     } catch (error) {
       this.logger.error(
         `Failed to execute scheduled notification ${scheduledNotification.id}`,
@@ -268,9 +245,7 @@ export class NotificationSchedulerService implements OnModuleInit {
   // Create cron expression for a specific date/time
   private createCronExpression(date: Date, timezone = 'UTC'): string {
     // Convert to specified timezone for cron expression
-    const localDate = new Date(
-      date.toLocaleString('en-US', { timeZone: timezone }),
-    );
+    const localDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
 
     const minute = localDate.getMinutes();
     const hour = localDate.getHours();
@@ -312,8 +287,7 @@ export class NotificationSchedulerService implements OnModuleInit {
   async processPendingNotifications() {
     try {
       // Get notifications that should have been executed but weren't
-      const overdueNotifications =
-        await this.repository.getPendingScheduledNotifications(50);
+      const overdueNotifications = await this.repository.getPendingScheduledNotifications(50);
       const now = new Date();
 
       for (const scheduled of overdueNotifications) {
@@ -321,9 +295,7 @@ export class NotificationSchedulerService implements OnModuleInit {
 
         // If it's overdue by more than 1 minute, execute it
         if (scheduledTime <= new Date(now.getTime() - 60000)) {
-          this.logger.warn(
-            `Found overdue scheduled notification ${scheduled.id}, executing now`,
-          );
+          this.logger.warn(`Found overdue scheduled notification ${scheduled.id}, executing now`);
           await this.executeScheduledNotification(scheduled);
         }
       }
@@ -378,10 +350,7 @@ export class NotificationSchedulerService implements OnModuleInit {
         await this.scheduleJob(scheduled);
         createdIds.push(scheduled.id);
       } catch (error) {
-        this.logger.error(
-          `Failed to create scheduled notification for user ${userId}`,
-          error,
-        );
+        this.logger.error(`Failed to create scheduled notification for user ${userId}`, error);
       }
     }
 
@@ -403,15 +372,10 @@ export class NotificationSchedulerService implements OnModuleInit {
       // We'd need to implement a way to track which jobs belong to which user
       // This is a simplified implementation
 
-      this.logger.log(
-        `Cancelled ${cancelledCount} scheduled notifications for user ${userId}`,
-      );
+      this.logger.log(`Cancelled ${cancelledCount} scheduled notifications for user ${userId}`);
       return cancelledCount;
     } catch (error) {
-      this.logger.error(
-        `Error cancelling notifications for user ${userId}`,
-        error,
-      );
+      this.logger.error(`Error cancelling notifications for user ${userId}`, error);
       return 0;
     }
   }
@@ -429,14 +393,9 @@ export class NotificationSchedulerService implements OnModuleInit {
         }
       });
 
-      this.logger.warn(
-        `Emergency stop: Cancelled ${stoppedCount} notification jobs`,
-      );
+      this.logger.warn(`Emergency stop: Cancelled ${stoppedCount} notification jobs`);
     } catch (error) {
-      this.logger.error(
-        'Error during emergency stop of notification jobs',
-        error,
-      );
+      this.logger.error('Error during emergency stop of notification jobs', error);
     }
   }
 }

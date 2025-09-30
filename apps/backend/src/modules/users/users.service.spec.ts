@@ -452,10 +452,7 @@ describe('UsersService', () => {
         changePasswordDto.currentPassword,
         mockUser.passwordHash,
       );
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        changePasswordDto.newPassword,
-        10,
-      );
+      expect(bcrypt.hash).toHaveBeenCalledWith(changePasswordDto.newPassword, 10);
       expect(result).toEqual({ message: 'Password changed successfully' });
     });
 
@@ -476,9 +473,9 @@ describe('UsersService', () => {
 
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(
-        service.changePassword(userId, changePasswordDto),
-      ).rejects.toThrow('Current password is incorrect');
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        'Current password is incorrect',
+      );
     });
   });
 
@@ -532,9 +529,7 @@ describe('UsersService', () => {
       };
       db.select.mockReturnValue(mockSelectChain);
 
-      await expect(service.exportUserData(userId)).rejects.toThrow(
-        'User not found',
-      );
+      await expect(service.exportUserData(userId)).rejects.toThrow('User not found');
     });
   });
 });

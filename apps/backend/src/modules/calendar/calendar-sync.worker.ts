@@ -110,9 +110,7 @@ export class CalendarSyncWorker {
         });
       }
 
-      this.logger.log(
-        `Scheduled incremental sync for ${activeAccounts.length} calendar accounts`,
-      );
+      this.logger.log(`Scheduled incremental sync for ${activeAccounts.length} calendar accounts`);
     } catch (error) {
       this.logger.error('Error scheduling incremental sync:', error);
     }
@@ -143,9 +141,7 @@ export class CalendarSyncWorker {
         });
       }
 
-      this.logger.log(
-        `Scheduled full sync for ${activeAccounts.length} calendar accounts`,
-      );
+      this.logger.log(`Scheduled full sync for ${activeAccounts.length} calendar accounts`);
     } catch (error) {
       this.logger.error('Error scheduling full sync:', error);
     }
@@ -196,9 +192,7 @@ export class CalendarSyncWorker {
 
     this.syncQueue.set(jobId, job);
 
-    this.logger.log(
-      `Added sync job ${jobId} for user ${params.userId}, type: ${params.type}`,
-    );
+    this.logger.log(`Added sync job ${jobId} for user ${params.userId}, type: ${params.type}`);
 
     // Try to process immediately if not at capacity
     if (this.activeJobs.size < this.maxConcurrentJobs) {
@@ -242,9 +236,7 @@ export class CalendarSyncWorker {
    * Get all active jobs for a user
    */
   getUserActiveJobs(userId: string): SyncProgress[] {
-    return Array.from(this.activeJobs.values()).filter(
-      (job) => job.userId === userId,
-    );
+    return Array.from(this.activeJobs.values()).filter((job) => job.userId === userId);
   }
 
   /**
@@ -327,9 +319,7 @@ export class CalendarSyncWorker {
     this.activeJobs.set(job.id, progress);
 
     try {
-      this.logger.log(
-        `Starting sync job ${job.id} for user ${job.userId}, type: ${job.type}`,
-      );
+      this.logger.log(`Starting sync job ${job.id} for user ${job.userId}, type: ${job.type}`);
 
       // Log job start
       const syncLogId = await this.createSyncLog(job, 'in_progress');
@@ -387,10 +377,7 @@ export class CalendarSyncWorker {
       // Update sync log
       await this.updateSyncLog(syncLogId, 'completed', syncResult);
 
-      this.logger.log(
-        `Completed sync job ${job.id} for user ${job.userId}. Results:`,
-        syncResult,
-      );
+      this.logger.log(`Completed sync job ${job.id} for user ${job.userId}. Results:`, syncResult);
     } catch (error) {
       this.logger.error(`Sync job ${job.id} failed:`, error);
 
@@ -430,10 +417,7 @@ export class CalendarSyncWorker {
       .select()
       .from(googleCalendarTokens)
       .where(
-        and(
-          eq(googleCalendarTokens.userId, userId),
-          eq(googleCalendarTokens.syncEnabled, true),
-        ),
+        and(eq(googleCalendarTokens.userId, userId), eq(googleCalendarTokens.syncEnabled, true)),
       );
 
     for (const token of tokens) {
@@ -443,10 +427,7 @@ export class CalendarSyncWorker {
 
       if (expiresAt <= fiveMinutesFromNow) {
         this.logger.log(`Refreshing expired token for user ${userId}`);
-        await this.calendarSyncService.refreshUserToken(
-          userId,
-          token.googleEmail,
-        );
+        await this.calendarSyncService.refreshUserToken(userId, token.googleEmail);
       }
     }
   }
@@ -565,12 +546,7 @@ export class CalendarSyncWorker {
     const todayLogs = await this.drizzle.db
       .select()
       .from(calendarSyncLogs)
-      .where(
-        and(
-          eq(calendarSyncLogs.operation, 'fetch'),
-          lt(today, calendarSyncLogs.createdAt),
-        ),
-      );
+      .where(and(eq(calendarSyncLogs.operation, 'fetch'), lt(today, calendarSyncLogs.createdAt)));
 
     const completed = todayLogs.filter((log) => log.status === 'completed');
     const failed = todayLogs.filter((log) => log.status === 'failed');
@@ -578,10 +554,8 @@ export class CalendarSyncWorker {
     const completedWithDuration = completed.filter((log) => log.durationMs);
     const averageDuration =
       completedWithDuration.length > 0
-        ? completedWithDuration.reduce(
-            (sum, log) => sum + (log.durationMs || 0),
-            0,
-          ) / completedWithDuration.length
+        ? completedWithDuration.reduce((sum, log) => sum + (log.durationMs || 0), 0) /
+          completedWithDuration.length
         : 0;
 
     return {

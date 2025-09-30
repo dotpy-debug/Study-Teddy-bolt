@@ -102,30 +102,15 @@ export const notificationsEnhanced = pgTable(
   (table) => ({
     userIdIdx: index('notifications_enhanced_user_id_idx').on(table.userId),
     typeIdx: index('notifications_enhanced_type_idx').on(table.type),
-    categoryIdx: index('notifications_enhanced_category_idx').on(
-      table.category,
-    ),
-    priorityIdx: index('notifications_enhanced_priority_idx').on(
-      table.priority,
-    ),
+    categoryIdx: index('notifications_enhanced_category_idx').on(table.category),
+    priorityIdx: index('notifications_enhanced_priority_idx').on(table.priority),
     statusIdx: index('notifications_enhanced_status_idx').on(table.status),
     isReadIdx: index('notifications_enhanced_is_read_idx').on(table.isRead),
-    isArchivedIdx: index('notifications_enhanced_is_archived_idx').on(
-      table.isArchived,
-    ),
-    scheduledAtIdx: index('notifications_enhanced_scheduled_at_idx').on(
-      table.scheduledAt,
-    ),
-    expiresAtIdx: index('notifications_enhanced_expires_at_idx').on(
-      table.expiresAt,
-    ),
-    createdAtIdx: index('notifications_enhanced_created_at_idx').on(
-      table.createdAt,
-    ),
-    userReadIdx: index('notifications_enhanced_user_read_idx').on(
-      table.userId,
-      table.isRead,
-    ),
+    isArchivedIdx: index('notifications_enhanced_is_archived_idx').on(table.isArchived),
+    scheduledAtIdx: index('notifications_enhanced_scheduled_at_idx').on(table.scheduledAt),
+    expiresAtIdx: index('notifications_enhanced_expires_at_idx').on(table.expiresAt),
+    createdAtIdx: index('notifications_enhanced_created_at_idx').on(table.createdAt),
+    userReadIdx: index('notifications_enhanced_user_read_idx').on(table.userId, table.isRead),
     userCategoryIdx: index('notifications_enhanced_user_category_idx').on(
       table.userId,
       table.category,
@@ -135,9 +120,7 @@ export const notificationsEnhanced = pgTable(
       table.priority,
     ),
     batchIdIdx: index('notifications_enhanced_batch_id_idx').on(table.batchId),
-    templateIdIdx: index('notifications_enhanced_template_id_idx').on(
-      table.templateId,
-    ),
+    templateIdIdx: index('notifications_enhanced_template_id_idx').on(table.templateId),
   }),
 );
 
@@ -162,12 +145,8 @@ export const notificationTemplates = pgTable(
   (table) => ({
     nameIdx: index('notification_templates_name_idx').on(table.name),
     typeIdx: index('notification_templates_type_idx').on(table.type),
-    categoryIdx: index('notification_templates_category_idx').on(
-      table.category,
-    ),
-    isActiveIdx: index('notification_templates_is_active_idx').on(
-      table.isActive,
-    ),
+    categoryIdx: index('notification_templates_category_idx').on(table.category),
+    isActiveIdx: index('notification_templates_is_active_idx').on(table.isActive),
   }),
 );
 
@@ -185,9 +164,7 @@ export const notificationPreferences = pgTable(
     inAppEnabled: boolean('in_app_enabled').default(true).notNull(),
     smsEnabled: boolean('sms_enabled').default(false).notNull(),
     quietHoursEnabled: boolean('quiet_hours_enabled').default(false).notNull(),
-    quietHoursStart: varchar('quiet_hours_start', { length: 5 }).default(
-      '22:00',
-    ),
+    quietHoursStart: varchar('quiet_hours_start', { length: 5 }).default('22:00'),
     quietHoursEnd: varchar('quiet_hours_end', { length: 5 }).default('08:00'),
     timezone: varchar('timezone', { length: 50 }).default('UTC').notNull(),
     categories: jsonb('categories').default({}).$type<
@@ -256,9 +233,7 @@ export const notificationDeliveries = pgTable(
     ),
     channelIdx: index('notification_deliveries_channel_idx').on(table.channel),
     statusIdx: index('notification_deliveries_status_idx').on(table.status),
-    deliveredAtIdx: index('notification_deliveries_delivered_at_idx').on(
-      table.deliveredAt,
-    ),
+    deliveredAtIdx: index('notification_deliveries_delivered_at_idx').on(table.deliveredAt),
   }),
 );
 
@@ -295,15 +270,9 @@ export const scheduledNotifications = pgTable(
   },
   (table) => ({
     userIdIdx: index('scheduled_notifications_user_id_idx').on(table.userId),
-    scheduledAtIdx: index('scheduled_notifications_scheduled_at_idx').on(
-      table.scheduledAt,
-    ),
-    isActiveIdx: index('scheduled_notifications_is_active_idx').on(
-      table.isActive,
-    ),
-    templateIdIdx: index('scheduled_notifications_template_id_idx').on(
-      table.templateId,
-    ),
+    scheduledAtIdx: index('scheduled_notifications_scheduled_at_idx').on(table.scheduledAt),
+    isActiveIdx: index('scheduled_notifications_is_active_idx').on(table.isActive),
+    templateIdIdx: index('scheduled_notifications_template_id_idx').on(table.templateId),
   }),
 );
 
@@ -330,99 +299,74 @@ export const notificationBatches = pgTable(
   },
   (table) => ({
     statusIdx: index('notification_batches_status_idx').on(table.status),
-    createdByIdx: index('notification_batches_created_by_idx').on(
-      table.createdBy,
-    ),
-    templateIdIdx: index('notification_batches_template_id_idx').on(
-      table.templateId,
-    ),
+    createdByIdx: index('notification_batches_created_by_idx').on(table.createdBy),
+    templateIdIdx: index('notification_batches_template_id_idx').on(table.templateId),
   }),
 );
 
 // Relations
-export const notificationsEnhancedRelations = relations(
-  notificationsEnhanced,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [notificationsEnhanced.userId],
-      references: [users.id],
-    }),
-    template: one(notificationTemplates, {
-      fields: [notificationsEnhanced.templateId],
-      references: [notificationTemplates.id],
-    }),
-    batch: one(notificationBatches, {
-      fields: [notificationsEnhanced.batchId],
-      references: [notificationBatches.id],
-    }),
-    deliveries: many(notificationDeliveries),
+export const notificationsEnhancedRelations = relations(notificationsEnhanced, ({ one, many }) => ({
+  user: one(users, {
+    fields: [notificationsEnhanced.userId],
+    references: [users.id],
   }),
-);
+  template: one(notificationTemplates, {
+    fields: [notificationsEnhanced.templateId],
+    references: [notificationTemplates.id],
+  }),
+  batch: one(notificationBatches, {
+    fields: [notificationsEnhanced.batchId],
+    references: [notificationBatches.id],
+  }),
+  deliveries: many(notificationDeliveries),
+}));
 
-export const notificationTemplatesRelations = relations(
-  notificationTemplates,
-  ({ many }) => ({
-    notifications: many(notificationsEnhanced),
-    scheduledNotifications: many(scheduledNotifications),
-    batches: many(notificationBatches),
-  }),
-);
+export const notificationTemplatesRelations = relations(notificationTemplates, ({ many }) => ({
+  notifications: many(notificationsEnhanced),
+  scheduledNotifications: many(scheduledNotifications),
+  batches: many(notificationBatches),
+}));
 
-export const notificationPreferencesRelations = relations(
-  notificationPreferences,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [notificationPreferences.userId],
-      references: [users.id],
-    }),
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [notificationPreferences.userId],
+    references: [users.id],
   }),
-);
+}));
 
-export const pushSubscriptionsRelations = relations(
-  pushSubscriptions,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [pushSubscriptions.userId],
-      references: [users.id],
-    }),
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
   }),
-);
+}));
 
-export const notificationDeliveriesRelations = relations(
-  notificationDeliveries,
-  ({ one }) => ({
-    notification: one(notificationsEnhanced, {
-      fields: [notificationDeliveries.notificationId],
-      references: [notificationsEnhanced.id],
-    }),
+export const notificationDeliveriesRelations = relations(notificationDeliveries, ({ one }) => ({
+  notification: one(notificationsEnhanced, {
+    fields: [notificationDeliveries.notificationId],
+    references: [notificationsEnhanced.id],
   }),
-);
+}));
 
-export const scheduledNotificationsRelations = relations(
-  scheduledNotifications,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [scheduledNotifications.userId],
-      references: [users.id],
-    }),
-    template: one(notificationTemplates, {
-      fields: [scheduledNotifications.templateId],
-      references: [notificationTemplates.id],
-    }),
+export const scheduledNotificationsRelations = relations(scheduledNotifications, ({ one }) => ({
+  user: one(users, {
+    fields: [scheduledNotifications.userId],
+    references: [users.id],
   }),
-);
+  template: one(notificationTemplates, {
+    fields: [scheduledNotifications.templateId],
+    references: [notificationTemplates.id],
+  }),
+}));
 
-export const notificationBatchesRelations = relations(
-  notificationBatches,
-  ({ one, many }) => ({
-    template: one(notificationTemplates, {
-      fields: [notificationBatches.templateId],
-      references: [notificationTemplates.id],
-    }),
-    createdBy: one(users, {
-      fields: [notificationBatches.createdBy],
-      references: [users.id],
-    }),
-    notifications: many(notificationsEnhanced),
+export const notificationBatchesRelations = relations(notificationBatches, ({ one, many }) => ({
+  template: one(notificationTemplates, {
+    fields: [notificationBatches.templateId],
+    references: [notificationTemplates.id],
   }),
-);
+  createdBy: one(users, {
+    fields: [notificationBatches.createdBy],
+    references: [users.id],
+  }),
+  notifications: many(notificationsEnhanced),
+}));

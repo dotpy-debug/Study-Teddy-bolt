@@ -8,12 +8,7 @@ import { DecksRepository } from './decks.repository';
 
 @Module({
   controllers: [FlashcardsController, DecksController],
-  providers: [
-    FlashcardsService,
-    FlashcardsRepository,
-    DecksService,
-    DecksRepository,
-  ],
+  providers: [FlashcardsService, FlashcardsRepository, DecksService, DecksRepository],
   exports: [FlashcardsService, DecksService],
 })
 export class FlashcardsModule {}

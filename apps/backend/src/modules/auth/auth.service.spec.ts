@@ -131,9 +131,7 @@ describe('AuthService', () => {
 
       jest.spyOn(usersService, 'findByEmail').mockResolvedValue(mockUser);
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
     });
   });
 
@@ -171,9 +169,7 @@ describe('AuthService', () => {
       jest.spyOn(usersService, 'findByEmail').mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException for non-existent user', async () => {
@@ -184,9 +180,7 @@ describe('AuthService', () => {
 
       jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -195,21 +189,14 @@ describe('AuthService', () => {
       const forgotPasswordDto = { email: 'test@example.com' };
       const userWithResetInfo = { ...mockUser, lastPasswordResetRequest: null };
 
-      jest
-        .spyOn(usersService, 'findByEmail')
-        .mockResolvedValue(userWithResetInfo);
-      jest
-        .spyOn(usersService, 'updateUser')
-        .mockResolvedValue(userWithResetInfo);
-      jest
-        .spyOn(emailService, 'sendPasswordResetEmail')
-        .mockResolvedValue(undefined);
+      jest.spyOn(usersService, 'findByEmail').mockResolvedValue(userWithResetInfo);
+      jest.spyOn(usersService, 'updateUser').mockResolvedValue(userWithResetInfo);
+      jest.spyOn(emailService, 'sendPasswordResetEmail').mockResolvedValue(undefined);
 
       const result = await service.forgotPassword(forgotPasswordDto);
 
       expect(result).toEqual({
-        message:
-          'If a user with this email exists, a password reset link has been sent.',
+        message: 'If a user with this email exists, a password reset link has been sent.',
       });
       expect(emailService.sendPasswordResetEmail).toHaveBeenCalled();
     });
@@ -222,8 +209,7 @@ describe('AuthService', () => {
       const result = await service.forgotPassword(forgotPasswordDto);
 
       expect(result).toEqual({
-        message:
-          'If a user with this email exists, a password reset link has been sent.',
+        message: 'If a user with this email exists, a password reset link has been sent.',
       });
     });
   });

@@ -66,9 +66,7 @@ export class NotificationsRepository {
         })
         .returning();
 
-      this.logger.debug(
-        `Created notification ${notification.id} for user ${data.userId}`,
-      );
+      this.logger.debug(`Created notification ${notification.id} for user ${data.userId}`);
       return notification;
     } catch (error) {
       this.logger.error('Failed to create notification', error);
@@ -177,9 +175,7 @@ export class NotificationsRepository {
   async delete(id: string) {
     const db = this.drizzle.db;
 
-    await db
-      .delete(notificationsEnhanced)
-      .where(eq(notificationsEnhanced.id, id));
+    await db.delete(notificationsEnhanced).where(eq(notificationsEnhanced.id, id));
 
     this.logger.debug(`Deleted notification ${id}`);
   }
@@ -203,9 +199,7 @@ export class NotificationsRepository {
       )
       .returning({ id: notificationsEnhanced.id });
 
-    this.logger.debug(
-      `Marked ${notificationIds.length} notifications as read for user ${userId}`,
-    );
+    this.logger.debug(`Marked ${notificationIds.length} notifications as read for user ${userId}`);
     return result;
   }
 
@@ -221,10 +215,7 @@ export class NotificationsRepository {
         updatedAt: new Date(),
       })
       .where(
-        and(
-          eq(notificationsEnhanced.userId, userId),
-          eq(notificationsEnhanced.isRead, false),
-        ),
+        and(eq(notificationsEnhanced.userId, userId), eq(notificationsEnhanced.isRead, false)),
       );
 
     this.logger.debug(`Marked all notifications as read for user ${userId}`);
@@ -247,14 +238,10 @@ export class NotificationsRepository {
         ),
       );
 
-    this.logger.debug(
-      `Archived ${notificationIds.length} notifications for user ${userId}`,
-    );
+    this.logger.debug(`Archived ${notificationIds.length} notifications for user ${userId}`);
   }
 
-  async getUnreadCount(
-    userId: string,
-  ): Promise<{ count: number; hasUnread: boolean }> {
+  async getUnreadCount(userId: string): Promise<{ count: number; hasUnread: boolean }> {
     const db = this.drizzle.db;
 
     const [result] = await db
@@ -278,9 +265,7 @@ export class NotificationsRepository {
   async clearAllNotifications(userId: string) {
     const db = this.drizzle.db;
 
-    await db
-      .delete(notificationsEnhanced)
-      .where(eq(notificationsEnhanced.userId, userId));
+    await db.delete(notificationsEnhanced).where(eq(notificationsEnhanced.userId, userId));
 
     this.logger.debug(`Cleared all notifications for user ${userId}`);
   }
@@ -367,10 +352,7 @@ export class NotificationsRepository {
       .select({ count: count() })
       .from(notificationsEnhanced)
       .where(
-        and(
-          eq(notificationsEnhanced.userId, userId),
-          eq(notificationsEnhanced.isRead, false),
-        ),
+        and(eq(notificationsEnhanced.userId, userId), eq(notificationsEnhanced.isRead, false)),
       );
 
     // Get counts by type
@@ -430,17 +412,13 @@ export class NotificationsRepository {
     const deliveryStat = deliveryStats[0];
     const deliveryRate =
       deliveryStat.totalDeliveries > 0
-        ? (deliveryStat.successfulDeliveries / deliveryStat.totalDeliveries) *
-          100
+        ? (deliveryStat.successfulDeliveries / deliveryStat.totalDeliveries) * 100
         : 0;
 
     return {
       total: totalResult?.count || 0,
       unread: unreadResult?.count || 0,
-      byType: typeResults.reduce(
-        (acc, curr) => ({ ...acc, [curr.type]: curr.count }),
-        {} as any,
-      ),
+      byType: typeResults.reduce((acc, curr) => ({ ...acc, [curr.type]: curr.count }), {} as any),
       byCategory: categoryResults.reduce(
         (acc, curr) => ({ ...acc, [curr.category]: curr.count }),
         {} as any,
@@ -462,10 +440,7 @@ export class NotificationsRepository {
   async createTemplate(template: Omit<NotificationTemplate, 'id'>) {
     const db = this.drizzle.db;
 
-    const [createdTemplate] = await db
-      .insert(notificationTemplates)
-      .values(template)
-      .returning();
+    const [createdTemplate] = await db.insert(notificationTemplates).values(template).returning();
 
     return createdTemplate;
   }
@@ -527,10 +502,7 @@ export class NotificationsRepository {
     return preferences;
   }
 
-  async upsertUserPreferences(
-    userId: string,
-    preferences: Partial<INotificationPreferences>,
-  ) {
+  async upsertUserPreferences(userId: string, preferences: Partial<INotificationPreferences>) {
     const db = this.drizzle.db;
 
     const [result] = await db
@@ -578,12 +550,7 @@ export class NotificationsRepository {
     return db
       .select()
       .from(pushSubscriptions)
-      .where(
-        and(
-          eq(pushSubscriptions.userId, userId),
-          eq(pushSubscriptions.isActive, true),
-        ),
-      );
+      .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.isActive, true)));
   }
 
   async deactivatePushSubscription(userId: string, endpoint?: string) {
@@ -605,17 +572,11 @@ export class NotificationsRepository {
 
   // SCHEDULED NOTIFICATION OPERATIONS
   async createScheduledNotification(
-    notification: Omit<
-      ScheduledNotification,
-      'id' | 'createdAt' | 'updatedAt' | 'executionCount'
-    >,
+    notification: Omit<ScheduledNotification, 'id' | 'createdAt' | 'updatedAt' | 'executionCount'>,
   ) {
     const db = this.drizzle.db;
 
-    const [created] = await db
-      .insert(scheduledNotifications)
-      .values(notification)
-      .returning();
+    const [created] = await db.insert(scheduledNotifications).values(notification).returning();
 
     return created;
   }
@@ -636,10 +597,7 @@ export class NotificationsRepository {
       .limit(limit);
   }
 
-  async updateScheduledNotification(
-    id: string,
-    data: Partial<ScheduledNotification>,
-  ) {
+  async updateScheduledNotification(id: string, data: Partial<ScheduledNotification>) {
     const db = this.drizzle.db;
 
     const [updated] = await db
@@ -655,15 +613,10 @@ export class NotificationsRepository {
   }
 
   // BATCH OPERATIONS
-  async createNotificationBatch(
-    batch: Omit<NotificationBatch, 'id' | 'createdAt' | 'updatedAt'>,
-  ) {
+  async createNotificationBatch(batch: Omit<NotificationBatch, 'id' | 'createdAt' | 'updatedAt'>) {
     const db = this.drizzle.db;
 
-    const [created] = await db
-      .insert(notificationBatches)
-      .values(batch)
-      .returning();
+    const [created] = await db.insert(notificationBatches).values(batch).returning();
 
     return created;
   }
@@ -716,15 +669,10 @@ export class NotificationsRepository {
   }
 
   // DELIVERY TRACKING
-  async createDelivery(
-    delivery: Omit<NotificationDelivery, 'id' | 'createdAt' | 'updatedAt'>,
-  ) {
+  async createDelivery(delivery: Omit<NotificationDelivery, 'id' | 'createdAt' | 'updatedAt'>) {
     const db = this.drizzle.db;
 
-    const [created] = await db
-      .insert(notificationDeliveries)
-      .values(delivery)
-      .returning();
+    const [created] = await db.insert(notificationDeliveries).values(delivery).returning();
 
     return created;
   }

@@ -45,10 +45,7 @@ export class GoogleCalendarService {
   ];
 
   // Rate limiting tracking
-  private rateLimitMap = new Map<
-    string,
-    { count: number; resetTime: number }
-  >();
+  private rateLimitMap = new Map<string, { count: number; resetTime: number }>();
   private readonly RATE_LIMIT_PER_USER = 100; // requests per minute
   private readonly RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 
@@ -80,11 +77,7 @@ export class GoogleCalendarService {
    */
   private createOAuth2Client(): OAuth2Client {
     const config = this.getGoogleCalendarConfig();
-    return new google.auth.OAuth2(
-      config.clientId,
-      config.clientSecret,
-      config.redirectUrl,
-    );
+    return new google.auth.OAuth2(config.clientId, config.clientSecret, config.redirectUrl);
   }
 
   /**
@@ -117,10 +110,7 @@ export class GoogleCalendarService {
   /**
    * Exchange authorization code for tokens
    */
-  async exchangeCodeForTokens(
-    userId: string,
-    code: string,
-  ): Promise<CalendarTokens> {
+  async exchangeCodeForTokens(userId: string, code: string): Promise<CalendarTokens> {
     try {
       const oauth2Client = this.createOAuth2Client();
       const { tokens } = await oauth2Client.getToken(code);
@@ -144,20 +134,14 @@ export class GoogleCalendarService {
       return calendarTokens;
     } catch (error) {
       this.logger.error(`Failed to exchange code for tokens: ${error.message}`);
-      throw new HttpException(
-        'Failed to exchange authorization code',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException('Failed to exchange authorization code', HttpStatus.BAD_REQUEST);
     }
   }
 
   /**
    * Store tokens in database
    */
-  private async storeTokens(
-    userId: string,
-    tokens: CalendarTokens,
-  ): Promise<void> {
+  private async storeTokens(userId: string, tokens: CalendarTokens): Promise<void> {
     try {
       const existingTokens = await this.db
         .select()
@@ -253,10 +237,7 @@ export class GoogleCalendarService {
       return newTokens;
     } catch (error) {
       this.logger.error(`Failed to refresh token: ${error.message}`);
-      throw new HttpException(
-        'Failed to refresh access token',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new HttpException('Failed to refresh access token', HttpStatus.UNAUTHORIZED);
     }
   }
 
@@ -266,10 +247,7 @@ export class GoogleCalendarService {
   private async getAuthenticatedClient(userId: string): Promise<OAuth2Client> {
     const tokens = await this.getStoredTokens(userId);
     if (!tokens) {
-      throw new HttpException(
-        'No calendar tokens found for user',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new HttpException('No calendar tokens found for user', HttpStatus.UNAUTHORIZED);
     }
 
     // Check if token needs refresh
@@ -301,9 +279,7 @@ export class GoogleCalendarService {
   /**
    * Get calendar API client
    */
-  private async getCalendarClient(
-    userId: string,
-  ): Promise<calendar_v3.Calendar> {
+  private async getCalendarClient(userId: string): Promise<calendar_v3.Calendar> {
     const authClient = await this.getAuthenticatedClient(userId);
     return google.calendar({ version: 'v3', auth: authClient });
   }
@@ -382,13 +358,10 @@ export class GoogleCalendarService {
         }
 
         // Exponential backoff with jitter
-        const delay =
-          baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
         await new Promise((resolve) => setTimeout(resolve, delay));
 
-        this.logger.warn(
-          `Retrying operation, attempt ${attempt + 1}/${maxAttempts}`,
-        );
+        this.logger.warn(`Retrying operation, attempt ${attempt + 1}/${maxAttempts}`);
       }
     }
 
@@ -425,9 +398,7 @@ export class GoogleCalendarService {
         }));
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to list calendars for user ${userId}: ${error.message}`,
-      );
+      this.logger.error(`Failed to list calendars for user ${userId}: ${error.message}`);
       throw new HttpException(
         `Failed to list calendars: ${error.message}`,
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -456,14 +427,11 @@ export class GoogleCalendarService {
         );
 
         if (existingCalendar) {
-          this.logger.debug(
-            `Study Teddy calendar already exists: ${existingCalendar.id}`,
-          );
+          this.logger.debug(`Study Teddy calendar already exists: ${existingCalendar.id}`);
           return {
             id: existingCalendar.id || '',
             summary: existingCalendar.summary || '',
-            description:
-              existingCalendar.description || 'Your Study Teddy study sessions',
+            description: existingCalendar.description || 'Your Study Teddy study sessions',
             timeZone: existingCalendar.timeZone || 'UTC',
           };
         }
@@ -496,22 +464,17 @@ export class GoogleCalendarService {
           },
         });
 
-        this.logger.debug(
-          `Created Study Teddy calendar: ${newCalendar.data.id}`,
-        );
+        this.logger.debug(`Created Study Teddy calendar: ${newCalendar.data.id}`);
 
         return {
           id: newCalendar.data.id,
           summary: newCalendar.data.summary || this.STUDY_TEDDY_CALENDAR_NAME,
-          description:
-            newCalendar.data.description || 'Your Study Teddy study sessions',
+          description: newCalendar.data.description || 'Your Study Teddy study sessions',
           timeZone: newCalendar.data.timeZone || 'UTC',
         };
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to ensure Study Teddy calendar: ${error.message}`,
-      );
+      this.logger.error(`Failed to ensure Study Teddy calendar: ${error.message}`);
       throw new HttpException(
         `Failed to create Study Teddy calendar: ${error.message}`,
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -542,8 +505,7 @@ export class GoogleCalendarService {
         const calendar = await this.getCalendarClient(userId);
 
         // Use Study Teddy calendar if no calendar ID provided
-        const targetCalendarId =
-          calendarId || (await this.getStudyTeddyCalendarId(userId));
+        const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(userId));
 
         const eventData: calendar_v3.Schema$Event = {
           summary: event.summary,
@@ -567,9 +529,7 @@ export class GoogleCalendarService {
 
         // Handle recurring events
         if (event.recurringRule) {
-          eventData.recurrence = [
-            this.buildRecurrenceRule(event.recurringRule),
-          ];
+          eventData.recurrence = [this.buildRecurrenceRule(event.recurringRule)];
         }
 
         const response = await calendar.events.insert({
@@ -578,9 +538,7 @@ export class GoogleCalendarService {
           sendUpdates: event.sendNotifications ? 'all' : 'none',
         });
 
-        this.logger.debug(
-          `Created event: ${response.data.id} in calendar ${targetCalendarId}`,
-        );
+        this.logger.debug(`Created event: ${response.data.id} in calendar ${targetCalendarId}`);
 
         // Store event in local database for sync tracking
         await this.storeEventLocally(userId, response.data, targetCalendarId);
@@ -611,8 +569,7 @@ export class GoogleCalendarService {
       return await this.retryOperation(async () => {
         const calendar = await this.getCalendarClient(userId);
 
-        const targetCalendarId =
-          calendarId || (await this.getStudyTeddyCalendarId(userId));
+        const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(userId));
 
         // First get the existing event
         const existingEvent = await calendar.events.get({
@@ -636,9 +593,7 @@ export class GoogleCalendarService {
 
         // Handle recurring rule updates
         if (event.recurringRule) {
-          updatedEvent.recurrence = [
-            this.buildRecurrenceRule(event.recurringRule),
-          ];
+          updatedEvent.recurrence = [this.buildRecurrenceRule(event.recurringRule)];
         }
 
         const response = await calendar.events.update({
@@ -648,9 +603,7 @@ export class GoogleCalendarService {
           sendUpdates: event.sendNotifications ? 'all' : 'none',
         });
 
-        this.logger.debug(
-          `Updated event: ${eventId} in calendar ${targetCalendarId}`,
-        );
+        this.logger.debug(`Updated event: ${eventId} in calendar ${targetCalendarId}`);
 
         // Update event in local database
         await this.updateEventLocally(userId, response.data, targetCalendarId);
@@ -681,8 +634,7 @@ export class GoogleCalendarService {
       await this.retryOperation(async () => {
         const calendar = await this.getCalendarClient(userId);
 
-        const targetCalendarId =
-          calendarId || (await this.getStudyTeddyCalendarId(userId));
+        const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(userId));
 
         await calendar.events.delete({
           calendarId: targetCalendarId,
@@ -690,9 +642,7 @@ export class GoogleCalendarService {
           sendUpdates: sendUpdates ? 'all' : 'none',
         });
 
-        this.logger.debug(
-          `Deleted event: ${eventId} from calendar ${targetCalendarId}`,
-        );
+        this.logger.debug(`Deleted event: ${eventId} from calendar ${targetCalendarId}`);
 
         // Remove event from local database
         await this.deleteEventLocally(userId, eventId, targetCalendarId);
@@ -720,8 +670,7 @@ export class GoogleCalendarService {
       return await this.retryOperation(async () => {
         const calendar = await this.getCalendarClient(userId);
 
-        const targetCalendarId =
-          calendarId || (await this.getStudyTeddyCalendarId(userId));
+        const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(userId));
 
         const response = await calendar.events.get({
           calendarId: targetCalendarId,
@@ -760,8 +709,7 @@ export class GoogleCalendarService {
       return await this.retryOperation(async () => {
         const calendar = await this.getCalendarClient(userId);
 
-        const targetCalendarId =
-          calendarId || (await this.getStudyTeddyCalendarId(userId));
+        const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(userId));
 
         const response = await calendar.events.list({
           calendarId: targetCalendarId,
@@ -822,9 +770,7 @@ export class GoogleCalendarService {
 
         // Process response
         if (response.data.calendars) {
-          for (const [calendarId, calendarData] of Object.entries(
-            response.data.calendars,
-          )) {
+          for (const [calendarId, calendarData] of Object.entries(response.data.calendars)) {
             result.calendars[calendarId] = {
               busy:
                 calendarData.busy?.map((slot) => ({
@@ -839,9 +785,7 @@ export class GoogleCalendarService {
         return result;
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to get free/busy information: ${error.message}`,
-      );
+      this.logger.error(`Failed to get free/busy information: ${error.message}`);
       throw new HttpException(
         `Failed to get availability: ${error.message}`,
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -902,10 +846,7 @@ export class GoogleCalendarService {
   /**
    * Find next available time slot
    */
-  async findNextFreeSlot(
-    userId: string,
-    options: NextFreeSlotOptions,
-  ): Promise<TimeSlot | null> {
+  async findNextFreeSlot(userId: string, options: NextFreeSlotOptions): Promise<TimeSlot | null> {
     try {
       const {
         startSearchFrom,
@@ -949,9 +890,7 @@ export class GoogleCalendarService {
         );
 
         // Sort busy times by start time
-        busyTimes.sort(
-          (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
-        );
+        busyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
         // Find gaps between busy times
         let searchStart = dayStart;
@@ -965,16 +904,12 @@ export class GoogleCalendarService {
             // Found a suitable slot
             return {
               start: new Date(searchStart),
-              end: new Date(
-                searchStart.getTime() + durationMinutes * 60 * 1000,
-              ),
+              end: new Date(searchStart.getTime() + durationMinutes * 60 * 1000),
               durationMinutes,
             };
           }
 
-          searchStart = new Date(
-            new Date(busy.end).getTime() + breakMinutes * 60 * 1000,
-          );
+          searchStart = new Date(new Date(busy.end).getTime() + breakMinutes * 60 * 1000);
         }
 
         // Check if there's time after the last busy slot
@@ -1069,12 +1004,7 @@ export class GoogleCalendarService {
 
       const batchPromises = batch.map(async (update, index) => {
         try {
-          const updated = await this.updateEvent(
-            userId,
-            update.eventId,
-            update.event,
-            calendarId,
-          );
+          const updated = await this.updateEvent(userId, update.eventId, update.event, calendarId);
           results.successful.push({
             index: i + index,
             event: updated,
@@ -1163,10 +1093,8 @@ export class GoogleCalendarService {
     },
   ): Promise<CalendarSyncResult> {
     try {
-      const targetCalendarId =
-        calendarId || (await this.getStudyTeddyCalendarId(userId));
-      const lastSync =
-        options?.lastSyncTime || new Date(Date.now() - 24 * 60 * 60 * 1000); // Default: 24h ago
+      const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(userId));
+      const lastSync = options?.lastSyncTime || new Date(Date.now() - 24 * 60 * 60 * 1000); // Default: 24h ago
       const syncTime = new Date();
 
       const result: CalendarSyncResult = {
@@ -1188,29 +1116,19 @@ export class GoogleCalendarService {
       );
 
       // Get local events from database
-      const localEvents = await this.getLocalEvents(
-        userId,
-        targetCalendarId,
-        lastSync,
-      );
+      const localEvents = await this.getLocalEvents(userId, targetCalendarId, lastSync);
 
       // Process Google events
       for (const googleEvent of googleEvents) {
         try {
           if (!googleEvent.id) continue;
 
-          const localEvent = localEvents.find(
-            (e) => e.googleEventId === googleEvent.id,
-          );
+          const localEvent = localEvents.find((e) => e.googleEventId === googleEvent.id);
 
           if (googleEvent.status === 'cancelled') {
             // Event was deleted in Google Calendar
             if (localEvent) {
-              await this.deleteEventLocally(
-                userId,
-                googleEvent.id,
-                targetCalendarId,
-              );
+              await this.deleteEventLocally(userId, googleEvent.id, targetCalendarId);
               result.eventsDeleted++;
             }
           } else if (!localEvent) {
@@ -1239,22 +1157,14 @@ export class GoogleCalendarService {
                 );
               } else {
                 // Update local with Google data (default)
-                await this.updateEventLocally(
-                  userId,
-                  googleEvent,
-                  targetCalendarId,
-                );
+                await this.updateEventLocally(userId, googleEvent, targetCalendarId);
                 result.eventsUpdated++;
               }
             } else if (localUpdated > googleUpdated) {
               // Local event is newer
               if (options?.conflictResolution === 'google_wins') {
                 // Update local with Google data
-                await this.updateEventLocally(
-                  userId,
-                  googleEvent,
-                  targetCalendarId,
-                );
+                await this.updateEventLocally(userId, googleEvent, targetCalendarId);
                 result.eventsUpdated++;
               } else {
                 // Update Google with local data (default for local changes)
@@ -1283,9 +1193,7 @@ export class GoogleCalendarService {
       // Log sync operation
       await this.logSyncOperation(userId, targetCalendarId, result);
 
-      this.logger.debug(
-        `Calendar sync completed for user ${userId}: ${JSON.stringify(result)}`,
-      );
+      this.logger.debug(`Calendar sync completed for user ${userId}: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
       this.logger.error(`Failed to sync calendar: ${error.message}`);
@@ -1309,8 +1217,7 @@ export class GoogleCalendarService {
 
       return await this.retryOperation(async () => {
         const calendar = await this.getCalendarClient(userId);
-        const targetCalendarId =
-          calendarId || (await this.getStudyTeddyCalendarId(userId));
+        const targetCalendarId = calendarId || (await this.getStudyTeddyCalendarId(userId));
 
         const channel = {
           id: `${userId}-${targetCalendarId}-${Date.now()}`,
@@ -1341,9 +1248,7 @@ export class GoogleCalendarService {
         return watchChannel;
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to setup calendar notifications: ${error.message}`,
-      );
+      this.logger.error(`Failed to setup calendar notifications: ${error.message}`);
       throw new HttpException(
         `Failed to setup notifications: ${error.message}`,
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -1363,9 +1268,7 @@ export class GoogleCalendarService {
       // Get notification settings
       const notification = await this.getNotificationSettings(channelId);
       if (!notification) {
-        this.logger.warn(
-          `Received notification for unknown channel: ${channelId}`,
-        );
+        this.logger.warn(`Received notification for unknown channel: ${channelId}`);
         return;
       }
 
@@ -1375,13 +1278,9 @@ export class GoogleCalendarService {
         lastSyncTime: new Date(Date.now() - 5 * 60 * 1000), // Last 5 minutes
       });
 
-      this.logger.debug(
-        `Processed calendar notification for channel ${channelId}`,
-      );
+      this.logger.debug(`Processed calendar notification for channel ${channelId}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to handle calendar notification: ${error.message}`,
-      );
+      this.logger.error(`Failed to handle calendar notification: ${error.message}`);
     }
   }
 
@@ -1406,28 +1305,19 @@ export class GoogleCalendarService {
         await oauth2Client.revokeCredentials();
       } catch (error) {
         // Token might already be revoked, log but continue
-        this.logger.warn(
-          `Failed to revoke credentials with Google: ${error.message}`,
-        );
+        this.logger.warn(`Failed to revoke credentials with Google: ${error.message}`);
       }
 
       // Remove tokens from database
-      await this.db
-        .delete(calendarTokens)
-        .where(eq(calendarTokens.userId, userId));
+      await this.db.delete(calendarTokens).where(eq(calendarTokens.userId, userId));
 
       // Remove local events
-      await this.db
-        .delete(calendarEvents)
-        .where(eq(calendarEvents.userId, userId));
+      await this.db.delete(calendarEvents).where(eq(calendarEvents.userId, userId));
 
       this.logger.debug(`Revoked calendar access for user ${userId}`);
     } catch (error) {
       this.logger.error(`Failed to revoke calendar access: ${error.message}`);
-      throw new HttpException(
-        'Failed to revoke calendar access',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException('Failed to revoke calendar access', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -1458,9 +1348,7 @@ export class GoogleCalendarService {
         calendarName?: string;
       }> = [];
 
-      for (const [calendarId, calendarData] of Object.entries(
-        freeBusy.calendars,
-      )) {
+      for (const [calendarId, calendarData] of Object.entries(freeBusy.calendars)) {
         if (calendarData.busy) {
           calendarData.busy.forEach((slot) => {
             busyTimes.push({
@@ -1472,9 +1360,7 @@ export class GoogleCalendarService {
       }
 
       // Sort by start time
-      busyTimes.sort(
-        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
-      );
+      busyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
       return busyTimes;
     } catch (error) {
@@ -1496,9 +1382,7 @@ export class GoogleCalendarService {
 
     // End date or count
     if (rule.until) {
-      const until =
-        new Date(rule.until).toISOString().replace(/[-:]/g, '').split('.')[0] +
-        'Z';
+      const until = new Date(rule.until).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
       rrule += `;UNTIL=${until}`;
     } else if (rule.count) {
       rrule += `;COUNT=${rule.count}`;
@@ -1621,11 +1505,7 @@ export class GoogleCalendarService {
     }
   }
 
-  private async getLocalEvents(
-    userId: string,
-    calendarId: string,
-    since: Date,
-  ): Promise<any[]> {
+  private async getLocalEvents(userId: string, calendarId: string, since: Date): Promise<any[]> {
     try {
       return await this.db
         .select()
@@ -1687,9 +1567,7 @@ export class GoogleCalendarService {
         updatedAt: new Date(),
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to store notification settings: ${error.message}`,
-      );
+      this.logger.error(`Failed to store notification settings: ${error.message}`);
     }
   }
 
@@ -1710,9 +1588,7 @@ export class GoogleCalendarService {
           }
         : null;
     } catch (error) {
-      this.logger.error(
-        `Failed to get notification settings: ${error.message}`,
-      );
+      this.logger.error(`Failed to get notification settings: ${error.message}`);
       return null;
     }
   }

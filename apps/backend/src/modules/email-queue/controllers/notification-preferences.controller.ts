@@ -8,21 +8,14 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
   NotificationPreferencesService,
   UpdateNotificationPreferencesDto,
 } from '../services/notification-preferences.service';
 
-class UpdateNotificationPreferencesRequestDto
-  implements UpdateNotificationPreferencesDto
-{
+class UpdateNotificationPreferencesRequestDto implements UpdateNotificationPreferencesDto {
   emailEnabled?: boolean;
   pushEnabled?: boolean;
   inAppEnabled?: boolean;
@@ -65,15 +58,12 @@ class UpdateNotificationPreferencesRequestDto
 @UseGuards(JwtAuthGuard)
 @Controller('notification-preferences')
 export class NotificationPreferencesController {
-  constructor(
-    private notificationPreferencesService: NotificationPreferencesService,
-  ) {}
+  constructor(private notificationPreferencesService: NotificationPreferencesService) {}
 
   @Get()
   @ApiOperation({
     summary: 'Get user notification preferences',
-    description:
-      'Retrieve the current notification preferences for the authenticated user',
+    description: 'Retrieve the current notification preferences for the authenticated user',
   })
   @ApiResponse({
     status: 200,
@@ -81,8 +71,7 @@ export class NotificationPreferencesController {
   })
   async getPreferences(@Request() req: any) {
     const userId = req.user.id;
-    const preferences =
-      await this.notificationPreferencesService.getOrCreatePreferences(userId);
+    const preferences = await this.notificationPreferencesService.getOrCreatePreferences(userId);
 
     return {
       success: true,
@@ -109,11 +98,10 @@ export class NotificationPreferencesController {
     @Body() updateDto: UpdateNotificationPreferencesRequestDto,
   ) {
     const userId = req.user.id;
-    const updatedPreferences =
-      await this.notificationPreferencesService.updatePreferences(
-        userId,
-        updateDto,
-      );
+    const updatedPreferences = await this.notificationPreferencesService.updatePreferences(
+      userId,
+      updateDto,
+    );
 
     return {
       success: true,
@@ -134,9 +122,7 @@ export class NotificationPreferencesController {
   })
   async disableAllEmails(@Request() req: any) {
     const userId = req.user.id;
-    await this.notificationPreferencesService.disableAllEmailNotifications(
-      userId,
-    );
+    await this.notificationPreferencesService.disableAllEmailNotifications(userId);
 
     return {
       success: true,
@@ -156,9 +142,7 @@ export class NotificationPreferencesController {
   })
   async enableAllEmails(@Request() req: any) {
     const userId = req.user.id;
-    await this.notificationPreferencesService.enableAllEmailNotifications(
-      userId,
-    );
+    await this.notificationPreferencesService.enableAllEmailNotifications(userId);
 
     return {
       success: true,
@@ -177,8 +161,7 @@ export class NotificationPreferencesController {
   })
   async getDigestSettings(@Request() req: any) {
     const userId = req.user.id;
-    const digestSettings =
-      await this.notificationPreferencesService.getUserDigestSettings(userId);
+    const digestSettings = await this.notificationPreferencesService.getUserDigestSettings(userId);
 
     return {
       success: true,

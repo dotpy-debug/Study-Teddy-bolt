@@ -1,10 +1,4 @@
-import {
-  IsOptional,
-  IsDateString,
-  IsEnum,
-  IsUUID,
-  IsString,
-} from 'class-validator';
+import { IsOptional, IsDateString, IsEnum, IsUUID, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum AnalyticsGranularity {

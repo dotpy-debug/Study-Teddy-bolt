@@ -39,11 +39,7 @@ export class TaskFactory {
       subjectId: faker.string.uuid(),
       title: faker.company.buzzPhrase(),
       description: faker.lorem.paragraph(),
-      status: faker.helpers.arrayElement([
-        'pending',
-        'in_progress',
-        'completed',
-      ]),
+      status: faker.helpers.arrayElement(['pending', 'in_progress', 'completed']),
       priority: faker.helpers.arrayElement(['low', 'medium', 'high', 'urgent']),
       dueDate: faker.date.future(),
       estimatedMinutes: faker.number.int({ min: 30, max: 240 }),
@@ -175,10 +171,7 @@ export class SubjectFactory {
     return { ...baseSubject, ...overrides };
   }
 
-  static createMany(
-    count: number,
-    overrides?: Partial<MockSubject>,
-  ): MockSubject[] {
+  static createMany(count: number, overrides?: Partial<MockSubject>): MockSubject[] {
     return Array.from({ length: count }, () => this.create(overrides));
   }
 }

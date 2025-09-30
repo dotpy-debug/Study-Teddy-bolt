@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, TrendingDown, Clock, CheckCircle2, Target, Flame } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { fetchAnalyticsTiles } from '@/hooks/useAnalytics';
+import { fetchAnalyticsTiles } from '../hooks/use-analytics';
 
 interface QuickStat {
   label: string;

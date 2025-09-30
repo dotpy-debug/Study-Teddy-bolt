@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { SessionsRepository } from './sessions.repository';
 import { PomodoroSettingsDto } from './dto/sessions.dto';
 
@@ -71,9 +66,7 @@ export class PomodoroService {
 
     const config = this.mergeWithDefaults(settings);
     const now = new Date();
-    const expectedEndTime = new Date(
-      now.getTime() + config.workDuration * 60 * 1000,
-    );
+    const expectedEndTime = new Date(now.getTime() + config.workDuration * 60 * 1000);
 
     const pomodoroSession: PomodoroSession = {
       sessionId,
@@ -89,9 +82,7 @@ export class PomodoroService {
 
     this.activePomodoroSessions.set(sessionId, pomodoroSession);
 
-    this.logger.log(
-      `Created Pomodoro session for user ${userId}, session ${sessionId}`,
-    );
+    this.logger.log(`Created Pomodoro session for user ${userId}, session ${sessionId}`);
     return pomodoroSession;
   }
 
@@ -99,10 +90,7 @@ export class PomodoroService {
     return this.activePomodoroSessions.get(sessionId) || null;
   }
 
-  async completePhase(
-    userId: string,
-    sessionId: string,
-  ): Promise<PomodoroSession> {
+  async completePhase(userId: string, sessionId: string): Promise<PomodoroSession> {
     const pomodoroSession = this.activePomodoroSessions.get(sessionId);
     if (!pomodoroSession) {
       throw new NotFoundException('Active Pomodoro session not found');
@@ -126,11 +114,7 @@ export class PomodoroService {
       });
 
       // Determine break type
-      if (
-        pomodoroSession.pomodorosCompleted %
-          pomodoroSession.settings.longBreakInterval ===
-        0
-      ) {
+      if (pomodoroSession.pomodorosCompleted % pomodoroSession.settings.longBreakInterval === 0) {
         nextPhase = 'long_break';
         nextDuration = pomodoroSession.settings.longBreakDuration;
       } else {
@@ -160,19 +144,14 @@ export class PomodoroService {
     // Update pomodoro session
     pomodoroSession.phase = nextPhase;
     pomodoroSession.phaseStartTime = now;
-    pomodoroSession.expectedEndTime = new Date(
-      now.getTime() + nextDuration * 60 * 1000,
-    );
+    pomodoroSession.expectedEndTime = new Date(now.getTime() + nextDuration * 60 * 1000);
 
     this.activePomodoroSessions.set(sessionId, pomodoroSession);
 
     return pomodoroSession;
   }
 
-  async pausePomodoroSession(
-    userId: string,
-    sessionId: string,
-  ): Promise<PomodoroSession> {
+  async pausePomodoroSession(userId: string, sessionId: string): Promise<PomodoroSession> {
     const pomodoroSession = this.activePomodoroSessions.get(sessionId);
     if (!pomodoroSession) {
       throw new NotFoundException('Active Pomodoro session not found');
@@ -189,10 +168,7 @@ export class PomodoroService {
     return pomodoroSession;
   }
 
-  async resumePomodoroSession(
-    userId: string,
-    sessionId: string,
-  ): Promise<PomodoroSession> {
+  async resumePomodoroSession(userId: string, sessionId: string): Promise<PomodoroSession> {
     const pomodoroSession = this.activePomodoroSessions.get(sessionId);
     if (!pomodoroSession) {
       throw new NotFoundException('Active Pomodoro session not found');
@@ -206,8 +182,7 @@ export class PomodoroService {
     // Recalculate expected end time based on remaining time
     const now = new Date();
     const remainingTime =
-      pomodoroSession.expectedEndTime.getTime() -
-      pomodoroSession.phaseStartTime.getTime();
+      pomodoroSession.expectedEndTime.getTime() - pomodoroSession.phaseStartTime.getTime();
     pomodoroSession.phaseStartTime = now;
     pomodoroSession.expectedEndTime = new Date(now.getTime() + remainingTime);
 
@@ -240,22 +215,13 @@ export class PomodoroService {
     );
   }
 
-  async getPomodoroStats(
-    userId: string,
-    fromDate?: Date,
-    toDate?: Date,
-  ): Promise<PomodoroStats> {
-    const stats = await this.sessionsRepository.getUserSessionStats(
-      userId,
-      fromDate,
-      toDate,
-    );
+  async getPomodoroStats(userId: string, fromDate?: Date, toDate?: Date): Promise<PomodoroStats> {
+    const stats = await this.sessionsRepository.getUserSessionStats(userId, fromDate, toDate);
 
     // Calculate efficiency (completed vs started sessions)
     const totalSessions = Number(stats.totalSessions) || 0;
     const totalPomodoros = Number(stats.totalPomodoros) || 0;
-    const efficiency =
-      totalSessions > 0 ? (totalPomodoros / totalSessions) * 100 : 0;
+    const efficiency = totalSessions > 0 ? (totalPomodoros / totalSessions) * 100 : 0;
 
     // For now, calculate simple stats. In the future, this could be enhanced with streak tracking
     return {
@@ -290,10 +256,7 @@ export class PomodoroService {
     }
 
     // Merge new settings
-    pomodoroSession.settings = this.mergeWithDefaults(
-      settings,
-      pomodoroSession.settings,
-    );
+    pomodoroSession.settings = this.mergeWithDefaults(settings, pomodoroSession.settings);
     this.activePomodoroSessions.set(sessionId, pomodoroSession);
 
     this.logger.debug(`Updated Pomodoro settings for session ${sessionId}`);
@@ -322,8 +285,7 @@ export class PomodoroService {
 
     return {
       workDuration: settings?.workDuration ?? base.workDuration,
-      shortBreakDuration:
-        settings?.shortBreakDuration ?? base.shortBreakDuration,
+      shortBreakDuration: settings?.shortBreakDuration ?? base.shortBreakDuration,
       longBreakDuration: settings?.longBreakDuration ?? base.longBreakDuration,
       longBreakInterval: settings?.longBreakInterval ?? base.longBreakInterval,
       autoStartBreaks: settings?.autoStartBreaks ?? base.autoStartBreaks,
@@ -336,12 +298,8 @@ export class PomodoroService {
     const now = new Date();
     const maxAge = 2 * 60 * 60 * 1000; // 2 hours
 
-    for (const [
-      sessionId,
-      pomodoroSession,
-    ] of this.activePomodoroSessions.entries()) {
-      const sessionAge =
-        now.getTime() - pomodoroSession.phaseStartTime.getTime();
+    for (const [sessionId, pomodoroSession] of this.activePomodoroSessions.entries()) {
+      const sessionAge = now.getTime() - pomodoroSession.phaseStartTime.getTime();
       if (sessionAge > maxAge) {
         this.activePomodoroSessions.delete(sessionId);
         this.logger.debug(`Cleaned up inactive Pomodoro session ${sessionId}`);

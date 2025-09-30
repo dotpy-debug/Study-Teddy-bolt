@@ -195,12 +195,7 @@ export interface NotificationStats {
 }
 
 export interface BulkNotificationOperation {
-  action:
-    | 'markAsRead'
-    | 'markAsUnread'
-    | 'archive'
-    | 'delete'
-    | 'updatePriority';
+  action: 'markAsRead' | 'markAsUnread' | 'archive' | 'delete' | 'updatePriority';
   notificationIds: string[];
   userId: string;
   data?: any;

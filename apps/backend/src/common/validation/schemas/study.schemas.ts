@@ -25,9 +25,7 @@ export const studySessionSchema = z.object({
   startTime: dateSchema,
   endTime: dateSchema.optional(),
   actualDuration: z.number().int().min(0).optional(), // minutes
-  status: z
-    .enum(['planned', 'active', 'paused', 'completed', 'cancelled'])
-    .default('planned'),
+  status: z.enum(['planned', 'active', 'paused', 'completed', 'cancelled']).default('planned'),
   notes: textContentSchema.optional(),
   tags: tagsArraySchema,
   difficulty: difficultySchema.optional(),
@@ -39,15 +37,7 @@ export const studySessionSchema = z.object({
       interval: z.number().int().min(1).max(30), // every N days/weeks/months
       daysOfWeek: z
         .array(
-          z.enum([
-            'monday',
-            'tuesday',
-            'wednesday',
-            'thursday',
-            'friday',
-            'saturday',
-            'sunday',
-          ]),
+          z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
         )
         .optional(),
       endDate: dateSchema.optional(),
@@ -65,9 +55,7 @@ export const studyTaskSchema = z.object({
   priority: prioritySchema.default('medium'),
   estimatedDuration: durationSchema.optional(),
   actualDuration: z.number().int().min(0).optional(),
-  status: z
-    .enum(['todo', 'in_progress', 'completed', 'cancelled'])
-    .default('todo'),
+  status: z.enum(['todo', 'in_progress', 'completed', 'cancelled']).default('todo'),
   completedAt: dateSchema.optional(),
   tags: tagsArraySchema,
   subtasks: z
@@ -99,9 +87,7 @@ export const subjectSchema = z.object({
   id: uuidSchema.optional(),
   name: nameSchema,
   description: textContentSchema.optional(),
-  color: z
-    .string()
-    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid color format'),
+  color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid color format'),
   icon: z.string().max(50).optional(),
   category: z.string().max(100).optional(),
   difficulty: difficultySchema.optional(),
@@ -219,13 +205,7 @@ export const quizQuestionSchema = z.object({
   id: uuidSchema.optional(),
   quizId: uuidSchema,
   question: textContentSchema,
-  type: z.enum([
-    'multiple_choice',
-    'true_false',
-    'short_answer',
-    'essay',
-    'matching',
-  ]),
+  type: z.enum(['multiple_choice', 'true_false', 'short_answer', 'essay', 'matching']),
   options: z
     .array(
       z.object({
@@ -262,13 +242,7 @@ export const studyGoalSchema = z.object({
   id: uuidSchema.optional(),
   title: nameSchema,
   description: textContentSchema.optional(),
-  type: z.enum([
-    'study_time',
-    'tasks_completed',
-    'grade_target',
-    'skill_mastery',
-    'custom',
-  ]),
+  type: z.enum(['study_time', 'tasks_completed', 'grade_target', 'skill_mastery', 'custom']),
   target: z.object({
     value: z.number().min(0),
     unit: z.string().max(20),
@@ -276,9 +250,7 @@ export const studyGoalSchema = z.object({
   }),
   subjectId: uuidSchema.optional(),
   priority: prioritySchema.default('medium'),
-  status: z
-    .enum(['active', 'completed', 'paused', 'cancelled'])
-    .default('active'),
+  status: z.enum(['active', 'completed', 'paused', 'cancelled']).default('active'),
   progress: percentageSchema.default(0),
   milestones: z
     .array(
@@ -314,9 +286,7 @@ export const studyPlanSchema = z.object({
           'saturday',
           'sunday',
         ]),
-        startTime: z
-          .string()
-          .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format'),
+        startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format'),
         duration: durationSchema,
         subjectId: uuidSchema,
         type: studySessionTypeSchema,

@@ -88,8 +88,7 @@ export class AIController {
   @Get('history')
   @ApiOperation({
     summary: 'Get chat history',
-    description:
-      'Retrieve chat history for the authenticated user with optional filtering',
+    description: 'Retrieve chat history for the authenticated user with optional filtering',
   })
   @ApiQuery({ type: ChatHistoryQueryDto, required: false })
   @ApiResponse({
@@ -119,10 +118,7 @@ export class AIController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getChatHistory(
-    @CurrentUser() user: BetterAuthUser,
-    @Query() query: ChatHistoryQueryDto,
-  ) {
+  async getChatHistory(@CurrentUser() user: BetterAuthUser, @Query() query: ChatHistoryQueryDto) {
     return this.aiService.getChatHistory(user.id, query);
   }
 
@@ -246,10 +242,7 @@ export class AIController {
   @ApiBadRequestResponse({ description: 'Invalid study plan data' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
-  async generateStudyPlan(
-    @Body() studyPlanDto: StudyPlanDto,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async generateStudyPlan(@Body() studyPlanDto: StudyPlanDto, @CurrentUser() user: BetterAuthUser) {
     return this.aiService.generateStudyPlan(studyPlanDto, user.id);
   }
 
@@ -257,8 +250,7 @@ export class AIController {
   @Throttle({ default: { limit: 8, ttl: 60000 } }) // 8 requests per minute
   @ApiOperation({
     summary: 'Convert free text to structured tasks',
-    description:
-      'Use AI to convert unstructured text into organized, actionable study tasks',
+    description: 'Use AI to convert unstructured text into organized, actionable study tasks',
   })
   @ApiResponse({
     status: 200,
@@ -311,10 +303,7 @@ export class AIController {
   @ApiBadRequestResponse({ description: 'Invalid taskify data' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
-  async taskify(
-    @Body() taskifyDto: TaskifyDto,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async taskify(@Body() taskifyDto: TaskifyDto, @CurrentUser() user: BetterAuthUser) {
     return this.taskifyService.generateTasks({
       text: taskifyDto.text,
       userId: user.id,
@@ -401,10 +390,7 @@ export class AIController {
   @ApiBadRequestResponse({ description: 'Invalid breakdown data' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
-  async breakdownTask(
-    @Body() breakdownDto: BreakdownDto,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async breakdownTask(@Body() breakdownDto: BreakdownDto, @CurrentUser() user: BetterAuthUser) {
     return this.breakdownService.breakdownTask({
       taskTitle: breakdownDto.taskTitle,
       taskDescription: breakdownDto.taskDescription,
@@ -456,12 +442,7 @@ export class AIController {
               question: { type: 'string' },
               type: {
                 type: 'string',
-                enum: [
-                  'multiple-choice',
-                  'short-answer',
-                  'essay',
-                  'problem-solving',
-                ],
+                enum: ['multiple-choice', 'short-answer', 'essay', 'problem-solving'],
               },
               difficulty: { type: 'string', enum: ['easy', 'medium', 'hard'] },
               options: { type: 'array', items: { type: 'string' } },
@@ -497,10 +478,7 @@ export class AIController {
   @ApiBadRequestResponse({ description: 'Invalid tutoring request' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
-  async explainConcept(
-    @Body() tutorDto: TutorExplainDto,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async explainConcept(@Body() tutorDto: TutorExplainDto, @CurrentUser() user: BetterAuthUser) {
     return this.tutorService.explainConcept({
       concept: tutorDto.concept,
       subject: tutorDto.subject,
@@ -519,8 +497,7 @@ export class AIController {
   @Throttle({ default: { limit: 15, ttl: 60000 } }) // 15 requests per minute for answer checking
   @ApiOperation({
     summary: 'Check and grade student answers',
-    description:
-      'Use AI to evaluate student answers and provide constructive feedback',
+    description: 'Use AI to evaluate student answers and provide constructive feedback',
   })
   @ApiResponse({
     status: 200,
@@ -557,10 +534,7 @@ export class AIController {
   @ApiBadRequestResponse({ description: 'Invalid answer check request' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit exceeded' })
-  async checkAnswer(
-    @Body() checkAnswerDto: CheckAnswerDto,
-    @CurrentUser() user: BetterAuthUser,
-  ) {
+  async checkAnswer(@Body() checkAnswerDto: CheckAnswerDto, @CurrentUser() user: BetterAuthUser) {
     return this.tutorService.checkAnswer({
       question: checkAnswerDto.question,
       studentAnswer: checkAnswerDto.studentAnswer,

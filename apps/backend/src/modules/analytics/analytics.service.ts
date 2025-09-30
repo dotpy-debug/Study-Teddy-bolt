@@ -1,25 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import {
-  eq,
-  and,
-  sql,
-  gte,
-  lte,
-  desc,
-  asc,
-  count,
-  sum,
-  avg,
-} from 'drizzle-orm';
-import {
-  users,
-  tasks,
-  subjects,
-  focusSessions,
-  goals,
-  aiChats,
-} from '../../db/schema';
+import { eq, and, sql, gte, lte, desc, asc, count, sum, avg } from 'drizzle-orm';
+import { users, tasks, subjects, focusSessions, goals, aiChats } from '../../db/schema';
 import {
   AnalyticsQueryDto,
   TimeRangeDto,
@@ -141,8 +123,7 @@ export class AnalyticsService {
     // Calculate week over week change
     const currentTime = currentWeekSessions[0]?.totalTime || 0;
     const prevTime = prevWeekSessions[0]?.totalTime || 0;
-    const weekOverWeekChange =
-      prevTime > 0 ? ((currentTime - prevTime) / prevTime) * 100 : 0;
+    const weekOverWeekChange = prevTime > 0 ? ((currentTime - prevTime) / prevTime) * 100 : 0;
 
     // Get current streak (simplified)
     const currentStreak = await this.calculateCurrentStreak(userId);
@@ -166,10 +147,7 @@ export class AnalyticsService {
     return this.getProductivityMetrics(userId, startDate, endDate);
   }
 
-  async getSubjectAnalytics(
-    userId: string,
-    query: TimeRangeDto,
-  ): Promise<SubjectAnalytic[]> {
+  async getSubjectAnalytics(userId: string, query: TimeRangeDto): Promise<SubjectAnalytic[]> {
     const { startDate, endDate } = this.getDateRange(query);
 
     const subjectStats = await this.db
@@ -185,9 +163,7 @@ export class AnalyticsService {
       .where(
         and(
           eq(subjects.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       )
@@ -211,9 +187,7 @@ export class AnalyticsService {
       )
       .groupBy(subjects.id);
 
-    const taskStatsMap = new Map(
-      taskStats.map((t) => [t.subjectId, t.completedTasks]),
-    );
+    const taskStatsMap = new Map(taskStats.map((t) => [t.subjectId, t.completedTasks]));
 
     return subjectStats.map((stat) => ({
       subjectId: stat.subjectId,
@@ -222,9 +196,7 @@ export class AnalyticsService {
       tasksCompleted: taskStatsMap.get(stat.subjectId) || 0,
       studySessions: stat.sessionCount || 0,
       averageFocusScore: stat.avgFocusScore || 0,
-      progressPercentage: this.calculateSubjectProgress(
-        stat.totalStudyTime || 0,
-      ),
+      progressPercentage: this.calculateSubjectProgress(stat.totalStudyTime || 0),
     }));
   }
 
@@ -247,10 +219,7 @@ export class AnalyticsService {
     );
   }
 
-  async getTimeDistribution(
-    userId: string,
-    query: TimeRangeDto,
-  ): Promise<TimeDistribution[]> {
+  async getTimeDistribution(userId: string, query: TimeRangeDto): Promise<TimeDistribution[]> {
     const { startDate, endDate } = this.getDateRange(query);
 
     const timeStats = await this.db
@@ -265,9 +234,7 @@ export class AnalyticsService {
       .where(
         and(
           eq(focusSessions.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       )
@@ -285,26 +252,18 @@ export class AnalyticsService {
     }));
   }
 
-  async getFocusPatterns(
-    userId: string,
-    query: TimeRangeDto,
-  ): Promise<TimeDistribution[]> {
+  async getFocusPatterns(userId: string, query: TimeRangeDto): Promise<TimeDistribution[]> {
     return this.getTimeDistribution(userId, query);
   }
 
-  async getCompletionRates(
-    userId: string,
-    query: AnalyticsQueryDto,
-  ): Promise<CompletionRate[]> {
+  async getCompletionRates(userId: string, query: AnalyticsQueryDto): Promise<CompletionRate[]> {
     const { startDate, endDate } = this.getDateRange(query);
 
     const completionStats = await this.db
       .select({
         date: sql<string>`DATE(${tasks.createdAt})`,
         totalTasks: count(tasks.id),
-        completedTasks: count(
-          sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`,
-        ),
+        completedTasks: count(sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`),
       })
       .from(tasks)
       .where(
@@ -321,8 +280,7 @@ export class AnalyticsService {
       date: stat.date,
       totalTasks: stat.totalTasks,
       completedTasks: stat.completedTasks,
-      completionPercentage:
-        stat.totalTasks > 0 ? (stat.completedTasks / stat.totalTasks) * 100 : 0,
+      completionPercentage: stat.totalTasks > 0 ? (stat.completedTasks / stat.totalTasks) * 100 : 0,
     }));
   }
 
@@ -353,10 +311,7 @@ export class AnalyticsService {
     };
   }
 
-  async getGoalAnalytics(
-    userId: string,
-    query: TimeRangeDto,
-  ): Promise<GoalAnalytic[]> {
+  async getGoalAnalytics(userId: string, query: TimeRangeDto): Promise<GoalAnalytic[]> {
     const { startDate, endDate } = this.getDateRange(query);
 
     const goalStats = await this.db
@@ -379,9 +334,7 @@ export class AnalyticsService {
       progressPercentage: goal.progressPercentage,
       status: goal.status,
       daysUntilDeadline: goal.endDate
-        ? Math.ceil(
-            (goal.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-          )
+        ? Math.ceil((goal.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null,
     }));
   }
@@ -416,11 +369,7 @@ export class AnalyticsService {
     return insights;
   }
 
-  async exportAnalytics(
-    userId: string,
-    format: string,
-    query: TimeRangeDto,
-  ): Promise<any> {
+  async exportAnalytics(userId: string, format: string, query: TimeRangeDto): Promise<any> {
     const analytics = await this.getComprehensiveAnalytics(userId, query);
 
     switch (format) {
@@ -478,33 +427,15 @@ export class AnalyticsService {
     const now = new Date();
     const ranges = {
       [PredefinedRange.TODAY]: {
-        startDate: new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-        ).toISOString(),
-        endDate: new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() + 1,
-        ).toISOString(),
+        startDate: new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString(),
+        endDate: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString(),
       },
       [PredefinedRange.YESTERDAY]: {
-        startDate: new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() - 1,
-        ).toISOString(),
-        endDate: new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-        ).toISOString(),
+        startDate: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString(),
+        endDate: new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString(),
       },
       [PredefinedRange.THIS_WEEK]: {
-        startDate: new Date(
-          now.setDate(now.getDate() - now.getDay()),
-        ).toISOString(),
+        startDate: new Date(now.setDate(now.getDate() - now.getDay())).toISOString(),
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.LAST_7_DAYS]: {
@@ -512,15 +443,11 @@ export class AnalyticsService {
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.LAST_30_DAYS]: {
-        startDate: new Date(
-          Date.now() - 30 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.LAST_90_DAYS]: {
-        startDate: new Date(
-          Date.now() - 90 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.ALL_TIME]: {
@@ -548,9 +475,7 @@ export class AnalyticsService {
       .where(
         and(
           eq(focusSessions.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       )
@@ -574,9 +499,7 @@ export class AnalyticsService {
       )
       .groupBy(sql`DATE(${tasks.completedAt})`);
 
-    const taskMetricsMap = new Map(
-      taskMetrics.map((t) => [t.date, t.tasksCompleted]),
-    );
+    const taskMetricsMap = new Map(taskMetrics.map((t) => [t.date, t.tasksCompleted]));
 
     return metrics.map((metric) => ({
       date: metric.date,
@@ -627,10 +550,7 @@ export class AnalyticsService {
     return Math.min(100, (studyTime / 60) * 10); // 10% per hour
   }
 
-  private calculatePercentageChange(
-    oldValue: number,
-    newValue: number,
-  ): number {
+  private calculatePercentageChange(oldValue: number, newValue: number): number {
     if (oldValue === 0) return newValue > 0 ? 100 : 0;
     return ((newValue - oldValue) / oldValue) * 100;
   }

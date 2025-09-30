@@ -19,10 +19,7 @@ export class QuietHoursService {
 
   constructor(@Inject(DRIZZLE_DB) private db: DatabaseService) {}
 
-  async isInQuietHours(
-    userId: string,
-    checkTime?: Date,
-  ): Promise<QuietHoursInfo> {
+  async isInQuietHours(userId: string, checkTime?: Date): Promise<QuietHoursInfo> {
     try {
       const [preferences] = await this.db
         .select({
@@ -52,12 +49,7 @@ export class QuietHoursService {
       const quietStart = preferences.quietHoursStart || '22:00';
       const quietEnd = preferences.quietHoursEnd || '08:00';
 
-      const quietHoursInfo = this.calculateQuietHours(
-        now,
-        quietStart,
-        quietEnd,
-        timezone,
-      );
+      const quietHoursInfo = this.calculateQuietHours(now, quietStart, quietEnd, timezone);
 
       return {
         ...quietHoursInfo,
@@ -80,10 +72,7 @@ export class QuietHoursService {
     }
   }
 
-  async getNextAllowedSendTime(
-    userId: string,
-    requestedTime?: Date,
-  ): Promise<Date> {
+  async getNextAllowedSendTime(userId: string, requestedTime?: Date): Promise<Date> {
     const quietHoursInfo = await this.isInQuietHours(userId, requestedTime);
 
     if (!quietHoursInfo.isInQuietHours) {
@@ -120,9 +109,7 @@ export class QuietHoursService {
   ): { isInQuietHours: boolean; nextAllowedTime?: Date } {
     try {
       // Convert current time to user's timezone
-      const userTime = new Date(
-        checkTime.toLocaleString('en-US', { timeZone: timezone }),
-      );
+      const userTime = new Date(checkTime.toLocaleString('en-US', { timeZone: timezone }));
       const userHour = userTime.getHours();
       const userMinute = userTime.getMinutes();
       const currentTimeInMinutes = userHour * 60 + userMinute;
@@ -139,8 +126,7 @@ export class QuietHoursService {
       if (startTimeInMinutes <= endTimeInMinutes) {
         // Same day quiet hours (e.g., 01:00 - 06:00)
         isInQuietHours =
-          currentTimeInMinutes >= startTimeInMinutes &&
-          currentTimeInMinutes < endTimeInMinutes;
+          currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
 
         if (isInQuietHours) {
           // Next allowed time is at the end time today
@@ -150,8 +136,7 @@ export class QuietHoursService {
       } else {
         // Overnight quiet hours (e.g., 22:00 - 08:00)
         isInQuietHours =
-          currentTimeInMinutes >= startTimeInMinutes ||
-          currentTimeInMinutes < endTimeInMinutes;
+          currentTimeInMinutes >= startTimeInMinutes || currentTimeInMinutes < endTimeInMinutes;
 
         if (isInQuietHours) {
           if (currentTimeInMinutes >= startTimeInMinutes) {
@@ -170,10 +155,7 @@ export class QuietHoursService {
       // Convert back to UTC if needed
       if (nextAllowedTime) {
         // Get the timezone offset and adjust
-        const timezoneOffset = this.getTimezoneOffset(
-          timezone,
-          nextAllowedTime,
-        );
+        const timezoneOffset = this.getTimezoneOffset(timezone, nextAllowedTime);
         nextAllowedTime = new Date(nextAllowedTime.getTime() - timezoneOffset);
       }
 
@@ -194,9 +176,7 @@ export class QuietHoursService {
     try {
       // Create two dates: one in UTC, one in the target timezone
       const utcDate = new Date(date.toISOString());
-      const tzDate = new Date(
-        date.toLocaleString('en-US', { timeZone: timezone }),
-      );
+      const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
 
       // The difference is the timezone offset
       return tzDate.getTime() - utcDate.getTime();
@@ -229,11 +209,7 @@ export class QuietHoursService {
     }
   }
 
-  formatTimeInTimezone(
-    date: Date,
-    timezone: string,
-    format: '12h' | '24h' = '24h',
-  ): string {
+  formatTimeInTimezone(date: Date, timezone: string, format: '12h' | '24h' = '24h'): string {
     try {
       const options: Intl.DateTimeFormatOptions = {
         timeZone: timezone,

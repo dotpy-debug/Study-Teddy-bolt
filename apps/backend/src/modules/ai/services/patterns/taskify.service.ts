@@ -209,9 +209,7 @@ OUTPUT FORMAT - Return ONLY valid JSON in this exact structure:
     return `${request.text.trim()}_${contextStr}`;
   }
 
-  private async parseAIResponse(
-    content: string,
-  ): Promise<Omit<TaskifyResponse, 'metadata'>> {
+  private async parseAIResponse(content: string): Promise<Omit<TaskifyResponse, 'metadata'>> {
     try {
       // Extract JSON from the response (in case it's wrapped in text)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -243,8 +241,7 @@ OUTPUT FORMAT - Return ONLY valid JSON in this exact structure:
           {
             title: 'Review and organize study materials',
             subject: 'General',
-            description:
-              'Based on the provided text, organize your study approach',
+            description: 'Based on the provided text, organize your study approach',
             estimatedHours: 1,
             dueDate: 'tomorrow',
             priority: 'medium',
@@ -273,14 +270,10 @@ OUTPUT FORMAT - Return ONLY valid JSON in this exact structure:
         throw new Error('Invalid task: title is required and must be a string');
       }
       if (!task.subject || typeof task.subject !== 'string') {
-        throw new Error(
-          'Invalid task: subject is required and must be a string',
-        );
+        throw new Error('Invalid task: subject is required and must be a string');
       }
       if (typeof task.estimatedHours !== 'number' || task.estimatedHours <= 0) {
-        throw new Error(
-          'Invalid task: estimatedHours must be a positive number',
-        );
+        throw new Error('Invalid task: estimatedHours must be a positive number');
       }
       if (!['low', 'medium', 'high'].includes(task.priority)) {
         throw new Error('Invalid task: priority must be low, medium, or high');
@@ -288,10 +281,7 @@ OUTPUT FORMAT - Return ONLY valid JSON in this exact structure:
     }
   }
 
-  private formatCachedResponse(
-    cached: any,
-    startTime: number,
-  ): TaskifyResponse {
+  private formatCachedResponse(cached: any, startTime: number): TaskifyResponse {
     return {
       tasks: cached.tasks || [],
       totalEstimatedHours: cached.totalEstimatedHours || 0,
@@ -347,8 +337,7 @@ OUTPUT FORMAT - Return ONLY valid JSON in this exact structure:
     };
 
     return (
-      subjectMap[normalized] ||
-      subject.charAt(0).toUpperCase() + subject.slice(1).toLowerCase()
+      subjectMap[normalized] || subject.charAt(0).toUpperCase() + subject.slice(1).toLowerCase()
     );
   }
 
@@ -364,8 +353,7 @@ OUTPUT FORMAT - Return ONLY valid JSON in this exact structure:
     if (task.estimatedHours >= 4) tags.push('extended');
 
     // Add subject-based tags
-    if (task.subject.toLowerCase().includes('math'))
-      tags.push('problem-solving');
+    if (task.subject.toLowerCase().includes('math')) tags.push('problem-solving');
     if (task.subject.toLowerCase().includes('science')) tags.push('research');
     if (task.subject.toLowerCase().includes('english')) tags.push('writing');
 

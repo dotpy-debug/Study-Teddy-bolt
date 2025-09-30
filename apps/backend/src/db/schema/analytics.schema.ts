@@ -60,12 +60,8 @@ export const userStats = pgTable(
       .unique(),
     totalStudyTime: integer('total_study_time').default(0).notNull(), // in seconds
     totalSessions: integer('total_sessions').default(0).notNull(),
-    totalAssignmentsCompleted: integer('total_assignments_completed')
-      .default(0)
-      .notNull(),
-    totalFlashcardsReviewed: integer('total_flashcards_reviewed')
-      .default(0)
-      .notNull(),
+    totalAssignmentsCompleted: integer('total_assignments_completed').default(0).notNull(),
+    totalFlashcardsReviewed: integer('total_flashcards_reviewed').default(0).notNull(),
     totalPointsEarned: integer('total_points_earned').default(0).notNull(),
     averageFocusScore: numeric('average_focus_score', {
       precision: 3,
@@ -75,9 +71,7 @@ export const userStats = pgTable(
     favoriteSubjectId: uuid('favorite_subject_id'),
     mostProductiveTime: text('most_productive_time'),
     weeklyStudyTime: jsonb('weekly_study_time').default([]).$type<number[]>(), // 7 elements for each day
-    monthlyProgress: jsonb('monthly_progress')
-      .default({})
-      .$type<Record<string, number>>(),
+    monthlyProgress: jsonb('monthly_progress').default({}).$type<Record<string, number>>(),
     lastCalculatedAt: timestamp('last_calculated_at').defaultNow().notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -87,15 +81,12 @@ export const userStats = pgTable(
   }),
 );
 
-export const analyticsEventsRelations = relations(
-  analyticsEvents,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [analyticsEvents.userId],
-      references: [users.id],
-    }),
+export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [analyticsEvents.userId],
+    references: [users.id],
   }),
-);
+}));
 
 export const userStatsRelations = relations(userStats, ({ one }) => ({
   user: one(users, {

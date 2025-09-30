@@ -1,11 +1,4 @@
-import {
-  IsOptional,
-  IsDateString,
-  IsNumber,
-  IsBoolean,
-  IsString,
-  IsEnum,
-} from 'class-validator';
+import { IsOptional, IsDateString, IsNumber, IsBoolean, IsString, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class EventQueryDto {

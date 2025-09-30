@@ -260,11 +260,8 @@ export class RBACService {
     // Add inherited permissions
     if (roleDefinition.inherits) {
       for (const inheritedRole of roleDefinition.inherits) {
-        const inheritedPermissions =
-          this.getAllPermissionsForRole(inheritedRole);
-        inheritedPermissions.forEach((permission) =>
-          permissions.add(permission),
-        );
+        const inheritedPermissions = this.getAllPermissionsForRole(inheritedRole);
+        inheritedPermissions.forEach((permission) => permissions.add(permission));
       }
     }
 
@@ -298,15 +295,9 @@ export class RBACService {
     // Resource-specific access control
     if (resource) {
       // Check ownership for own resources
-      if (
-        this.isOwnershipRequired(action) &&
-        resource.ownerId !== user.userId
-      ) {
+      if (this.isOwnershipRequired(action) && resource.ownerId !== user.userId) {
         // Allow if user has admin permissions or resource is public
-        if (
-          !this.hasPermission(user, Permission.READ_ALL_USERS) &&
-          !resource.isPublic
-        ) {
+        if (!this.hasPermission(user, Permission.READ_ALL_USERS) && !resource.isPublic) {
           return {
             allowed: false,
             reason: 'Access denied: not resource owner',
@@ -331,11 +322,7 @@ export class RBACService {
       }
 
       // Check subscription expiry
-      if (
-        user.isPremium &&
-        user.subscriptionExpiry &&
-        user.subscriptionExpiry < new Date()
-      ) {
+      if (user.isPremium && user.subscriptionExpiry && user.subscriptionExpiry < new Date()) {
         const premiumActions = [
           Permission.ACCESS_PREMIUM_FEATURES,
           Permission.ACCESS_ADVANCED_ANALYTICS,
@@ -390,10 +377,7 @@ export class RBACService {
     for (const role of roles) {
       const roleDefinition = this.roleDefinitions.get(role);
       if (roleDefinition) {
-        maxFileUploadSize = Math.max(
-          maxFileUploadSize,
-          roleDefinition.maxFileUploadSize || 0,
-        );
+        maxFileUploadSize = Math.max(maxFileUploadSize, roleDefinition.maxFileUploadSize || 0);
         maxAIRequestsPerDay = Math.max(
           maxAIRequestsPerDay,
           roleDefinition.maxAIRequestsPerDay || 0,
@@ -403,9 +387,7 @@ export class RBACService {
           roleDefinition.maxStudySessionsPerDay || 0,
         );
         canAccessBetaFeatures =
-          canAccessBetaFeatures ||
-          roleDefinition.canAccessBetaFeatures ||
-          false;
+          canAccessBetaFeatures || roleDefinition.canAccessBetaFeatures || false;
       }
     }
 
@@ -524,12 +506,7 @@ export class RBACService {
 
     // Admins can assign roles up to moderator
     if (assignerRoles.includes(Role.ADMIN)) {
-      const allowedRoles = [
-        Role.USER,
-        Role.PREMIUM,
-        Role.EDUCATOR,
-        Role.MODERATOR,
-      ];
+      const allowedRoles = [Role.USER, Role.PREMIUM, Role.EDUCATOR, Role.MODERATOR];
       if (allowedRoles.includes(targetRole)) {
         return { allowed: true };
       }

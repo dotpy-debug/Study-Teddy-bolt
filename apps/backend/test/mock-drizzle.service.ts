@@ -56,9 +56,7 @@ export class MockDrizzleService {
             orderBy: (order?: any) => ({
               limit: (limitNum?: number) => {
                 const data = this.getTableData(table);
-                return Promise.resolve(
-                  limitNum ? data.slice(0, limitNum) : data,
-                );
+                return Promise.resolve(limitNum ? data.slice(0, limitNum) : data);
               },
             }),
             limit: (limitNum?: number) => {
@@ -115,19 +113,13 @@ export class MockDrizzleService {
     // Simple table name mapping - in a real implementation this would be more sophisticated
     if (table === 'users' || table?.name === 'users') return 'users';
     if (table === 'subjects' || table?.name === 'subjects') return 'subjects';
-    if (table === 'study_tasks' || table?.name === 'study_tasks')
-      return 'studyTasks';
-    if (table === 'study_sessions' || table?.name === 'study_sessions')
-      return 'studySessions';
+    if (table === 'study_tasks' || table?.name === 'study_tasks') return 'studyTasks';
+    if (table === 'study_sessions' || table?.name === 'study_sessions') return 'studySessions';
     if (table === 'ai_chats' || table?.name === 'ai_chats') return 'aiChats';
-    if (table === 'flashcard_decks' || table?.name === 'flashcard_decks')
-      return 'flashcardDecks';
-    if (table === 'flashcards' || table?.name === 'flashcards')
-      return 'flashcards';
-    if (table === 'assignments' || table?.name === 'assignments')
-      return 'assignments';
-    if (table === 'notifications' || table?.name === 'notifications')
-      return 'notifications';
+    if (table === 'flashcard_decks' || table?.name === 'flashcard_decks') return 'flashcardDecks';
+    if (table === 'flashcards' || table?.name === 'flashcards') return 'flashcards';
+    if (table === 'assignments' || table?.name === 'assignments') return 'assignments';
+    if (table === 'notifications' || table?.name === 'notifications') return 'notifications';
 
     // Default fallback
     return 'users';
@@ -185,15 +177,11 @@ export class MockDrizzleService {
   }
 
   findByField(tableName: keyof MockDatabase, field: string, value: any): any[] {
-    return this.mockData[tableName].filter(
-      (item: any) => item[field] === value,
-    );
+    return this.mockData[tableName].filter((item: any) => item[field] === value);
   }
 
   updateById(tableName: keyof MockDatabase, id: string, updates: any): any {
-    const index = this.mockData[tableName].findIndex(
-      (item: any) => item.id === id,
-    );
+    const index = this.mockData[tableName].findIndex((item: any) => item.id === id);
     if (index !== -1) {
       this.mockData[tableName][index] = {
         ...this.mockData[tableName][index],
@@ -206,9 +194,7 @@ export class MockDrizzleService {
   }
 
   deleteById(tableName: keyof MockDatabase, id: string): boolean {
-    const index = this.mockData[tableName].findIndex(
-      (item: any) => item.id === id,
-    );
+    const index = this.mockData[tableName].findIndex((item: any) => item.id === id);
     if (index !== -1) {
       this.mockData[tableName].splice(index, 1);
       return true;

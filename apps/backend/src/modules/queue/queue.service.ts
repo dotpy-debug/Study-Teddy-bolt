@@ -90,9 +90,7 @@ export class QueueService {
         attempts: 2,
         backoff: { type: 'fixed', delay: 5000 },
       });
-      this.logger.debug(
-        `Document processing job queued for document ${job.documentId}`,
-      );
+      this.logger.debug(`Document processing job queued for document ${job.documentId}`);
     } catch (error) {
       this.logger.error('Failed to queue document job:', error);
       throw error;
@@ -108,9 +106,7 @@ export class QueueService {
           priority: 1,
         },
       );
-      this.logger.debug(
-        `Text extraction job queued for document ${documentId}`,
-      );
+      this.logger.debug(`Text extraction job queued for document ${documentId}`);
     } catch (error) {
       this.logger.error('Failed to queue text extraction job:', error);
       throw error;
@@ -126,9 +122,7 @@ export class QueueService {
           priority: 2,
         },
       );
-      this.logger.debug(
-        `Embedding generation job queued for document ${documentId}`,
-      );
+      this.logger.debug(`Embedding generation job queued for document ${documentId}`);
     } catch (error) {
       this.logger.error('Failed to queue embedding job:', error);
       throw error;
@@ -149,11 +143,7 @@ export class QueueService {
     }
   }
 
-  async generateReport(
-    userId: string,
-    reportType: string,
-    dateRange: { start: Date; end: Date },
-  ) {
+  async generateReport(userId: string, reportType: string, dateRange: { start: Date; end: Date }) {
     try {
       await this.analyticsQueue.add(
         'generate-report',
@@ -257,13 +247,7 @@ export class QueueService {
   }
 
   async getAllQueuesStats() {
-    const queues = [
-      'email',
-      'document',
-      'analytics',
-      'notification',
-      'study-reminder',
-    ];
+    const queues = ['email', 'document', 'analytics', 'notification', 'study-reminder'];
     return Promise.all(queues.map((q) => this.getQueueStats(q)));
   }
 

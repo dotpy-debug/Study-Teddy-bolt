@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { performanceMonitor } from '@/lib/performance/performance-monitor';
+import { performanceMonitor } from '../lib/performance/performance-monitor';
 import { SentryUtils } from '../../sentry.client.config';
 
 /**

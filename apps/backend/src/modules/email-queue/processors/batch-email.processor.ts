@@ -73,9 +73,7 @@ export class BatchEmailProcessor extends WorkerHost {
         // Check user preferences and quiet hours
         const canSend = await this.shouldSendEmail(recipient.to, batchData);
         if (!canSend.allowed) {
-          this.logger.debug(
-            `Skipping email to ${recipient.to}: ${canSend.reason}`,
-          );
+          this.logger.debug(`Skipping email to ${recipient.to}: ${canSend.reason}`);
           results.skipped++;
           continue;
         }
@@ -86,29 +84,24 @@ export class BatchEmailProcessor extends WorkerHost {
           : new Date();
 
         // Create delivery log
-        const deliveryLogId = await this.emailDeliveryService.createDeliveryLog(
-          {
-            userId,
-            emailType: 'batch',
-            recipientEmail: recipient.to,
-            subject: recipient.subject || batchData.defaultSubject,
-            templateUsed: batchData.template || 'custom',
-            templateData: {
-              ...batchData.defaultContext,
-              ...recipient.context,
-            },
-            priority: this.getPriorityValue(batchData.priority),
-            maxRetries: 3,
-            batchId,
-            scheduledAt: sendTime > new Date() ? sendTime : undefined,
+        const deliveryLogId = await this.emailDeliveryService.createDeliveryLog({
+          userId,
+          emailType: 'batch',
+          recipientEmail: recipient.to,
+          subject: recipient.subject || batchData.defaultSubject,
+          templateUsed: batchData.template || 'custom',
+          templateData: {
+            ...batchData.defaultContext,
+            ...recipient.context,
           },
-        );
+          priority: this.getPriorityValue(batchData.priority),
+          maxRetries: 3,
+          batchId,
+          scheduledAt: sendTime > new Date() ? sendTime : undefined,
+        });
 
         // Prepare email content
-        const emailContent = await this.prepareEmailContent(
-          batchData,
-          recipient,
-        );
+        const emailContent = await this.prepareEmailContent(batchData, recipient);
 
         // Send email
         const sendResult = await this.resendEmailService.sendEmail({
@@ -199,15 +192,13 @@ export class BatchEmailProcessor extends WorkerHost {
   ): Promise<{ allowed: boolean; reason?: string }> {
     try {
       // Check if user has unsubscribed
-      const preferences =
-        await this.notificationPreferencesService.getEmailPreferences(email);
+      const preferences = await this.notificationPreferencesService.getEmailPreferences(email);
       if (!preferences.emailEnabled) {
         return { allowed: false, reason: 'User has disabled emails' };
       }
 
       // Check quiet hours
-      const isQuietHours =
-        await this.notificationPreferencesService.isQuietHours(email);
+      const isQuietHours = await this.notificationPreferencesService.isQuietHours(email);
       if (isQuietHours && !batchData.optimizeSendTime) {
         return { allowed: false, reason: 'Currently in quiet hours' };
       }
@@ -215,11 +206,10 @@ export class BatchEmailProcessor extends WorkerHost {
       // Check category preferences if batch has specific categories
       if (batchData.batchTags?.length) {
         for (const tag of batchData.batchTags) {
-          const categoryAllowed =
-            await this.notificationPreferencesService.isCategoryAllowed(
-              email,
-              tag,
-            );
+          const categoryAllowed = await this.notificationPreferencesService.isCategoryAllowed(
+            email,
+            tag,
+          );
           if (!categoryAllowed) {
             return { allowed: false, reason: `Category '${tag}' is disabled` };
           }
@@ -228,24 +218,19 @@ export class BatchEmailProcessor extends WorkerHost {
 
       return { allowed: true };
     } catch (error) {
-      this.logger.warn(
-        `Failed to check email preferences for ${email}, allowing send`,
-      );
+      this.logger.warn(`Failed to check email preferences for ${email}, allowing send`);
       return { allowed: true };
     }
   }
 
   private async calculateOptimalSendTime(email: string): Promise<Date> {
     try {
-      const preferences =
-        await this.notificationPreferencesService.getEmailPreferences(email);
+      const preferences = await this.notificationPreferencesService.getEmailPreferences(email);
       const timezone = preferences.timezone || 'UTC';
 
       // Calculate optimal time based on timezone (e.g., 9 AM local time)
       const now = new Date();
-      const localTime = new Date(
-        now.toLocaleString('en-US', { timeZone: timezone }),
-      );
+      const localTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
 
       // If it's already past 9 AM today, schedule for 9 AM tomorrow
       const optimalHour = 9;
@@ -258,9 +243,7 @@ export class BatchEmailProcessor extends WorkerHost {
 
       return optimalTime;
     } catch (error) {
-      this.logger.warn(
-        `Failed to calculate optimal send time for ${email}, using immediate send`,
-      );
+      this.logger.warn(`Failed to calculate optimal send time for ${email}, using immediate send`);
       return new Date();
     }
   }
@@ -292,20 +275,13 @@ export class BatchEmailProcessor extends WorkerHost {
       // Use provided HTML/text with interpolation
       return {
         subject: this.interpolateString(subject, context),
-        html: batchData.html
-          ? this.interpolateString(batchData.html, context)
-          : undefined,
-        text: batchData.text
-          ? this.interpolateString(batchData.text, context)
-          : undefined,
+        html: batchData.html ? this.interpolateString(batchData.html, context) : undefined,
+        text: batchData.text ? this.interpolateString(batchData.text, context) : undefined,
       };
     }
   }
 
-  private interpolateString(
-    template: string,
-    context: Record<string, any>,
-  ): string {
+  private interpolateString(template: string, context: Record<string, any>): string {
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       return context[key] !== undefined ? String(context[key]) : match;
     });

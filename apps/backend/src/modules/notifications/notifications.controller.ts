@@ -45,10 +45,7 @@ export class NotificationsController {
     status: 200,
     description: 'Notifications retrieved successfully',
   })
-  async getNotifications(
-    @CurrentUser() userId: string,
-    @Query() query: NotificationQueryDto,
-  ) {
+  async getNotifications(@CurrentUser() userId: string, @Query() query: NotificationQueryDto) {
     return this.notificationsService.getUserNotifications(userId, query);
   }
 
@@ -81,10 +78,7 @@ export class NotificationsController {
     status: 200,
     description: 'Notifications marked as read successfully',
   })
-  async markAsRead(
-    @CurrentUser() userId: string,
-    @Body() markAsReadDto: MarkAsReadDto,
-  ) {
+  async markAsRead(@CurrentUser() userId: string, @Body() markAsReadDto: MarkAsReadDto) {
     return this.notificationsService.markAsRead(userId, markAsReadDto);
   }
 
@@ -116,10 +110,7 @@ export class NotificationsController {
     status: 200,
     description: 'Notification deleted successfully',
   })
-  async deleteNotification(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() userId: string,
-  ) {
+  async deleteNotification(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() userId: string) {
     return this.notificationsService.deleteNotification(id, userId);
   }
 

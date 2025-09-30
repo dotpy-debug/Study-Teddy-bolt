@@ -17,13 +17,11 @@ describe('AIController (e2e)', () => {
     await app.init();
 
     // Create a test user and get access token
-    const registerResponse = await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({
-        name: 'AI Test User',
-        email: 'aitest@example.com',
-        password: 'password123',
-      });
+    const registerResponse = await request(app.getHttpServer()).post('/auth/register').send({
+      name: 'AI Test User',
+      email: 'aitest@example.com',
+      password: 'password123',
+    });
 
     accessToken = registerResponse.body.access_token;
     userId = registerResponse.body.user.id;
@@ -93,9 +91,7 @@ describe('AIController (e2e)', () => {
 
       // Some requests should be rate limited (429 status)
       const rateLimitedResponses = responses.filter(
-        (response) =>
-          response.status === 'fulfilled' &&
-          (response.value as any).status === 429,
+        (response) => response.status === 'fulfilled' && (response.value as any).status === 429,
       );
 
       expect(rateLimitedResponses.length).toBeGreaterThan(0);
@@ -171,10 +167,7 @@ describe('AIController (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200)
         .expect((res) => {
-          expect(res.body).toHaveProperty(
-            'message',
-            'Chat message deleted successfully',
-          );
+          expect(res.body).toHaveProperty('message', 'Chat message deleted successfully');
         });
     });
 
@@ -186,9 +179,7 @@ describe('AIController (e2e)', () => {
     });
 
     it('should return 401 without authentication', () => {
-      return request(app.getHttpServer())
-        .delete(`/ai/chat/${chatId}`)
-        .expect(401);
+      return request(app.getHttpServer()).delete(`/ai/chat/${chatId}`).expect(401);
     });
   });
 
@@ -259,9 +250,7 @@ describe('AIController (e2e)', () => {
 
           expect(res.body.studyPlan.subject).toBe(studyPlanDto.subject);
           expect(res.body.studyPlan.totalWeeks).toBe(studyPlanDto.totalWeeks);
-          expect(res.body.studyPlan.hoursPerWeek).toBe(
-            studyPlanDto.hoursPerWeek,
-          );
+          expect(res.body.studyPlan.hoursPerWeek).toBe(studyPlanDto.hoursPerWeek);
           expect(res.body.studyPlan.skillLevel).toBe(studyPlanDto.skillLevel);
         });
     });

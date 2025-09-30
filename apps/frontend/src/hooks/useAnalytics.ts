@@ -1,49 +1,40 @@
-import { useQuery } from '@tanstack/react-query';
-import api from '@/services/api';
+// Analytics Hook Stub
+import { useState, useEffect } from 'react';
 
-interface AnalyticsData {
-  totalTasks: number;
-  completedTasks: number;
-  totalFocusTime: number;
-  averageSessionLength: number;
-  streakDays: number;
-  productivityScore: number;
+export interface AnalyticsTile {
+  id: string;
+  value: string;
+  trend?: 'up' | 'down' | 'stable';
 }
 
-export function useAnalytics(dateRange?: { start: Date; end: Date }) {
-  return useQuery({
-    queryKey: ['analytics', dateRange],
-    queryFn: async () => {
-      const params = dateRange ? {
-        startDate: dateRange.start.toISOString(),
-        endDate: dateRange.end.toISOString()
-      } : {};
+export function useAnalytics() {
+  const [tiles, setTiles] = useState<AnalyticsTile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      const response = await api.get('/analytics', { params });
-      return response.data as AnalyticsData;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  useEffect(() => {
+    // Stub implementation
+    setTiles([
+      { id: 'focused-minutes', value: '0', trend: 'stable' },
+      { id: 'tasks-completed', value: '0', trend: 'stable' },
+      { id: 'on-time-rate', value: '0%', trend: 'stable' }
+    ]);
+    setLoading(false);
+  }, []);
+
+  return { tiles, loading };
 }
 
-export function useSubjectAnalytics(subjectId: string) {
-  return useQuery({
-    queryKey: ['analytics', 'subject', subjectId],
-    queryFn: async () => {
-      const response = await api.get(`/analytics/subjects/${subjectId}`);
-      return response.data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+export async function fetchAnalyticsTiles(): Promise<AnalyticsTile[]> {
+  return [
+    { id: 'focused-minutes', value: '0', trend: 'stable' },
+    { id: 'tasks-completed', value: '0', trend: 'stable' },
+    { id: 'on-time-rate', value: '0%', trend: 'stable' }
+  ];
 }
 
-export function useTaskAnalytics() {
-  return useQuery({
-    queryKey: ['analytics', 'tasks'],
-    queryFn: async () => {
-      const response = await api.get('/analytics/tasks');
-      return response.data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+export async function fetchNextBestAction(): Promise<{ action: string; reason: string }> {
+  return {
+    action: 'Start your first task',
+    reason: 'You have pending tasks to complete'
+  };
 }

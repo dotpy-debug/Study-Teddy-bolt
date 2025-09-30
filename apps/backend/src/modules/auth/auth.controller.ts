@@ -251,13 +251,11 @@ export class AuthController {
       required: ['userId', 'email'],
     },
   })
-  async exchange(
-    @Body() body: { userId: string; email: string },
-    @Req() req: Request,
-  ) {
+  async exchange(@Body() body: { userId: string; email: string }, @Req() req: Request) {
     const shared = process.env.EXCHANGE_SHARED_SECRET;
-    const header = (req.headers['x-exchange-secret'] ||
-      req.headers['X-Exchange-Secret']) as string | undefined;
+    const header = (req.headers['x-exchange-secret'] || req.headers['X-Exchange-Secret']) as
+      | string
+      | undefined;
     if (!shared || !header || header !== shared) {
       return { message: 'Unauthorized' };
     }

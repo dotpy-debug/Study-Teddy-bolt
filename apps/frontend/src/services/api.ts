@@ -1,40 +1,27 @@
-import axios from 'axios';
+// API Service Stub
+import { apiClient } from '../lib/api-client';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Request interceptor to add auth token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+class ApiService {
+  async get<T>(endpoint: string): Promise<T> {
+    const response = await apiClient.get<T>(endpoint);
+    return response.data;
   }
-);
 
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      localStorage.removeItem('token');
-      window.location.href = '/auth/login';
-    }
-    return Promise.reject(error);
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    const response = await apiClient.post<T>(endpoint, data);
+    return response.data;
   }
-);
 
-export default apiClient;
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    const response = await apiClient.put<T>(endpoint, data);
+    return response.data;
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    const response = await apiClient.delete<T>(endpoint);
+    return response.data;
+  }
+}
+
+const api = new ApiService();
+export default api;

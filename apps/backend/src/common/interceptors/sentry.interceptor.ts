@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import * as Sentry from '@sentry/nestjs';
@@ -40,9 +34,7 @@ export class SentryInterceptor implements NestInterceptor {
         const statusCode = response.statusCode;
 
         // Log successful requests
-        this.logger.log(
-          `${method} ${url} ${statusCode} ${duration}ms - ${ip} - ${userAgent}`,
-        );
+        this.logger.log(`${method} ${url} ${statusCode} ${duration}ms - ${ip} - ${userAgent}`);
 
         // Add breadcrumb for successful request
         Sentry.addBreadcrumb({
@@ -132,11 +124,7 @@ export class SentryInterceptor implements NestInterceptor {
 
 // Custom decorator for tracking specific operations
 export function TrackPerformance(operationName: string) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -165,11 +153,7 @@ export function TrackPerformance(operationName: string) {
 
 // Database operation tracking decorator
 export function TrackDatabaseOperation(tableName?: string) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -217,11 +201,7 @@ export function TrackDatabaseOperation(tableName?: string) {
 
 // AI operation tracking decorator
 export function TrackAIOperation(operationType: string) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {

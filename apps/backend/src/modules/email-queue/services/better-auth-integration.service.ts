@@ -13,10 +13,7 @@ export class BetterAuthIntegrationService {
     private notificationPreferencesService: NotificationPreferencesService,
     private configService: ConfigService,
   ) {
-    this.appUrl = this.configService.get<string>(
-      'APP_URL',
-      'https://studyteddy.com',
-    );
+    this.appUrl = this.configService.get<string>('APP_URL', 'https://studyteddy.com');
   }
 
   /**
@@ -36,11 +33,10 @@ export class BetterAuthIntegrationService {
       const { user, token, expiresAt } = params;
 
       // Check if user has email verification enabled
-      const emailEnabled =
-        await this.notificationPreferencesService.isEmailNotificationEnabled(
-          user.id,
-          'verification',
-        );
+      const emailEnabled = await this.notificationPreferencesService.isEmailNotificationEnabled(
+        user.id,
+        'verification',
+      );
 
       if (!emailEnabled) {
         this.logger.debug(`Email verification disabled for user: ${user.id}`);
@@ -95,11 +91,10 @@ export class BetterAuthIntegrationService {
       const { user, token, expiresAt, requestedAt, ipAddress } = params;
 
       // Check if user has password reset emails enabled
-      const emailEnabled =
-        await this.notificationPreferencesService.isEmailNotificationEnabled(
-          user.id,
-          'password_reset',
-        );
+      const emailEnabled = await this.notificationPreferencesService.isEmailNotificationEnabled(
+        user.id,
+        'password_reset',
+      );
 
       if (!emailEnabled) {
         this.logger.debug(`Password reset email disabled for user: ${user.id}`);
@@ -154,11 +149,10 @@ export class BetterAuthIntegrationService {
       const { user, verificationToken } = params;
 
       // Check if user has welcome emails enabled
-      const emailEnabled =
-        await this.notificationPreferencesService.isEmailNotificationEnabled(
-          user.id,
-          'welcome',
-        );
+      const emailEnabled = await this.notificationPreferencesService.isEmailNotificationEnabled(
+        user.id,
+        'welcome',
+      );
 
       if (!emailEnabled) {
         this.logger.debug(`Welcome email disabled for user: ${user.id}`);
@@ -215,12 +209,9 @@ export class BetterAuthIntegrationService {
       // Create default notification preferences if they don't exist
       await this.notificationPreferencesService.getOrCreatePreferences(user.id);
 
-      this.logger.log(
-        `Email verification success handled for user: ${user.id}`,
-        {
-          email: user.email,
-        },
-      );
+      this.logger.log(`Email verification success handled for user: ${user.id}`, {
+        email: user.email,
+      });
     } catch (error) {
       this.logger.error('Failed to handle email verification success', {
         error: error.message,
@@ -248,9 +239,7 @@ export class BetterAuthIntegrationService {
       const { user, authProvider, verificationToken } = params;
 
       // Create default notification preferences
-      await this.notificationPreferencesService.createDefaultPreferences(
-        user.id,
-      );
+      await this.notificationPreferencesService.createDefaultPreferences(user.id);
 
       // Send welcome email for local auth users
       // OAuth users typically have verified emails and different onboarding

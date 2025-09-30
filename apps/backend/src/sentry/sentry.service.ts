@@ -226,10 +226,7 @@ export class SentryService implements OnModuleInit {
 
       // Alert on very slow queries
       if (metrics.duration > 5000) {
-        Sentry.captureMessage(
-          `Very slow database query: ${metrics.table}`,
-          'warning',
-        );
+        Sentry.captureMessage(`Very slow database query: ${metrics.table}`, 'warning');
       }
     });
   }
@@ -275,15 +272,9 @@ export class SentryService implements OnModuleInit {
 
       // Alert on API issues
       if (metrics.statusCode >= 500) {
-        Sentry.captureMessage(
-          `API error: ${metrics.method} ${metrics.endpoint}`,
-          'error',
-        );
+        Sentry.captureMessage(`API error: ${metrics.method} ${metrics.endpoint}`, 'error');
       } else if (metrics.duration > 5000) {
-        Sentry.captureMessage(
-          `Slow API request: ${metrics.method} ${metrics.endpoint}`,
-          'warning',
-        );
+        Sentry.captureMessage(`Slow API request: ${metrics.method} ${metrics.endpoint}`, 'warning');
       }
     });
   }
@@ -330,10 +321,7 @@ export class SentryService implements OnModuleInit {
       if (!success) {
         Sentry.captureMessage(`AI operation failed: ${operation}`, 'error');
       } else if (duration > 30000) {
-        Sentry.captureMessage(
-          `Very slow AI operation: ${operation}`,
-          'warning',
-        );
+        Sentry.captureMessage(`Very slow AI operation: ${operation}`, 'warning');
       }
     });
   }
@@ -341,12 +329,7 @@ export class SentryService implements OnModuleInit {
   /**
    * Track authentication events
    */
-  trackAuthEvent(
-    event: string,
-    userId?: string,
-    email?: string,
-    metadata?: Record<string, any>,
-  ) {
+  trackAuthEvent(event: string, userId?: string, email?: string, metadata?: Record<string, any>) {
     Sentry.withScope((scope) => {
       if (userId) {
         scope.setUser({ id: userId, email });
@@ -360,8 +343,7 @@ export class SentryService implements OnModuleInit {
         metadata,
       });
 
-      const level =
-        event.includes('failed') || event.includes('error') ? 'error' : 'info';
+      const level = event.includes('failed') || event.includes('error') ? 'error' : 'info';
 
       Sentry.addBreadcrumb({
         message: `Auth Event: ${event}`,
@@ -386,13 +368,7 @@ export class SentryService implements OnModuleInit {
    * Track study session events
    */
   trackStudySession(
-    event:
-      | 'created'
-      | 'started'
-      | 'paused'
-      | 'resumed'
-      | 'completed'
-      | 'cancelled',
+    event: 'created' | 'started' | 'paused' | 'resumed' | 'completed' | 'cancelled',
     sessionId: string,
     userId: string,
     metadata?: Record<string, any>,
@@ -497,10 +473,7 @@ export class SentryService implements OnModuleInit {
   /**
    * Capture custom message
    */
-  captureMessage(
-    message: string,
-    level: 'fatal' | 'error' | 'warning' | 'info' = 'info',
-  ) {
+  captureMessage(message: string, level: 'fatal' | 'error' | 'warning' | 'info' = 'info') {
     Sentry.captureMessage(message, level);
   }
 

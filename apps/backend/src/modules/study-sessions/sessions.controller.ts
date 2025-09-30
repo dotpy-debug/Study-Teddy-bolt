@@ -83,10 +83,7 @@ export class SessionsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getSessions(
-    @CurrentUser() user: BetterAuthUser,
-    @Query() query: SessionQueryDto,
-  ) {
+  async getSessions(@CurrentUser() user: BetterAuthUser, @Query() query: SessionQueryDto) {
     const sessions = await this.sessionsService.getSessions(user.id, query);
     return {
       success: true,
@@ -171,10 +168,7 @@ export class SessionsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getSessionStats(
-    @CurrentUser() user: BetterAuthUser,
-    @Query() query: SessionStatsQueryDto,
-  ) {
+  async getSessionStats(@CurrentUser() user: BetterAuthUser, @Query() query: SessionStatsQueryDto) {
     const stats = await this.sessionsService.getSessionStats(user.id, query);
     return {
       success: true,
@@ -257,10 +251,7 @@ export class SessionsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async startSession(
-    @CurrentUser() user: BetterAuthUser,
-    @Body() createDto: CreateSessionDto,
-  ) {
+  async startSession(@CurrentUser() user: BetterAuthUser, @Body() createDto: CreateSessionDto) {
     const session = await this.sessionsService.startSession(user.id, createDto);
     return {
       success: true,
@@ -291,11 +282,7 @@ export class SessionsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDto: UpdateSessionDto,
   ) {
-    const session = await this.sessionsService.updateSession(
-      user.id,
-      id,
-      updateDto,
-    );
+    const session = await this.sessionsService.updateSession(user.id, id, updateDto);
     return {
       success: true,
       data: session,
@@ -319,10 +306,7 @@ export class SessionsController {
   @ApiNotFoundResponse({ description: 'Session not found' })
   @ApiForbiddenResponse({ description: 'Access denied' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
-  async pauseSession(
-    @CurrentUser() user: BetterAuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async pauseSession(@CurrentUser() user: BetterAuthUser, @Param('id', ParseUUIDPipe) id: string) {
     const session = await this.sessionsService.pauseSession(user.id, id);
     return {
       success: true,
@@ -347,10 +331,7 @@ export class SessionsController {
   @ApiNotFoundResponse({ description: 'Session not found' })
   @ApiForbiddenResponse({ description: 'Access denied' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
-  async resumeSession(
-    @CurrentUser() user: BetterAuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async resumeSession(@CurrentUser() user: BetterAuthUser, @Param('id', ParseUUIDPipe) id: string) {
     const session = await this.sessionsService.resumeSession(user.id, id);
     return {
       success: true,
@@ -375,10 +356,7 @@ export class SessionsController {
   @ApiNotFoundResponse({ description: 'Session not found' })
   @ApiForbiddenResponse({ description: 'Access denied' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
-  async endSession(
-    @CurrentUser() user: BetterAuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async endSession(@CurrentUser() user: BetterAuthUser, @Param('id', ParseUUIDPipe) id: string) {
     const session = await this.sessionsService.endSession(user.id, id);
     return {
       success: true,
@@ -432,10 +410,7 @@ export class SessionsController {
   @ApiForbiddenResponse({ description: 'Access denied' })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
   @HttpCode(HttpStatus.OK)
-  async deleteSession(
-    @CurrentUser() user: BetterAuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async deleteSession(@CurrentUser() user: BetterAuthUser, @Param('id', ParseUUIDPipe) id: string) {
     await this.sessionsService.deleteSession(user.id, id);
     return {
       success: true,
@@ -479,10 +454,7 @@ export class SessionsController {
     @CurrentUser() user: BetterAuthUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const analytics = await this.sessionsService.getSessionAnalytics(
-      user.id,
-      id,
-    );
+    const analytics = await this.sessionsService.getSessionAnalytics(user.id, id);
     return {
       success: true,
       data: analytics,
@@ -518,10 +490,7 @@ export class SessionsController {
       sessionId,
     };
 
-    const analytics = await this.sessionsService.createSessionAnalytics(
-      user.id,
-      analyticsDto,
-    );
+    const analytics = await this.sessionsService.createSessionAnalytics(user.id, analyticsDto);
     return {
       success: true,
       data: analytics,

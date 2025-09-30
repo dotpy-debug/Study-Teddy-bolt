@@ -243,9 +243,7 @@ describe('Auth Integration Tests', () => {
     });
 
     it('should require authentication', async () => {
-      await request(app.getHttpServer())
-        .post('/auth/logout')
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).post('/auth/logout').expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
@@ -273,9 +271,7 @@ describe('Auth Integration Tests', () => {
     });
 
     it('should require authentication', async () => {
-      await request(app.getHttpServer())
-        .get('/auth/profile')
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/profile').expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
@@ -299,9 +295,7 @@ describe('Auth Integration Tests', () => {
         .send(forgotPasswordDto)
         .expect(HttpStatus.OK);
 
-      expect(response.body.message).toContain(
-        'password reset link has been sent',
-      );
+      expect(response.body.message).toContain('password reset link has been sent');
     });
 
     it('should return same message for non-existent user', async () => {
@@ -319,9 +313,7 @@ describe('Auth Integration Tests', () => {
         .send(forgotPasswordDto)
         .expect(HttpStatus.OK);
 
-      expect(response.body.message).toContain(
-        'password reset link has been sent',
-      );
+      expect(response.body.message).toContain('password reset link has been sent');
     });
 
     it('should enforce rate limiting', async () => {
@@ -368,9 +360,7 @@ describe('Auth Integration Tests', () => {
         .send(resetPasswordDto)
         .expect(HttpStatus.OK);
 
-      expect(response.body.message).toBe(
-        'Password has been successfully reset',
-      );
+      expect(response.body.message).toBe('Password has been successfully reset');
     });
 
     it('should reject invalid reset token', async () => {

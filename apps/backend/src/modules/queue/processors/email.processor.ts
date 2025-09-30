@@ -26,11 +26,7 @@ export class EmailProcessor extends WorkerHost {
           await this.emailService.sendWelcomeEmail(to, data.name);
           break;
         case 'password-reset':
-          await this.emailService.sendPasswordResetEmail(
-            to,
-            data.name || 'User',
-            data.resetToken,
-          );
+          await this.emailService.sendPasswordResetEmail(to, data.name || 'User', data.resetToken);
           break;
         case 'task-reminder':
           await this.emailService.sendTaskReminderEmail(

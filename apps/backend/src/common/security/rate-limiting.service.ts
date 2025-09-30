@@ -50,14 +50,8 @@ export class RateLimitingService {
   ) {
     this.defaultConfig = {
       windowMs: this.configService.get<number>('RATE_LIMIT_WINDOW_MS', 60000), // 1 minute
-      maxRequests: this.configService.get<number>(
-        'RATE_LIMIT_MAX_REQUESTS',
-        100,
-      ),
-      blockDuration: this.configService.get<number>(
-        'RATE_LIMIT_BLOCK_DURATION_MS',
-        900000,
-      ), // 15 minutes
+      maxRequests: this.configService.get<number>('RATE_LIMIT_MAX_REQUESTS', 100),
+      blockDuration: this.configService.get<number>('RATE_LIMIT_BLOCK_DURATION_MS', 900000), // 15 minutes
       skipSuccessfulRequests: false,
       skipFailedRequests: false,
       headers: true,
@@ -65,16 +59,10 @@ export class RateLimitingService {
     };
 
     this.burstProtection = {
-      enabled: this.configService.get<boolean>(
-        'BURST_PROTECTION_ENABLED',
-        true,
-      ),
+      enabled: this.configService.get<boolean>('BURST_PROTECTION_ENABLED', true),
       burstSize: this.configService.get<number>('BURST_SIZE', 10),
       burstWindowMs: this.configService.get<number>('BURST_WINDOW_MS', 10000), // 10 seconds
-      penaltyMultiplier: this.configService.get<number>(
-        'BURST_PENALTY_MULTIPLIER',
-        2,
-      ),
+      penaltyMultiplier: this.configService.get<number>('BURST_PENALTY_MULTIPLIER', 2),
     };
 
     this.initializeDefaultRules();
@@ -105,8 +93,7 @@ export class RateLimitingService {
         windowMs: 300000, // 5 minutes
         maxRequests: 5,
         blockDuration: 900000, // 15 minutes
-        message:
-          'Too many authentication attempts, please try again in 15 minutes',
+        message: 'Too many authentication attempts, please try again in 15 minutes',
         headers: true,
       },
       enabled: true,
@@ -269,23 +256,14 @@ export class RateLimitingService {
   /**
    * Check rate limit for a request
    */
-  async checkRateLimit(
-    path: string,
-    identifier: string,
-    req?: any,
-  ): Promise<RateLimitResult> {
+  async checkRateLimit(path: string, identifier: string, req?: any): Promise<RateLimitResult> {
     try {
       // Find matching rule with highest priority
       const matchingRule = this.findMatchingRule(path);
       const config = matchingRule ? matchingRule.config : this.defaultConfig;
 
       // Generate cache key
-      const key = this.generateKey(
-        matchingRule?.name || 'default',
-        identifier,
-        config,
-        req,
-      );
+      const key = this.generateKey(matchingRule?.name || 'default', identifier, config, req);
 
       // Check burst protection first
       if (this.burstProtection.enabled) {
@@ -330,11 +308,7 @@ export class RateLimitingService {
   /**
    * Check rate limit and throw exception if exceeded
    */
-  async enforceRateLimit(
-    path: string,
-    identifier: string,
-    req?: any,
-  ): Promise<void> {
+  async enforceRateLimit(path: string, identifier: string, req?: any): Promise<void> {
     const result = await this.checkRateLimit(path, identifier, req);
 
     if (!result.allowed) {
@@ -439,10 +413,7 @@ export class RateLimitingService {
     return key;
   }
 
-  private async checkLimit(
-    key: string,
-    config: RateLimitConfig,
-  ): Promise<RateLimitResult> {
+  private async checkLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
     const now = Date.now();
     const windowStart = now - config.windowMs;
 
@@ -526,10 +497,7 @@ export class RateLimitingService {
     pipeline.zcard(burstKey);
 
     // Set expiration
-    pipeline.expire(
-      burstKey,
-      Math.ceil(this.burstProtection.burstWindowMs / 1000),
-    );
+    pipeline.expire(burstKey, Math.ceil(this.burstProtection.burstWindowMs / 1000));
 
     const results = await pipeline.exec();
     const burstCount = results[2][1] as number;
@@ -537,8 +505,7 @@ export class RateLimitingService {
     const allowed = burstCount <= this.burstProtection.burstSize;
 
     if (!allowed) {
-      const penaltyDuration =
-        config.windowMs * this.burstProtection.penaltyMultiplier;
+      const penaltyDuration = config.windowMs * this.burstProtection.penaltyMultiplier;
       const retryAfter = Math.ceil(penaltyDuration / 1000);
 
       this.logger.warn('Burst protection triggered', {
@@ -565,10 +532,7 @@ export class RateLimitingService {
     };
   }
 
-  private async getCurrentLimit(
-    key: string,
-    config: RateLimitConfig,
-  ): Promise<RateLimitResult> {
+  private async getCurrentLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
     const now = Date.now();
     const windowStart = now - config.windowMs;
 

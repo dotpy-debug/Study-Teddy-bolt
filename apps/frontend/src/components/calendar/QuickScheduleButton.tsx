@@ -17,7 +17,7 @@ import { Calendar, Clock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-reac
 import calendarService, {
   ScheduleSessionDto,
   AvailableTimeSlot,
-} from '@/services/calendar.service';
+} from '../services/calendar.service';
 import { toast } from 'sonner';
 import { format, addHours, addDays } from 'date-fns';
 

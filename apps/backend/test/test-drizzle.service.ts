@@ -219,9 +219,9 @@ export class TestDrizzleService {
   }
 
   async getTableCount(tableName: string): Promise<number> {
-    const result = this.sqlite
-      .prepare(`SELECT COUNT(*) as count FROM ${tableName}`)
-      .get() as { count: number };
+    const result = this.sqlite.prepare(`SELECT COUNT(*) as count FROM ${tableName}`).get() as {
+      count: number;
+    };
     return result.count;
   }
 

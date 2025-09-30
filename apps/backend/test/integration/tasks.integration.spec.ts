@@ -131,9 +131,7 @@ describe('Tasks Integration Tests', () => {
     });
 
     it('should require authentication', async () => {
-      await request(app.getHttpServer())
-        .get('/tasks')
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/tasks').expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
@@ -211,9 +209,7 @@ describe('Tasks Integration Tests', () => {
       });
 
       expect(drizzleService.db.insert).toHaveBeenCalled();
-      expect(cacheService.delPattern).toHaveBeenCalledWith(
-        `dashboard_stats:${mockUser.id}`,
-      );
+      expect(cacheService.delPattern).toHaveBeenCalledWith(`dashboard_stats:${mockUser.id}`);
     });
 
     it('should validate required fields', async () => {
@@ -525,12 +521,10 @@ describe('Tasks Integration Tests', () => {
         );
 
         // Mock successful updates
-        jest
-          .spyOn(app.get('TasksService'), 'batchUpdateTasks')
-          .mockResolvedValue({
-            updated: 3,
-            tasks: updatedTasks,
-          });
+        jest.spyOn(app.get('TasksService'), 'batchUpdateTasks').mockResolvedValue({
+          updated: 3,
+          tasks: updatedTasks,
+        });
 
         const response = await request(app.getHttpServer())
           .post('/tasks/batch/update')
@@ -550,12 +544,10 @@ describe('Tasks Integration Tests', () => {
         };
 
         // Mock successful deletions
-        jest
-          .spyOn(app.get('TasksService'), 'batchDeleteTasks')
-          .mockResolvedValue({
-            deleted: 2,
-            taskIds: batchDeleteDto.taskIds,
-          });
+        jest.spyOn(app.get('TasksService'), 'batchDeleteTasks').mockResolvedValue({
+          deleted: 2,
+          taskIds: batchDeleteDto.taskIds,
+        });
 
         const response = await request(app.getHttpServer())
           .post('/tasks/batch/delete')

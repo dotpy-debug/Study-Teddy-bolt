@@ -1,17 +1,8 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, ForbiddenException } from '@nestjs/common';
 import { DrizzleService } from '../../db/drizzle.service';
 import { tasks, subtasks } from '../../db/schema';
 import { eq, and, desc, asc } from 'drizzle-orm';
-import {
-  CreateSubtaskDto,
-  UpdateSubtaskDto,
-  BulkCreateSubtasksDto,
-} from './dto/subtask.dto';
+import { CreateSubtaskDto, UpdateSubtaskDto, BulkCreateSubtasksDto } from './dto/subtask.dto';
 import { CacheService } from '../../common/cache/cache.service';
 import { QueryOptimizerService } from '../../common/performance/query-optimizer.service';
 
@@ -301,9 +292,7 @@ export class SubtasksService {
 
       // Calculate progress percentage
       const completedCount = taskSubtasks.filter((s) => s.completed).length;
-      const progressPercentage = Math.round(
-        (completedCount / taskSubtasks.length) * 100,
-      );
+      const progressPercentage = Math.round((completedCount / taskSubtasks.length) * 100);
 
       // Update the parent task
       const updateData: any = {
@@ -317,23 +306,14 @@ export class SubtasksService {
         updateData.completedAt = new Date();
       }
 
-      await this.drizzleService.db
-        .update(tasks)
-        .set(updateData)
-        .where(eq(tasks.id, taskId));
+      await this.drizzleService.db.update(tasks).set(updateData).where(eq(tasks.id, taskId));
     } catch (error) {
-      this.logger.error(
-        `Failed to update parent task progress for task ${taskId}:`,
-        error,
-      );
+      this.logger.error(`Failed to update parent task progress for task ${taskId}:`, error);
     }
   }
 
   // Cache invalidation method
-  private async invalidateTaskCache(
-    taskId: string,
-    userId: string,
-  ): Promise<void> {
+  private async invalidateTaskCache(taskId: string, userId: string): Promise<void> {
     try {
       // Invalidate task-related cache
       await this.cacheService.delPattern(`task:${taskId}`);
@@ -343,10 +323,7 @@ export class SubtasksService {
       await this.cacheService.delPattern(`dashboard_weekly:${userId}`);
       this.logger.debug(`Invalidated cache for task: ${taskId}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to invalidate cache for task ${taskId}:`,
-        error,
-      );
+      this.logger.error(`Failed to invalidate cache for task ${taskId}:`, error);
     }
   }
 }

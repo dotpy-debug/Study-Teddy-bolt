@@ -59,38 +59,14 @@ export class SessionSecurityService {
     private readonly redisService: RedisService,
   ) {
     this.config = {
-      maxSessionsPerUser: this.configService.get<number>(
-        'MAX_SESSIONS_PER_USER',
-        5,
-      ),
-      sessionTimeout: this.configService.get<number>(
-        'SESSION_TIMEOUT_MINUTES',
-        60,
-      ),
-      inactivityTimeout: this.configService.get<number>(
-        'INACTIVITY_TIMEOUT_MINUTES',
-        30,
-      ),
-      deviceTrackingEnabled: this.configService.get<boolean>(
-        'DEVICE_TRACKING_ENABLED',
-        true,
-      ),
-      geoLocationTracking: this.configService.get<boolean>(
-        'GEO_LOCATION_TRACKING',
-        false,
-      ),
-      requireTrustedDevice: this.configService.get<boolean>(
-        'REQUIRE_TRUSTED_DEVICE',
-        false,
-      ),
-      sessionExtensionThreshold: this.configService.get<number>(
-        'SESSION_EXTENSION_THRESHOLD',
-        50,
-      ),
-      concurrentSessionLimit: this.configService.get<number>(
-        'CONCURRENT_SESSION_LIMIT',
-        3,
-      ),
+      maxSessionsPerUser: this.configService.get<number>('MAX_SESSIONS_PER_USER', 5),
+      sessionTimeout: this.configService.get<number>('SESSION_TIMEOUT_MINUTES', 60),
+      inactivityTimeout: this.configService.get<number>('INACTIVITY_TIMEOUT_MINUTES', 30),
+      deviceTrackingEnabled: this.configService.get<boolean>('DEVICE_TRACKING_ENABLED', true),
+      geoLocationTracking: this.configService.get<boolean>('GEO_LOCATION_TRACKING', false),
+      requireTrustedDevice: this.configService.get<boolean>('REQUIRE_TRUSTED_DEVICE', false),
+      sessionExtensionThreshold: this.configService.get<number>('SESSION_EXTENSION_THRESHOLD', 50),
+      concurrentSessionLimit: this.configService.get<number>('CONCURRENT_SESSION_LIMIT', 3),
       enableSuspiciousActivityDetection: this.configService.get<boolean>(
         'ENABLE_SUSPICIOUS_ACTIVITY_DETECTION',
         true,
@@ -98,9 +74,7 @@ export class SessionSecurityService {
     };
 
     // Initialize encryption key for session data
-    const encryptionKeyStr = this.configService.get<string>(
-      'SESSION_ENCRYPTION_KEY',
-    );
+    const encryptionKeyStr = this.configService.get<string>('SESSION_ENCRYPTION_KEY');
     this.encryptionKey = encryptionKeyStr
       ? Buffer.from(encryptionKeyStr, 'hex')
       : crypto.scryptSync('session-key', 'salt', 32);
@@ -116,9 +90,7 @@ export class SessionSecurityService {
   }> {
     const sessionId = this.generateSecureSessionId();
     const now = new Date();
-    const expiresAt = new Date(
-      now.getTime() + this.config.sessionTimeout * 60 * 1000,
-    );
+    const expiresAt = new Date(now.getTime() + this.config.sessionTimeout * 60 * 1000);
 
     const session: SessionData = {
       id: sessionId,
@@ -146,11 +118,7 @@ export class SessionSecurityService {
 
     // Track device if enabled
     if (this.config.deviceTrackingEnabled && session.deviceFingerprint) {
-      await this.trackDevice(
-        session.userId,
-        session.deviceFingerprint,
-        session,
-      );
+      await this.trackDevice(session.userId, session.deviceFingerprint, session);
     }
 
     // Generate JWT token
@@ -193,11 +161,7 @@ export class SessionSecurityService {
       const session = this.decryptSessionData(encryptedSession);
 
       // Validate session data
-      const validation = this.validateSessionData(
-        session,
-        ipAddress,
-        userAgent,
-      );
+      const validation = this.validateSessionData(session, ipAddress, userAgent);
       if (!validation.isValid) {
         await this.invalidateSession(sessionId);
         return validation;
@@ -212,11 +176,7 @@ export class SessionSecurityService {
       // Re-encrypt and store updated session
       const updatedEncryptedSession = this.encryptSessionData(session);
       const remainingTtl = await this.redisService.ttl(sessionKey);
-      await this.redisService.setex(
-        sessionKey,
-        remainingTtl,
-        updatedEncryptedSession,
-      );
+      await this.redisService.setex(sessionKey, remainingTtl, updatedEncryptedSession);
 
       return {
         isValid: true,
@@ -253,23 +213,15 @@ export class SessionSecurityService {
 
       const session = this.decryptSessionData(encryptedSession);
       const now = new Date();
-      const newExpiresAt = new Date(
-        now.getTime() + this.config.sessionTimeout * 60 * 1000,
-      );
+      const newExpiresAt = new Date(now.getTime() + this.config.sessionTimeout * 60 * 1000);
 
       session.expiresAt = newExpiresAt;
       session.lastActivity = now;
 
       const updatedEncryptedSession = this.encryptSessionData(session);
-      const newTtl = Math.floor(
-        (newExpiresAt.getTime() - now.getTime()) / 1000,
-      );
+      const newTtl = Math.floor((newExpiresAt.getTime() - now.getTime()) / 1000);
 
-      await this.redisService.setex(
-        sessionKey,
-        newTtl,
-        updatedEncryptedSession,
-      );
+      await this.redisService.setex(sessionKey, newTtl, updatedEncryptedSession);
 
       this.logger.log('Session extended', {
         sessionId,
@@ -320,10 +272,7 @@ export class SessionSecurityService {
   /**
    * Invalidate all sessions for a user
    */
-  async invalidateAllUserSessions(
-    userId: string,
-    excludeSessionId?: string,
-  ): Promise<number> {
+  async invalidateAllUserSessions(userId: string, excludeSessionId?: string): Promise<number> {
     try {
       const userSessionsKey = this.getUserSessionsKey(userId);
       const sessionIds = await this.redisService.smembers(userSessionsKey);
@@ -386,9 +335,7 @@ export class SessionSecurityService {
         }
       }
 
-      return sessions.sort(
-        (a, b) => b.lastActivity.getTime() - a.lastActivity.getTime(),
-      );
+      return sessions.sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
     } catch (error) {
       this.logger.error('Failed to get user sessions', {
         userId,
@@ -463,10 +410,7 @@ export class SessionSecurityService {
     // User agent validation (if provided and strict mode enabled)
     if (userAgent && session.userAgent !== userAgent) {
       if (this.config.enableSuspiciousActivityDetection) {
-        const similarity = this.calculateUserAgentSimilarity(
-          session.userAgent,
-          userAgent,
-        );
+        const similarity = this.calculateUserAgentSimilarity(session.userAgent, userAgent);
         if (similarity < 0.8) {
           reasons.push('Device/browser change detected');
         }
@@ -483,8 +427,7 @@ export class SessionSecurityService {
    * Check if session should be extended
    */
   private shouldExtendSession(session: SessionData): boolean {
-    const sessionLifetime =
-      session.expiresAt.getTime() - session.createdAt.getTime();
+    const sessionLifetime = session.expiresAt.getTime() - session.createdAt.getTime();
     const sessionAge = Date.now() - session.createdAt.getTime();
     const thresholdPercentage = this.config.sessionExtensionThreshold / 100;
 
@@ -499,13 +442,10 @@ export class SessionSecurityService {
 
     if (sessions.length >= this.config.maxSessionsPerUser) {
       // Sort by last activity (oldest first)
-      sessions.sort(
-        (a, b) => a.lastActivity.getTime() - b.lastActivity.getTime(),
-      );
+      sessions.sort((a, b) => a.lastActivity.getTime() - b.lastActivity.getTime());
 
       // Remove oldest sessions to make room
-      const sessionsToRemove =
-        sessions.length - this.config.maxSessionsPerUser + 1;
+      const sessionsToRemove = sessions.length - this.config.maxSessionsPerUser + 1;
       for (let i = 0; i < sessionsToRemove; i++) {
         await this.invalidateSession(sessions[i].id);
       }
@@ -550,11 +490,7 @@ export class SessionSecurityService {
     }
 
     // Store device info with 30-day TTL
-    await this.redisService.setex(
-      deviceKey,
-      30 * 24 * 60 * 60,
-      JSON.stringify(device),
-    );
+    await this.redisService.setex(deviceKey, 30 * 24 * 60 * 60, JSON.stringify(device));
   }
 
   /**

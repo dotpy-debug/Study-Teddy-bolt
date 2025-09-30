@@ -67,19 +67,10 @@ export const paginationSchema = z.object({
   limit: z
     .string()
     .transform((val) => parseInt(val, 10))
-    .pipe(
-      z
-        .number()
-        .int()
-        .min(1, 'Limit must be at least 1')
-        .max(100, 'Limit must not exceed 100'),
-    )
+    .pipe(z.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit must not exceed 100'))
     .optional()
     .default('20'),
-  sortBy: z
-    .string()
-    .max(50, 'Sort field must not exceed 50 characters')
-    .optional(),
+  sortBy: z.string().max(50, 'Sort field must not exceed 50 characters').optional(),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
@@ -101,12 +92,7 @@ export const fileUploadSchema = z.object({
 });
 
 // Allowed file types
-export const allowedImageMimeTypes = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-];
+export const allowedImageMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 export const allowedDocumentMimeTypes = [
   'application/pdf',
@@ -115,10 +101,7 @@ export const allowedDocumentMimeTypes = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
-export const allowedMimeTypes = [
-  ...allowedImageMimeTypes,
-  ...allowedDocumentMimeTypes,
-];
+export const allowedMimeTypes = [...allowedImageMimeTypes, ...allowedDocumentMimeTypes];
 
 // Security headers validation
 export const securityHeadersSchema = z.object({
@@ -168,17 +151,12 @@ export const jsonSchema = z.string().transform((str, ctx) => {
 });
 
 // Base64 validation
-export const base64Schema = z
-  .string()
-  .regex(/^[A-Za-z0-9+/]*={0,2}$/, 'Invalid base64 format');
+export const base64Schema = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, 'Invalid base64 format');
 
 // Slug validation
 export const slugSchema = z
   .string()
-  .regex(
-    /^[a-z0-9-]+$/,
-    'Slug can only contain lowercase letters, numbers, and hyphens',
-  )
+  .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens')
   .min(1, 'Slug is required')
   .max(100, 'Slug must not exceed 100 characters');
 
@@ -209,12 +187,7 @@ export const currencyCodeSchema = z
 export const prioritySchema = z.enum(['low', 'medium', 'high', 'urgent']);
 
 // Status enums
-export const activeStatusSchema = z.enum([
-  'active',
-  'inactive',
-  'pending',
-  'suspended',
-]);
+export const activeStatusSchema = z.enum(['active', 'inactive', 'pending', 'suspended']);
 
 // Content type validation
 export const contentTypeSchema = z.enum([
@@ -268,10 +241,7 @@ export const tagSchema = z
   .string()
   .min(1, 'Tag is required')
   .max(30, 'Tag must not exceed 30 characters')
-  .regex(
-    /^[a-zA-Z0-9\-_]+$/,
-    'Tag can only contain letters, numbers, hyphens, and underscores',
-  );
+  .regex(/^[a-zA-Z0-9\-_]+$/, 'Tag can only contain letters, numbers, hyphens, and underscores');
 
 export const tagsArraySchema = z
   .array(tagSchema)
@@ -279,12 +249,7 @@ export const tagsArraySchema = z
   .optional();
 
 // Difficulty levels
-export const difficultySchema = z.enum([
-  'beginner',
-  'intermediate',
-  'advanced',
-  'expert',
-]);
+export const difficultySchema = z.enum(['beginner', 'intermediate', 'advanced', 'expert']);
 
 // Study session types
 export const studySessionTypeSchema = z.enum([

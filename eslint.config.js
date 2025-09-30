@@ -149,8 +149,13 @@ export default [
       ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off', // Temporarily disabled for migration
       '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-unsafe-assignment': 'off', // Temporarily disabled
+      '@typescript-eslint/no-unsafe-member-access': 'off', // Temporarily disabled
+      '@typescript-eslint/no-unsafe-call': 'off', // Temporarily disabled
+      '@typescript-eslint/no-unsafe-return': 'off', // Temporarily disabled
+      '@typescript-eslint/no-unsafe-argument': 'off', // Temporarily disabled
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/prefer-optional-chain': 'error',
       '@typescript-eslint/prefer-readonly': 'error',

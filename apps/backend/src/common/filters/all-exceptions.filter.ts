@@ -53,11 +53,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       (request.headers['x-request-id'] as string) ||
       `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    const errorResponse = this.buildErrorResponse(
-      exception,
-      request,
-      requestId,
-    );
+    const errorResponse = this.buildErrorResponse(exception, request, requestId);
 
     // Log error with context
     this.logError(exception, request, requestId, errorResponse);
@@ -87,10 +83,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Handle Database Errors (Drizzle ORM)
     if (this.isDatabaseError(exception)) {
-      return this.handleDatabaseError(
-        exception as DrizzleDatabaseError,
-        baseResponse,
-      );
+      return this.handleDatabaseError(exception as DrizzleDatabaseError, baseResponse);
     }
 
     // Handle Validation Errors
@@ -191,10 +184,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
   }
 
-  private handleOpenAIError(
-    exception: OpenAIError,
-    baseResponse: ErrorResponse,
-  ): ErrorResponse {
+  private handleOpenAIError(exception: OpenAIError, baseResponse: ErrorResponse): ErrorResponse {
     const status = exception.status || HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'AI service is temporarily unavailable';
 
@@ -225,18 +215,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     return {
       ...baseResponse,
-      statusCode:
-        status >= 500 ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.BAD_REQUEST,
+      statusCode: status >= 500 ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.BAD_REQUEST,
       message,
       error: 'AI Service Error',
       // Never expose OpenAI API details for security
     };
   }
 
-  private handleGenericError(
-    exception: Error,
-    baseResponse: ErrorResponse,
-  ): ErrorResponse {
+  private handleGenericError(exception: Error, baseResponse: ErrorResponse): ErrorResponse {
     // Never expose internal error messages or stack traces for security
     return {
       ...baseResponse,
@@ -246,10 +232,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
   }
 
-  private getUserFriendlyMessage(
-    status: number,
-    message: string | string[],
-  ): string | string[] {
+  private getUserFriendlyMessage(status: number, message: string | string[]): string | string[] {
     // Return validation messages as-is since they're user-facing
     if (Array.isArray(message)) {
       return message;
@@ -330,9 +313,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     );
   }
 
-  private extractValidationErrors(
-    exception: ValidationError[] | { message: string[] },
-  ): string[] {
+  private extractValidationErrors(exception: ValidationError[] | { message: string[] }): string[] {
     if (Array.isArray(exception)) {
       return exception.flatMap((error) =>
         Object.values(error.constraints || ({} as Record<string, string>)),
@@ -354,9 +335,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // Check for common Drizzle/PostgreSQL error patterns
     const errorMessage = exception.message?.toLowerCase() || '';
     const errorCode =
-      'code' in exception
-        ? ((exception as Record<string, unknown>).code as string)
-        : undefined;
+      'code' in exception ? ((exception as Record<string, unknown>).code as string) : undefined;
 
     // PostgreSQL error codes
     const pgErrorCodes = [
@@ -409,12 +388,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: errorResponse.statusCode,
       userId:
         'user' in (request as unknown as Record<string, unknown>)
-          ? ((
-              (request as unknown as Record<string, unknown>).user as Record<
-                string,
-                unknown
-              >
-            )?.id as string)
+          ? (((request as unknown as Record<string, unknown>).user as Record<string, unknown>)
+              ?.id as string)
           : undefined,
       errorType: exception instanceof Error ? exception.name : 'UnknownError',
       // Create a hash of the error for correlation without exposing details

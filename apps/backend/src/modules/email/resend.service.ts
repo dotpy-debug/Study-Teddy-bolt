@@ -50,9 +50,7 @@ export class ResendService {
   ) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
     if (!apiKey) {
-      this.logger.warn(
-        'RESEND_API_KEY not found. Email service will not function.',
-      );
+      this.logger.warn('RESEND_API_KEY not found. Email service will not function.');
     }
 
     this.resend = new Resend(apiKey);
@@ -60,10 +58,7 @@ export class ResendService {
       'RESEND_FROM_EMAIL',
       'Study Teddy <noreply@studyteddy.com>',
     );
-    this.frontendUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:3000',
-    );
+    this.frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
   }
 
   /**
@@ -136,9 +131,7 @@ export class ResendService {
         Array.isArray(options.to) ? options.to[0] : options.to,
       );
 
-      this.logger.log(
-        `Email sent successfully to ${options.to}. ID: ${result.data?.id}`,
-      );
+      this.logger.log(`Email sent successfully to ${options.to}. ID: ${result.data?.id}`);
 
       return {
         success: true,
@@ -170,10 +163,7 @@ export class ResendService {
         try {
           return await this.sendEmail(emailOptions);
         } catch (error) {
-          this.logger.error(
-            `Failed to send batch email to ${emailOptions.to}`,
-            error,
-          );
+          this.logger.error(`Failed to send batch email to ${emailOptions.to}`, error);
           return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error',
@@ -205,9 +195,7 @@ export class ResendService {
     const successful = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success).length;
 
-    this.logger.log(
-      `Batch email completed: ${successful} successful, ${failed} failed`,
-    );
+    this.logger.log(`Batch email completed: ${successful} successful, ${failed} failed`);
 
     return results;
   }
@@ -245,10 +233,7 @@ export class ResendService {
   /**
    * Welcome email for new users
    */
-  async sendWelcomeEmail(
-    email: string,
-    context: WelcomeEmailContext,
-  ): Promise<EmailResponse> {
+  async sendWelcomeEmail(email: string, context: WelcomeEmailContext): Promise<EmailResponse> {
     return this.sendEmail({
       to: email,
       subject: `Welcome to ${this.appName}! 🎉`,
@@ -327,18 +312,14 @@ export class ResendService {
   /**
    * Task deadline reminder
    */
-  async sendTaskDeadlineEmail(
-    email: string,
-    context: TaskDeadlineContext,
-  ): Promise<EmailResponse> {
+  async sendTaskDeadlineEmail(email: string, context: TaskDeadlineContext): Promise<EmailResponse> {
     return this.sendEmail({
       to: email,
       subject: `⏰ Task Deadline Approaching: ${context.taskTitle}`,
       template: EmailTemplate.TASK_DEADLINE,
       context: {
         ...context,
-        taskLink:
-          context.taskLink || `${this.frontendUrl}/tasks/${context.taskId}`,
+        taskLink: context.taskLink || `${this.frontendUrl}/tasks/${context.taskId}`,
       },
       tags: [{ name: 'category', value: 'deadline' }],
     });
@@ -347,10 +328,7 @@ export class ResendService {
   /**
    * Achievement notification
    */
-  async sendAchievementEmail(
-    email: string,
-    context: AchievementContext,
-  ): Promise<EmailResponse> {
+  async sendAchievementEmail(email: string, context: AchievementContext): Promise<EmailResponse> {
     return this.sendEmail({
       to: email,
       subject: `🏆 Achievement Unlocked: ${context.achievementTitle}`,
@@ -377,8 +355,7 @@ export class ResendService {
       context: {
         ...context,
         dashboardLink: context.dashboardLink || `${this.frontendUrl}/dashboard`,
-        weekStart:
-          context.weekStart || this.getWeekStart().toLocaleDateString(),
+        weekStart: context.weekStart || this.getWeekStart().toLocaleDateString(),
         weekEnd: context.weekEnd || this.getWeekEnd().toLocaleDateString(),
       },
       tags: [{ name: 'category', value: 'summary' }],
@@ -411,10 +388,7 @@ export class ResendService {
     try {
       return await this.trackingService.getTrackingData(emailId);
     } catch (error) {
-      this.logger.error(
-        `Failed to get tracking data for email ${emailId}`,
-        error,
-      );
+      this.logger.error(`Failed to get tracking data for email ${emailId}`, error);
       return null;
     }
   }
@@ -431,20 +405,14 @@ export class ResendService {
       });
 
       // Update local tracking
-      await this.trackingService.markAsUnsubscribed(
-        options.email,
-        options.reason,
-      );
+      await this.trackingService.markAsUnsubscribed(options.email, options.reason);
 
       this.logger.log(
         `User ${options.email} unsubscribed. Reason: ${options.reason || 'Not specified'}`,
       );
       return true;
     } catch (error) {
-      this.logger.error(
-        `Failed to process unsubscribe for ${options.email}`,
-        error,
-      );
+      this.logger.error(`Failed to process unsubscribe for ${options.email}`, error);
       return false;
     }
   }
@@ -452,9 +420,7 @@ export class ResendService {
   /**
    * Check domain verification status
    */
-  async getDomainVerificationStatus(
-    domain: string,
-  ): Promise<DomainVerificationStatus> {
+  async getDomainVerificationStatus(domain: string): Promise<DomainVerificationStatus> {
     try {
       const result = await this.resend.domains.get(domain);
 
@@ -465,10 +431,7 @@ export class ResendService {
         records: result.records,
       };
     } catch (error) {
-      this.logger.error(
-        `Failed to get domain verification status for ${domain}`,
-        error,
-      );
+      this.logger.error(`Failed to get domain verification status for ${domain}`, error);
 
       return {
         domain,

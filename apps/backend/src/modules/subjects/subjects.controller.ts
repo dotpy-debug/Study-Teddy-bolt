@@ -10,12 +10,7 @@ import {
   UseGuards,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { SubjectsService } from './subjects.service';
@@ -37,10 +32,7 @@ export class SubjectsController {
     status: HttpStatus.CREATED,
     description: 'Subject created successfully',
   })
-  async create(
-    @CurrentUser() userId: string,
-    @Body() createSubjectDto: CreateSubjectDto,
-  ) {
+  async create(@CurrentUser() userId: string, @Body() createSubjectDto: CreateSubjectDto) {
     return this.subjectsService.create(userId, createSubjectDto);
   }
 
@@ -50,10 +42,7 @@ export class SubjectsController {
     status: HttpStatus.OK,
     description: 'Subjects retrieved successfully',
   })
-  async findAll(
-    @CurrentUser() userId: string,
-    @Query() query: QuerySubjectsDto,
-  ) {
+  async findAll(@CurrentUser() userId: string, @Query() query: QuerySubjectsDto) {
     return this.subjectsService.findAll(userId, query);
   }
 

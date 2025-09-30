@@ -1,8 +1,4 @@
-import {
-  DatabaseTestHelper,
-  TestDataFactory,
-  DatabaseTestUtils,
-} from './database.test-helper';
+import { DatabaseTestHelper, TestDataFactory, DatabaseTestUtils } from './database.test-helper';
 import { users, studyTasks, aiChats, studySessions } from '../src/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
@@ -64,9 +60,7 @@ describe('Database Integration Tests', () => {
       });
 
       await DatabaseTestHelper.createTestUser(userData);
-      const foundUser = await DatabaseTestHelper.findUserByEmail(
-        userData.email,
-      );
+      const foundUser = await DatabaseTestHelper.findUserByEmail(userData.email);
 
       expect(foundUser).toBeDefined();
       expect(foundUser.email).toBe(userData.email);
@@ -79,9 +73,7 @@ describe('Database Integration Tests', () => {
       await DatabaseTestHelper.createTestUser({ email });
 
       // Attempting to create another user with the same email should fail
-      await expect(
-        DatabaseTestHelper.createTestUser({ email }),
-      ).rejects.toThrow();
+      await expect(DatabaseTestHelper.createTestUser({ email })).rejects.toThrow();
     });
 
     it('should handle Google OAuth users', async () => {
@@ -116,10 +108,7 @@ describe('Database Integration Tests', () => {
         priority: 'high',
       });
 
-      const task = await DatabaseTestHelper.createTestTask(
-        testUser.id,
-        taskData,
-      );
+      const task = await DatabaseTestHelper.createTestTask(testUser.id, taskData);
 
       expect(task).toBeDefined();
       expect(task.id).toBeDefined();
@@ -162,9 +151,7 @@ describe('Database Integration Tests', () => {
         .returning();
 
       expect(updatedTask.completed).toBe(true);
-      expect(updatedTask.updatedAt.getTime()).toBeGreaterThan(
-        task.updatedAt.getTime(),
-      );
+      expect(updatedTask.updatedAt.getTime()).toBeGreaterThan(task.updatedAt.getTime());
     });
 
     it('should delete task and cascade to study sessions', async () => {
@@ -172,11 +159,9 @@ describe('Database Integration Tests', () => {
         title: 'Delete Task',
       });
 
-      const session = await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        task.id,
-        { durationMinutes: 60 },
-      );
+      const session = await DatabaseTestHelper.createTestStudySession(testUser.id, task.id, {
+        durationMinutes: 60,
+      });
 
       const db = DatabaseTestHelper.db;
 
@@ -210,10 +195,7 @@ describe('Database Integration Tests', () => {
         tokensUsed: 100,
       });
 
-      const chat = await DatabaseTestHelper.createTestAIChat(
-        testUser.id,
-        chatData,
-      );
+      const chat = await DatabaseTestHelper.createTestAIChat(testUser.id, chatData);
 
       expect(chat).toBeDefined();
       expect(chat.id).toBeDefined();
@@ -287,14 +269,10 @@ describe('Database Integration Tests', () => {
     });
 
     it('should create a study session', async () => {
-      const sessionData = TestDataFactory.studySession(
-        testUser.id,
-        testTask.id,
-        {
-          durationMinutes: 45,
-          date: new Date('2024-01-15'),
-        },
-      );
+      const sessionData = TestDataFactory.studySession(testUser.id, testTask.id, {
+        durationMinutes: 45,
+        date: new Date('2024-01-15'),
+      });
 
       const session = await DatabaseTestHelper.createTestStudySession(
         testUser.id,
@@ -311,11 +289,9 @@ describe('Database Integration Tests', () => {
     });
 
     it('should create session without associated task', async () => {
-      const session = await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        null,
-        { durationMinutes: 30 },
-      );
+      const session = await DatabaseTestHelper.createTestStudySession(testUser.id, null, {
+        durationMinutes: 30,
+      });
 
       expect(session.taskId).toBeNull();
       expect(session.userId).toBe(testUser.id);
@@ -323,21 +299,13 @@ describe('Database Integration Tests', () => {
     });
 
     it('should calculate total study time for user', async () => {
-      await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        testTask.id,
-        {
-          durationMinutes: 30,
-        },
-      );
+      await DatabaseTestHelper.createTestStudySession(testUser.id, testTask.id, {
+        durationMinutes: 30,
+      });
 
-      await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        testTask.id,
-        {
-          durationMinutes: 45,
-        },
-      );
+      await DatabaseTestHelper.createTestStudySession(testUser.id, testTask.id, {
+        durationMinutes: 45,
+      });
 
       const db = DatabaseTestHelper.db;
       const result = await db
@@ -355,32 +323,20 @@ describe('Database Integration Tests', () => {
       const yesterday = new Date('2024-01-14');
       const tomorrow = new Date('2024-01-16');
 
-      await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        testTask.id,
-        {
-          date: yesterday,
-          durationMinutes: 30,
-        },
-      );
+      await DatabaseTestHelper.createTestStudySession(testUser.id, testTask.id, {
+        date: yesterday,
+        durationMinutes: 30,
+      });
 
-      await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        testTask.id,
-        {
-          date: today,
-          durationMinutes: 45,
-        },
-      );
+      await DatabaseTestHelper.createTestStudySession(testUser.id, testTask.id, {
+        date: today,
+        durationMinutes: 45,
+      });
 
-      await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        testTask.id,
-        {
-          date: tomorrow,
-          durationMinutes: 60,
-        },
-      );
+      await DatabaseTestHelper.createTestStudySession(testUser.id, testTask.id, {
+        date: tomorrow,
+        durationMinutes: 60,
+      });
 
       const db = DatabaseTestHelper.db;
       const sessions = await db
@@ -419,11 +375,9 @@ describe('Database Integration Tests', () => {
         message: 'Cascade Chat',
       });
 
-      const session = await DatabaseTestHelper.createTestStudySession(
-        testUser.id,
-        task.id,
-        { durationMinutes: 30 },
-      );
+      const session = await DatabaseTestHelper.createTestStudySession(testUser.id, task.id, {
+        durationMinutes: 30,
+      });
 
       const db = DatabaseTestHelper.db;
 
@@ -436,10 +390,7 @@ describe('Database Integration Tests', () => {
         .from(studyTasks)
         .where(eq(studyTasks.userId, testUser.id));
 
-      const remainingChats = await db
-        .select()
-        .from(aiChats)
-        .where(eq(aiChats.userId, testUser.id));
+      const remainingChats = await db.select().from(aiChats).where(eq(aiChats.userId, testUser.id));
 
       const remainingSessions = await db
         .select()

@@ -16,10 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { BetterAuthService } from './better-auth.service';
 import { BetterAuthGuard, Public } from './guards/better-auth.guard';
-import {
-  CurrentUser,
-  CurrentUserId,
-} from './decorators/current-user.decorator';
+import { CurrentUser, CurrentUserId } from './decorators/current-user.decorator';
 import { BetterAuthUser } from './better-auth.service';
 
 @ApiTags('Better Auth')
@@ -31,8 +28,7 @@ export class BetterAuthController {
   @UseGuards(BetterAuthGuard)
   @ApiOperation({
     summary: 'Get current user',
-    description:
-      'Get the current authenticated user information from Better Auth session',
+    description: 'Get the current authenticated user information from Better Auth session',
   })
   @ApiResponse({
     status: 200,
@@ -64,8 +60,7 @@ export class BetterAuthController {
   @UseGuards(BetterAuthGuard)
   @ApiOperation({
     summary: 'Validate session',
-    description:
-      'Validate the current Better Auth session and return session info',
+    description: 'Validate the current Better Auth session and return session info',
   })
   @ApiResponse({
     status: 200,
@@ -126,8 +121,7 @@ export class BetterAuthController {
   @Public()
   @ApiOperation({
     summary: 'Auth status',
-    description:
-      'Check if user is authenticated without requiring authentication',
+    description: 'Check if user is authenticated without requiring authentication',
   })
   @ApiResponse({
     status: 200,

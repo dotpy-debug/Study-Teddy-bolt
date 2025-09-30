@@ -3,11 +3,7 @@ import { Inject } from '@nestjs/common';
 import { eq, and, desc, gte, lte, count, sql } from 'drizzle-orm';
 import { DRIZZLE_DB } from '../../../db/db.module';
 import { DatabaseService } from '../../../db/database.service';
-import {
-  emailDeliveryLog,
-  NewEmailDeliveryLog,
-  EmailDeliveryLog,
-} from '../../../db/schema';
+import { emailDeliveryLog, NewEmailDeliveryLog, EmailDeliveryLog } from '../../../db/schema';
 import { EmailJobData } from '../types/email-job.types';
 
 export interface CreateDeliveryLogOptions {
@@ -125,10 +121,7 @@ export class EmailDeliveryService {
         updateData.failedAt = updateOptions.failedAt;
       }
 
-      await this.db
-        .update(emailDeliveryLog)
-        .set(updateData)
-        .where(eq(emailDeliveryLog.id, logId));
+      await this.db.update(emailDeliveryLog).set(updateData).where(eq(emailDeliveryLog.id, logId));
 
       this.logger.debug(`Updated email delivery status: ${logId}`, {
         status: updateOptions.status,
@@ -249,12 +242,9 @@ export class EmailDeliveryService {
       });
 
       const successRate =
-        totals.total > 0
-          ? ((totals.sent + totals.delivered) / totals.total) * 100
-          : 0;
+        totals.total > 0 ? ((totals.sent + totals.delivered) / totals.total) * 100 : 0;
 
-      const deliveryRate =
-        totals.sent > 0 ? (totals.delivered / totals.sent) * 100 : 0;
+      const deliveryRate = totals.sent > 0 ? (totals.delivered / totals.sent) * 100 : 0;
 
       return {
         ...totals,
@@ -280,10 +270,7 @@ export class EmailDeliveryService {
     }
   }
 
-  async getRecentDeliveries(
-    userId: string,
-    limit = 20,
-  ): Promise<EmailDeliveryLog[]> {
+  async getRecentDeliveries(userId: string, limit = 20): Promise<EmailDeliveryLog[]> {
     try {
       return await this.db
         .select()
@@ -324,9 +311,7 @@ export class EmailDeliveryService {
     }
   }
 
-  async getDeliveryLogByResendId(
-    resendId: string,
-  ): Promise<EmailDeliveryLog | null> {
+  async getDeliveryLogByResendId(resendId: string): Promise<EmailDeliveryLog | null> {
     try {
       const [result] = await this.db
         .select()

@@ -87,9 +87,7 @@ export class BetterAuthService {
   /**
    * Get user by session token
    */
-  async getUserFromSession(
-    sessionToken: string,
-  ): Promise<BetterAuthUser | null> {
+  async getUserFromSession(sessionToken: string): Promise<BetterAuthUser | null> {
     try {
       const result = await auth.api.getSession({
         headers: {
@@ -136,10 +134,7 @@ export class BetterAuthService {
   /**
    * Create a new session (for internal use)
    */
-  async createSession(
-    userId: string,
-    request: Request,
-  ): Promise<BetterAuthSession | null> {
+  async createSession(userId: string, request: Request): Promise<BetterAuthSession | null> {
     try {
       // This would typically be handled by Better Auth directly
       // but we might need it for service-to-service authentication
@@ -180,10 +175,7 @@ export class BetterAuthService {
   /**
    * Update session metadata
    */
-  async updateSession(
-    sessionId: string,
-    metadata: Partial<BetterAuthSession>,
-  ): Promise<boolean> {
+  async updateSession(sessionId: string, metadata: Partial<BetterAuthSession>): Promise<boolean> {
     try {
       // This would need to be implemented using the database directly
       // as Better Auth doesn't expose session update APIs

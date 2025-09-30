@@ -70,13 +70,8 @@ export const userAchievements = pgTable(
   },
   (table) => ({
     userIdIdx: index('user_achievements_user_id_idx').on(table.userId),
-    achievementIdIdx: index('user_achievements_achievement_id_idx').on(
-      table.achievementId,
-    ),
-    userAchievementUnique: index('user_achievement_unique').on(
-      table.userId,
-      table.achievementId,
-    ),
+    achievementIdIdx: index('user_achievements_achievement_id_idx').on(table.achievementId),
+    userAchievementUnique: index('user_achievement_unique').on(table.userId, table.achievementId),
   }),
 );
 
@@ -128,19 +123,16 @@ export const achievementsRelations = relations(achievements, ({ many }) => ({
   userAchievements: many(userAchievements),
 }));
 
-export const userAchievementsRelations = relations(
-  userAchievements,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [userAchievements.userId],
-      references: [users.id],
-    }),
-    achievement: one(achievements, {
-      fields: [userAchievements.achievementId],
-      references: [achievements.id],
-    }),
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id],
   }),
-);
+  achievement: one(achievements, {
+    fields: [userAchievements.achievementId],
+    references: [achievements.id],
+  }),
+}));
 
 export const studyGoalsRelations = relations(studyGoals, ({ one }) => ({
   user: one(users, {

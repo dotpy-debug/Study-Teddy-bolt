@@ -26,15 +26,9 @@ export class EmailTemplateService {
   private readonly supportEmail: string;
 
   constructor(private configService: ConfigService) {
-    this.appUrl = this.configService.get<string>(
-      'APP_URL',
-      'https://studyteddy.com',
-    );
+    this.appUrl = this.configService.get<string>('APP_URL', 'https://studyteddy.com');
     this.appName = 'Study Teddy';
-    this.supportEmail = this.configService.get<string>(
-      'SUPPORT_EMAIL',
-      'support@studyteddy.com',
-    );
+    this.supportEmail = this.configService.get<string>('SUPPORT_EMAIL', 'support@studyteddy.com');
   }
 
   async generateTemplate(
@@ -46,40 +40,19 @@ export class EmailTemplateService {
 
       switch (templateType) {
         case 'welcome':
-          return this.generateWelcomeTemplate(
-            templateData as any,
-            baseVariables,
-          );
+          return this.generateWelcomeTemplate(templateData as any, baseVariables);
         case 'verification':
-          return this.generateVerificationTemplate(
-            templateData as any,
-            baseVariables,
-          );
+          return this.generateVerificationTemplate(templateData as any, baseVariables);
         case 'password_reset':
-          return this.generatePasswordResetTemplate(
-            templateData as any,
-            baseVariables,
-          );
+          return this.generatePasswordResetTemplate(templateData as any, baseVariables);
         case 'task_reminder':
-          return this.generateTaskReminderTemplate(
-            templateData as any,
-            baseVariables,
-          );
+          return this.generateTaskReminderTemplate(templateData as any, baseVariables);
         case 'focus_session_alert':
-          return this.generateFocusSessionAlertTemplate(
-            templateData as any,
-            baseVariables,
-          );
+          return this.generateFocusSessionAlertTemplate(templateData as any, baseVariables);
         case 'achievement':
-          return this.generateAchievementTemplate(
-            templateData as any,
-            baseVariables,
-          );
+          return this.generateAchievementTemplate(templateData as any, baseVariables);
         case 'weekly_digest':
-          return this.generateWeeklyDigestTemplate(
-            templateData as any,
-            baseVariables,
-          );
+          return this.generateWeeklyDigestTemplate(templateData as any, baseVariables);
         default:
           throw new Error(`Unknown template type: ${templateType}`);
       }
@@ -103,10 +76,7 @@ export class EmailTemplateService {
     };
   }
 
-  private generateWelcomeTemplate(
-    data: any,
-    baseVars: TemplateVariables,
-  ): EmailTemplate {
+  private generateWelcomeTemplate(data: any, baseVars: TemplateVariables): EmailTemplate {
     const subject = `Welcome to ${baseVars.appName}! 🎓`;
 
     const html = `
@@ -199,10 +169,7 @@ ${baseVars.appUrl}
     return { html, text, subject };
   }
 
-  private generateVerificationTemplate(
-    data: any,
-    baseVars: TemplateVariables,
-  ): EmailTemplate {
+  private generateVerificationTemplate(data: any, baseVars: TemplateVariables): EmailTemplate {
     const subject = `Verify your ${baseVars.appName} email address`;
 
     const html = `
@@ -267,10 +234,7 @@ ${baseVars.appUrl}
     return { html, text, subject };
   }
 
-  private generatePasswordResetTemplate(
-    data: any,
-    baseVars: TemplateVariables,
-  ): EmailTemplate {
+  private generatePasswordResetTemplate(data: any, baseVars: TemplateVariables): EmailTemplate {
     const subject = `Reset your ${baseVars.appName} password`;
 
     const html = `
@@ -349,12 +313,8 @@ ${baseVars.appUrl}
     return { html, text, subject };
   }
 
-  private generateTaskReminderTemplate(
-    data: any,
-    baseVars: TemplateVariables,
-  ): EmailTemplate {
-    const urgencyText =
-      data.reminderType === 'overdue' ? 'Overdue' : 'Due Soon';
+  private generateTaskReminderTemplate(data: any, baseVars: TemplateVariables): EmailTemplate {
+    const urgencyText = data.reminderType === 'overdue' ? 'Overdue' : 'Due Soon';
     const subject = `📋 Task ${urgencyText}: ${data.taskTitle}`;
 
     const html = `
@@ -452,10 +412,7 @@ ${baseVars.appUrl}
     return { html, text, subject };
   }
 
-  private generateFocusSessionAlertTemplate(
-    data: any,
-    baseVars: TemplateVariables,
-  ): EmailTemplate {
+  private generateFocusSessionAlertTemplate(data: any, baseVars: TemplateVariables): EmailTemplate {
     const subject = `🎯 Focus Session ${data.sessionType === 'completed' ? 'Completed' : 'Update'}: ${data.durationFormatted}`;
 
     const html = `
@@ -571,10 +528,7 @@ ${baseVars.appUrl}
     return { html, text, subject };
   }
 
-  private generateAchievementTemplate(
-    data: any,
-    baseVars: TemplateVariables,
-  ): EmailTemplate {
+  private generateAchievementTemplate(data: any, baseVars: TemplateVariables): EmailTemplate {
     const subject = `🏆 Achievement Unlocked: ${data.achievementTitle}`;
 
     const html = `
@@ -648,10 +602,7 @@ ${baseVars.appUrl}
     return { html, text, subject };
   }
 
-  private generateWeeklyDigestTemplate(
-    data: any,
-    baseVars: TemplateVariables,
-  ): EmailTemplate {
+  private generateWeeklyDigestTemplate(data: any, baseVars: TemplateVariables): EmailTemplate {
     const subject = `📊 Your Weekly Study Summary (${data.weekRange})`;
 
     const subjectBreakdownHtml = data.subjectBreakdown

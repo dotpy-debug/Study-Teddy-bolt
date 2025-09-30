@@ -40,12 +40,7 @@ export class FocusSessionFactory {
       userId: faker.string.uuid(),
       taskId: faker.string.uuid(),
       subjectId: faker.string.uuid(),
-      type: faker.helpers.arrayElement([
-        'pomodoro',
-        'custom',
-        'deep_work',
-        'break',
-      ]),
+      type: faker.helpers.arrayElement(['pomodoro', 'custom', 'deep_work', 'break']),
       status: faker.helpers.arrayElement([
         SessionStatus.SCHEDULED,
         SessionStatus.ACTIVE,
@@ -74,19 +69,9 @@ export class FocusSessionFactory {
       ),
       distractionBlocking: faker.datatype.boolean(),
       backgroundSound: faker.datatype.boolean(),
-      soundType: faker.helpers.arrayElement([
-        'rain',
-        'forest',
-        'white_noise',
-        'classical',
-      ]),
+      soundType: faker.helpers.arrayElement(['rain', 'forest', 'white_noise', 'classical']),
       calendarEventId: faker.string.uuid(),
-      recurrence: faker.helpers.arrayElement([
-        'none',
-        'daily',
-        'weekly',
-        'monthly',
-      ]),
+      recurrence: faker.helpers.arrayElement(['none', 'daily', 'weekly', 'monthly']),
       reminderMinutes: faker.helpers.arrayElement([5, 10, 15, 30]),
       createdAt: faker.date.past(),
       updatedAt: faker.date.recent(),
@@ -119,10 +104,7 @@ export class FocusSessionFactory {
     return session;
   }
 
-  static createMany(
-    count: number,
-    overrides?: Partial<MockFocusSession>,
-  ): MockFocusSession[] {
+  static createMany(count: number, overrides?: Partial<MockFocusSession>): MockFocusSession[] {
     return Array.from({ length: count }, () => this.create(overrides));
   }
 
@@ -141,9 +123,7 @@ export class FocusSessionFactory {
     });
   }
 
-  static createScheduled(
-    overrides?: Partial<MockFocusSession>,
-  ): MockFocusSession {
+  static createScheduled(overrides?: Partial<MockFocusSession>): MockFocusSession {
     return this.create({
       status: SessionStatus.SCHEDULED,
       startTime: faker.date.future(),
@@ -158,9 +138,7 @@ export class FocusSessionFactory {
     });
   }
 
-  static createCompleted(
-    overrides?: Partial<MockFocusSession>,
-  ): MockFocusSession {
+  static createCompleted(overrides?: Partial<MockFocusSession>): MockFocusSession {
     const startTime = faker.date.past();
     const scheduledDuration = faker.helpers.arrayElement([25, 45, 60, 90]);
     const actualDuration = faker.number.int({
@@ -183,9 +161,7 @@ export class FocusSessionFactory {
     });
   }
 
-  static createCancelled(
-    overrides?: Partial<MockFocusSession>,
-  ): MockFocusSession {
+  static createCancelled(overrides?: Partial<MockFocusSession>): MockFocusSession {
     return this.create({
       status: SessionStatus.CANCELLED,
       endTime: undefined,
@@ -199,9 +175,7 @@ export class FocusSessionFactory {
     });
   }
 
-  static createPomodoro(
-    overrides?: Partial<MockFocusSession>,
-  ): MockFocusSession {
+  static createPomodoro(overrides?: Partial<MockFocusSession>): MockFocusSession {
     return this.create({
       type: 'pomodoro',
       scheduledDuration: 25,
@@ -210,9 +184,7 @@ export class FocusSessionFactory {
     });
   }
 
-  static createDeepWork(
-    overrides?: Partial<MockFocusSession>,
-  ): MockFocusSession {
+  static createDeepWork(overrides?: Partial<MockFocusSession>): MockFocusSession {
     return this.create({
       type: 'deep_work',
       scheduledDuration: faker.helpers.arrayElement([90, 120, 180]),
@@ -222,9 +194,7 @@ export class FocusSessionFactory {
     });
   }
 
-  static createWithRecurrence(
-    overrides?: Partial<MockFocusSession>,
-  ): MockFocusSession {
+  static createWithRecurrence(overrides?: Partial<MockFocusSession>): MockFocusSession {
     return this.create({
       status: SessionStatus.SCHEDULED,
       recurrence: faker.helpers.arrayElement(['daily', 'weekly', 'monthly']),

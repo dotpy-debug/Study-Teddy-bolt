@@ -1,27 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '../../db/drizzle.service';
-import {
-  flashcards,
-  flashcardReviews,
-} from '../../db/schema/flashcards.schema';
+import { flashcards, flashcardReviews } from '../../db/schema/flashcards.schema';
 import { eq, and, lte } from 'drizzle-orm';
 
 @Injectable()
 export class FlashcardsRepository {
   constructor(private drizzleService: DrizzleService) {}
   async create(data: any) {
-    const [flashcard] = await this.drizzleService.db
-      .insert(flashcards)
-      .values(data)
-      .returning();
+    const [flashcard] = await this.drizzleService.db.insert(flashcards).values(data).returning();
     return flashcard;
   }
 
   async findByDeckId(deckId: string) {
-    return this.drizzleService.db
-      .select()
-      .from(flashcards)
-      .where(eq(flashcards.deckId, deckId));
+    return this.drizzleService.db.select().from(flashcards).where(eq(flashcards.deckId, deckId));
   }
 
   async findOne(id: string) {
@@ -70,16 +61,8 @@ export class FlashcardsRepository {
       .from(flashcards)
       .leftJoin(
         flashcardReviews,
-        and(
-          eq(flashcardReviews.flashcardId, flashcards.id),
-          eq(flashcardReviews.userId, userId),
-        ),
+        and(eq(flashcardReviews.flashcardId, flashcards.id), eq(flashcardReviews.userId, userId)),
       )
-      .where(
-        and(
-          eq(flashcards.deckId, deckId),
-          lte(flashcardReviews.nextReviewDate, new Date()),
-        ),
-      );
+      .where(and(eq(flashcards.deckId, deckId), lte(flashcardReviews.nextReviewDate, new Date())));
   }
 }

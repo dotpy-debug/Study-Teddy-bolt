@@ -85,8 +85,7 @@ export class PerformanceService {
 
     const averageResponseTime =
       this.responseTimes.length > 0
-        ? this.responseTimes.reduce((sum, time) => sum + time, 0) /
-          this.responseTimes.length
+        ? this.responseTimes.reduce((sum, time) => sum + time, 0) / this.responseTimes.length
         : 0;
 
     return {
@@ -103,13 +102,10 @@ export class PerformanceService {
   getDatabaseMetrics(): DatabaseMetrics {
     const averageQueryTime =
       this.queryTimes.length > 0
-        ? this.queryTimes.reduce((sum, time) => sum + time, 0) /
-          this.queryTimes.length
+        ? this.queryTimes.reduce((sum, time) => sum + time, 0) / this.queryTimes.length
         : 0;
 
-    const slowQueries = this.queryTimes.filter(
-      (time) => time > this.slowQueryThreshold,
-    ).length;
+    const slowQueries = this.queryTimes.filter((time) => time > this.slowQueryThreshold).length;
 
     return {
       activeConnections: 5, // Would get from actual connection pool
@@ -144,8 +140,7 @@ export class PerformanceService {
     const maxResponseTime = 2000; // 2 seconds
 
     const memoryMB = metrics.memoryUsage.heapUsed / 1024 / 1024;
-    const errorRate =
-      this.requestCount > 0 ? this.errorCount / this.requestCount : 0;
+    const errorRate = this.requestCount > 0 ? this.errorCount / this.requestCount : 0;
 
     const isHealthy =
       memoryMB < maxMemoryMB &&

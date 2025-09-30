@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NestMiddleware,
-  Logger,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { CSRFService } from '../security/csrf.service';
@@ -170,11 +164,7 @@ export class CSRFMiddleware implements NestMiddleware {
       const token = authHeader.substring(7);
       // Create a deterministic session ID from the token
       const crypto = require('crypto');
-      return crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex')
-        .substring(0, 16);
+      return crypto.createHash('sha256').update(token).digest('hex').substring(0, 16);
     }
 
     return null;

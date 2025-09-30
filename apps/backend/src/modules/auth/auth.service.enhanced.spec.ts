@@ -1,9 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  ConflictException,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
+import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -79,10 +75,7 @@ describe('AuthService - Enhanced Tests', () => {
         registerDto.password,
         registerDto.name,
       );
-      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
-        mockUser.email,
-        mockUser.name,
-      );
+      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(mockUser.email, mockUser.name);
       expect(usersService.updateRefreshToken).toHaveBeenCalledWith(
         mockUser.id,
         'mock-refresh-token',
@@ -104,9 +97,7 @@ describe('AuthService - Enhanced Tests', () => {
       const existingUser = UserFactory.create({ email: registerDto.email });
       usersService.findByEmail.mockResolvedValue(existingUser);
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
       expect(usersService.createUser).not.toHaveBeenCalled();
     });
 
@@ -118,9 +109,7 @@ describe('AuthService - Enhanced Tests', () => {
 
       usersService.findByEmail.mockResolvedValue(null);
       usersService.createUser.mockResolvedValue(mockUser);
-      emailService.sendWelcomeEmail.mockRejectedValue(
-        new Error('Email failed'),
-      );
+      emailService.sendWelcomeEmail.mockRejectedValue(new Error('Email failed'));
 
       // Should still complete registration even if email fails
       const result = await service.register(registerDto);
@@ -174,9 +163,7 @@ describe('AuthService - Enhanced Tests', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       usersService.findByEmail.mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException if user has no password (OAuth user)', async () => {
@@ -188,9 +175,7 @@ describe('AuthService - Enhanced Tests', () => {
 
       usersService.findByEmail.mockResolvedValue(mockUser);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException if password is invalid', async () => {
@@ -202,9 +187,7 @@ describe('AuthService - Enhanced Tests', () => {
       usersService.findByEmail.mockResolvedValue(mockUser);
       usersService.validatePassword.mockResolvedValue(false);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -256,9 +239,7 @@ describe('AuthService - Enhanced Tests', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       usersService.findById.mockResolvedValue(null);
 
-      await expect(service.getProfile('invalid-id')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.getProfile('invalid-id')).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -275,9 +256,7 @@ describe('AuthService - Enhanced Tests', () => {
 
       const result = await service.refreshTokens(refreshTokenDto);
 
-      expect(usersService.findByRefreshToken).toHaveBeenCalledWith(
-        refreshTokenDto.refreshToken,
-      );
+      expect(usersService.findByRefreshToken).toHaveBeenCalledWith(refreshTokenDto.refreshToken);
       expect(usersService.validateRefreshToken).toHaveBeenCalledWith(
         mockUser.id,
         refreshTokenDto.refreshToken,
@@ -296,9 +275,7 @@ describe('AuthService - Enhanced Tests', () => {
     it('should throw UnauthorizedException if refresh token is invalid', async () => {
       usersService.findByRefreshToken.mockResolvedValue(null);
 
-      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException if refresh token validation fails', async () => {
@@ -307,9 +284,7 @@ describe('AuthService - Enhanced Tests', () => {
       usersService.findByRefreshToken.mockResolvedValue(mockUser);
       usersService.validateRefreshToken.mockResolvedValue(false);
 
-      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -331,15 +306,11 @@ describe('AuthService - Enhanced Tests', () => {
       const mockUser = UserFactory.create({ email: forgotPasswordDto.email });
 
       usersService.findByEmail.mockResolvedValue(mockUser);
-      jest
-        .spyOn(service as any, 'generateResetToken')
-        .mockReturnValue('reset-token');
+      jest.spyOn(service as any, 'generateResetToken').mockReturnValue('reset-token');
 
       const result = await service.forgotPassword(forgotPasswordDto);
 
-      expect(usersService.findByEmail).toHaveBeenCalledWith(
-        forgotPasswordDto.email,
-      );
+      expect(usersService.findByEmail).toHaveBeenCalledWith(forgotPasswordDto.email);
       expect(usersService.updatePasswordResetToken).toHaveBeenCalledWith(
         mockUser.id,
         'reset-token',
@@ -372,9 +343,7 @@ describe('AuthService - Enhanced Tests', () => {
 
       usersService.findByEmail.mockResolvedValue(mockUser);
 
-      await expect(service.forgotPassword(forgotPasswordDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.forgotPassword(forgotPasswordDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should allow password reset after rate limit period', async () => {
@@ -384,9 +353,7 @@ describe('AuthService - Enhanced Tests', () => {
       });
 
       usersService.findByEmail.mockResolvedValue(mockUser);
-      jest
-        .spyOn(service as any, 'generateResetToken')
-        .mockReturnValue('reset-token');
+      jest.spyOn(service as any, 'generateResetToken').mockReturnValue('reset-token');
 
       const result = await service.forgotPassword(forgotPasswordDto);
 
@@ -409,16 +376,12 @@ describe('AuthService - Enhanced Tests', () => {
 
       const result = await service.resetPassword(resetPasswordDto);
 
-      expect(usersService.findByResetToken).toHaveBeenCalledWith(
-        resetPasswordDto.token,
-      );
+      expect(usersService.findByResetToken).toHaveBeenCalledWith(resetPasswordDto.token);
       expect(usersService.updatePassword).toHaveBeenCalledWith(
         mockUser.id,
         resetPasswordDto.newPassword,
       );
-      expect(usersService.clearPasswordResetToken).toHaveBeenCalledWith(
-        mockUser.id,
-      );
+      expect(usersService.clearPasswordResetToken).toHaveBeenCalledWith(mockUser.id);
       expect(emailService.sendPasswordResetSuccessEmail).toHaveBeenCalledWith(
         mockUser.email,
         mockUser.name,
@@ -430,9 +393,7 @@ describe('AuthService - Enhanced Tests', () => {
     it('should throw BadRequestException for invalid token', async () => {
       usersService.findByResetToken.mockResolvedValue(null);
 
-      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for expired token', async () => {
@@ -443,9 +404,7 @@ describe('AuthService - Enhanced Tests', () => {
 
       usersService.findByResetToken.mockResolvedValue(mockUser);
 
-      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -457,9 +416,7 @@ describe('AuthService - Enhanced Tests', () => {
 
       const result = await service.verifyEmail('valid-token');
 
-      expect(usersService.findByEmailVerificationToken).toHaveBeenCalledWith(
-        'valid-token',
-      );
+      expect(usersService.findByEmailVerificationToken).toHaveBeenCalledWith('valid-token');
       expect(usersService.verifyEmail).toHaveBeenCalledWith(mockUser.id);
       expect(result.message).toBe('Email successfully verified');
     });
@@ -478,9 +435,7 @@ describe('AuthService - Enhanced Tests', () => {
     it('should throw BadRequestException for invalid token', async () => {
       usersService.findByEmailVerificationToken.mockResolvedValue(null);
 
-      await expect(service.verifyEmail('invalid-token')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.verifyEmail('invalid-token')).rejects.toThrow(BadRequestException);
     });
   });
 

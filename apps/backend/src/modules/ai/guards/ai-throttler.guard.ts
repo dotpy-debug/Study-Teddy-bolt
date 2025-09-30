@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  ExecutionContext,
-  HttpStatus,
-  HttpException,
-} from '@nestjs/common';
+import { Injectable, ExecutionContext, HttpStatus, HttpException } from '@nestjs/common';
 import {
   ThrottlerGuard,
   ThrottlerException,
@@ -57,11 +52,8 @@ export class AIThrottlerGuard extends ThrottlerGuard {
     }
 
     // Fallback to IP-based tracking for anonymous requests
-    const ip = req.ips?.length
-      ? req.ips[0]
-      : req.ip || req.connection?.remoteAddress || 'unknown';
-    const userAgent =
-      req.get?.('user-agent') || req.headers?.['user-agent'] || 'unknown';
+    const ip = req.ips?.length ? req.ips[0] : req.ip || req.connection?.remoteAddress || 'unknown';
+    const userAgent = req.get?.('user-agent') || req.headers?.['user-agent'] || 'unknown';
     const userAgentHash = Buffer.from(userAgent).toString('base64').slice(0, 8);
 
     return `ai_ip_${ip}_${userAgentHash}`;

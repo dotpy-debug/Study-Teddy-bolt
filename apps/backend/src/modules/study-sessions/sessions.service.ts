@@ -23,20 +23,12 @@ export class SessionsService {
   constructor(private readonly sessionsRepository: SessionsRepository) {}
 
   async getSessions(userId: string, query?: SessionQueryDto) {
-    const { limit, offset, type, status, subjectId, fromDate, toDate } =
-      query || {};
+    const { limit, offset, type, status, subjectId, fromDate, toDate } = query || {};
 
-    this.logger.debug(
-      `Getting sessions for user ${userId} with filters:`,
-      query,
-    );
+    this.logger.debug(`Getting sessions for user ${userId} with filters:`, query);
 
     if (fromDate && toDate) {
-      return this.sessionsRepository.getSessionsByDateRange(
-        userId,
-        fromDate,
-        toDate,
-      );
+      return this.sessionsRepository.getSessionsByDateRange(userId, fromDate, toDate);
     }
 
     if (type) {
@@ -52,18 +44,13 @@ export class SessionsService {
 
   async getActiveSession(userId: string) {
     const session = await this.sessionsRepository.findActiveByUserId(userId);
-    this.logger.debug(
-      `Active session for user ${userId}:`,
-      session?.id || 'none',
-    );
+    this.logger.debug(`Active session for user ${userId}:`, session?.id || 'none');
     return session;
   }
 
   async getPausedSessions(userId: string) {
     const sessions = await this.sessionsRepository.findPausedByUserId(userId);
-    this.logger.debug(
-      `Found ${sessions.length} paused sessions for user ${userId}`,
-    );
+    this.logger.debug(`Found ${sessions.length} paused sessions for user ${userId}`);
     return sessions;
   }
 
@@ -91,9 +78,7 @@ export class SessionsService {
 
     const session = await this.sessionsRepository.create(sessionData);
 
-    this.logger.log(
-      `Started new ${createDto.type} session ${session.id} for user ${userId}`,
-    );
+    this.logger.log(`Started new ${createDto.type} session ${session.id} for user ${userId}`);
     return session;
   }
 
@@ -145,9 +130,8 @@ export class SessionsService {
 
     const endTime = new Date();
     const totalDuration =
-      Math.floor(
-        (endTime.getTime() - new Date(session.startTime).getTime()) / 1000,
-      ) - (session.pausedDuration || 0);
+      Math.floor((endTime.getTime() - new Date(session.startTime).getTime()) / 1000) -
+      (session.pausedDuration || 0);
 
     const updatedSession = await this.sessionsRepository.update(sessionId, {
       status: 'completed',
@@ -155,9 +139,7 @@ export class SessionsService {
       totalDuration: Math.max(0, totalDuration), // Ensure non-negative
     });
 
-    this.logger.log(
-      `Ended session ${sessionId} for user ${userId}. Duration: ${totalDuration}s`,
-    );
+    this.logger.log(`Ended session ${sessionId} for user ${userId}. Duration: ${totalDuration}s`);
     return updatedSession;
   }
 
@@ -165,9 +147,7 @@ export class SessionsService {
     const session = await this.validateSessionOwnership(userId, sessionId);
 
     if (session.status === 'completed' || session.status === 'abandoned') {
-      throw new BadRequestException(
-        'Session is already completed or abandoned',
-      );
+      throw new BadRequestException('Session is already completed or abandoned');
     }
 
     const updatedSession = await this.sessionsRepository.update(sessionId, {
@@ -179,17 +159,10 @@ export class SessionsService {
     return updatedSession;
   }
 
-  async updateSession(
-    userId: string,
-    sessionId: string,
-    updateDto: UpdateSessionDto,
-  ) {
+  async updateSession(userId: string, sessionId: string, updateDto: UpdateSessionDto) {
     await this.validateSessionOwnership(userId, sessionId);
 
-    const updatedSession = await this.sessionsRepository.update(
-      sessionId,
-      updateDto,
-    );
+    const updatedSession = await this.sessionsRepository.update(sessionId, updateDto);
 
     this.logger.debug(`Updated session ${sessionId} for user ${userId}`);
     return updatedSession;
@@ -199,9 +172,7 @@ export class SessionsService {
     const session = await this.validateSessionOwnership(userId, sessionId);
 
     if (session.status === 'active') {
-      throw new BadRequestException(
-        'Cannot delete an active session. Please end it first.',
-      );
+      throw new BadRequestException('Cannot delete an active session. Please end it first.');
     }
 
     const deletedSession = await this.sessionsRepository.delete(sessionId);
@@ -226,9 +197,8 @@ export class SessionsService {
     if (session.status === 'active') {
       const now = new Date();
       currentDuration =
-        Math.floor(
-          (now.getTime() - new Date(session.startTime).getTime()) / 1000,
-        ) - (session.pausedDuration || 0);
+        Math.floor((now.getTime() - new Date(session.startTime).getTime()) / 1000) -
+        (session.pausedDuration || 0);
     }
 
     return {
@@ -255,15 +225,9 @@ export class SessionsService {
         break;
       case 'custom':
         if (!fromDate || !toDate) {
-          throw new BadRequestException(
-            'fromDate and toDate are required for custom period',
-          );
+          throw new BadRequestException('fromDate and toDate are required for custom period');
         }
-        stats = await this.sessionsRepository.getUserSessionStats(
-          userId,
-          fromDate,
-          toDate,
-        );
+        stats = await this.sessionsRepository.getUserSessionStats(userId, fromDate, toDate);
         break;
       default:
         stats = await this.sessionsRepository.getWeeklyStats(userId);
@@ -273,9 +237,7 @@ export class SessionsService {
       period,
       ...stats,
       // Convert to more readable format
-      totalDurationFormatted: this.formatDuration(
-        Number(stats.totalDuration) || 0,
-      ),
+      totalDurationFormatted: this.formatDuration(Number(stats.totalDuration) || 0),
       avgDurationFormatted: this.formatDuration(Number(stats.avgDuration) || 0),
     };
   }
@@ -296,9 +258,7 @@ export class SessionsService {
     await this.validateSessionOwnership(userId, createDto.sessionId);
 
     // Check if analytics already exist
-    const existingAnalytics = await this.sessionsRepository.getAnalytics(
-      createDto.sessionId,
-    );
+    const existingAnalytics = await this.sessionsRepository.getAnalytics(createDto.sessionId);
     if (existingAnalytics) {
       throw new BadRequestException('Analytics already exist for this session');
     }

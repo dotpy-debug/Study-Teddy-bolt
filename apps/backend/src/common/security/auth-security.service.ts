@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import * as argon2 from 'argon2';
@@ -117,65 +112,29 @@ export class AuthSecurityService {
     this.passwordPolicy = {
       minLength: this.configService.get<number>('PASSWORD_MIN_LENGTH', 8),
       maxLength: this.configService.get<number>('PASSWORD_MAX_LENGTH', 128),
-      requireUppercase: this.configService.get<boolean>(
-        'PASSWORD_REQUIRE_UPPERCASE',
-        true,
-      ),
-      requireLowercase: this.configService.get<boolean>(
-        'PASSWORD_REQUIRE_LOWERCASE',
-        true,
-      ),
-      requireNumbers: this.configService.get<boolean>(
-        'PASSWORD_REQUIRE_NUMBERS',
-        true,
-      ),
-      requireSpecialChars: this.configService.get<boolean>(
-        'PASSWORD_REQUIRE_SPECIAL',
-        true,
-      ),
-      forbidCommonPasswords: this.configService.get<boolean>(
-        'PASSWORD_FORBID_COMMON',
-        true,
-      ),
-      forbidUserInfo: this.configService.get<boolean>(
-        'PASSWORD_FORBID_USER_INFO',
-        true,
-      ),
-      maxRepeatingChars: this.configService.get<number>(
-        'PASSWORD_MAX_REPEATING',
-        3,
-      ),
+      requireUppercase: this.configService.get<boolean>('PASSWORD_REQUIRE_UPPERCASE', true),
+      requireLowercase: this.configService.get<boolean>('PASSWORD_REQUIRE_LOWERCASE', true),
+      requireNumbers: this.configService.get<boolean>('PASSWORD_REQUIRE_NUMBERS', true),
+      requireSpecialChars: this.configService.get<boolean>('PASSWORD_REQUIRE_SPECIAL', true),
+      forbidCommonPasswords: this.configService.get<boolean>('PASSWORD_FORBID_COMMON', true),
+      forbidUserInfo: this.configService.get<boolean>('PASSWORD_FORBID_USER_INFO', true),
+      maxRepeatingChars: this.configService.get<number>('PASSWORD_MAX_REPEATING', 3),
       minAge: this.configService.get<number>('PASSWORD_MIN_AGE_HOURS', 24),
       historyCount: this.configService.get<number>('PASSWORD_HISTORY_COUNT', 5),
     };
 
     this.securitySettings = {
       maxLoginAttempts: this.configService.get<number>('MAX_LOGIN_ATTEMPTS', 5),
-      lockoutDuration: this.configService.get<number>(
-        'LOCKOUT_DURATION_MINUTES',
-        30,
-      ),
-      sessionTimeout: this.configService.get<number>(
-        'SESSION_TIMEOUT_MINUTES',
-        60,
-      ),
-      refreshTokenExpiry: this.configService.get<number>(
-        'REFRESH_TOKEN_EXPIRY_DAYS',
-        7,
-      ),
+      lockoutDuration: this.configService.get<number>('LOCKOUT_DURATION_MINUTES', 30),
+      sessionTimeout: this.configService.get<number>('SESSION_TIMEOUT_MINUTES', 60),
+      refreshTokenExpiry: this.configService.get<number>('REFRESH_TOKEN_EXPIRY_DAYS', 7),
       totpWindow: this.configService.get<number>('TOTP_WINDOW', 1),
-      requireEmailVerification: this.configService.get<boolean>(
-        'REQUIRE_EMAIL_VERIFICATION',
-        true,
-      ),
+      requireEmailVerification: this.configService.get<boolean>('REQUIRE_EMAIL_VERIFICATION', true),
       enableBruteForceProtection: this.configService.get<boolean>(
         'ENABLE_BRUTE_FORCE_PROTECTION',
         true,
       ),
-      enableDeviceTracking: this.configService.get<boolean>(
-        'ENABLE_DEVICE_TRACKING',
-        true,
-      ),
+      enableDeviceTracking: this.configService.get<boolean>('ENABLE_DEVICE_TRACKING', true),
       enableSuspiciousActivityDetection: this.configService.get<boolean>(
         'ENABLE_SUSPICIOUS_ACTIVITY_DETECTION',
         true,
@@ -199,17 +158,13 @@ export class AuthSecurityService {
 
     // Length validation
     if (password.length < this.passwordPolicy.minLength) {
-      errors.push(
-        `Password must be at least ${this.passwordPolicy.minLength} characters long`,
-      );
+      errors.push(`Password must be at least ${this.passwordPolicy.minLength} characters long`);
     } else if (password.length >= this.passwordPolicy.minLength) {
       score += 1;
     }
 
     if (password.length > this.passwordPolicy.maxLength) {
-      errors.push(
-        `Password must not exceed ${this.passwordPolicy.maxLength} characters`,
-      );
+      errors.push(`Password must not exceed ${this.passwordPolicy.maxLength} characters`);
     }
 
     // Character requirements
@@ -257,10 +212,7 @@ export class AuthSecurityService {
       ) {
         errors.push('Password cannot contain your email address');
       }
-      if (
-        userInfo.name &&
-        lowercasePassword.includes(userInfo.name.toLowerCase())
-      ) {
+      if (userInfo.name && lowercasePassword.includes(userInfo.name.toLowerCase())) {
         errors.push('Password cannot contain your name');
       }
     }
@@ -385,10 +337,7 @@ export class AuthSecurityService {
 
     // Generate backup codes
     const backupCodes = Array.from({ length: 10 }, () =>
-      this.generateSecureRandomString(
-        8,
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-      ),
+      this.generateSecureRandomString(8, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'),
     );
 
     return {
@@ -485,20 +434,15 @@ export class AuthSecurityService {
       (attempt) =>
         !attempt.success &&
         attempt.timestamp >
-          new Date(
-            Date.now() - this.securitySettings.lockoutDuration * 60 * 1000,
-          ),
+          new Date(Date.now() - this.securitySettings.lockoutDuration * 60 * 1000),
     );
 
     if (recentFailures.length >= this.securitySettings.maxLoginAttempts) {
-      this.logger.warn(
-        'Account locked due to excessive failed login attempts',
-        {
-          email: this.sanitizationService.sanitizeEmail(email),
-          ipAddress: this.sanitizationService.sanitizeIpAddress(ipAddress),
-          failedAttempts: recentFailures.length,
-        },
-      );
+      this.logger.warn('Account locked due to excessive failed login attempts', {
+        email: this.sanitizationService.sanitizeEmail(email),
+        ipAddress: this.sanitizationService.sanitizeIpAddress(ipAddress),
+        failedAttempts: recentFailures.length,
+      });
       return true;
     }
 
@@ -552,9 +496,7 @@ export class AuthSecurityService {
     const userAttempts = Array.from(this.loginAttempts.values())
       .flat()
       .filter(
-        (a) =>
-          a.email === attempt.email &&
-          a.timestamp > new Date(Date.now() - 60 * 60 * 1000),
+        (a) => a.email === attempt.email && a.timestamp > new Date(Date.now() - 60 * 60 * 1000),
       );
 
     const uniqueIPs = new Set(userAttempts.map((a) => a.ipAddress));
@@ -566,10 +508,7 @@ export class AuthSecurityService {
     // Check for unusual user agent
     const commonUserAgents = userAttempts.map((a) => a.userAgent);
     const isUnusualUserAgent = !commonUserAgents.some(
-      (ua) =>
-        ua &&
-        attempt.userAgent &&
-        this.calculateSimilarity(ua, attempt.userAgent) > 0.8,
+      (ua) => ua && attempt.userAgent && this.calculateSimilarity(ua, attempt.userAgent) > 0.8,
     );
 
     if (isUnusualUserAgent && commonUserAgents.length > 0) {
@@ -591,13 +530,9 @@ export class AuthSecurityService {
     const loginHour = attempt.timestamp.getHours();
     const userLoginHours = userAttempts.map((a) => a.timestamp.getHours());
     const averageLoginHour =
-      userLoginHours.reduce((sum, hour) => sum + hour, 0) /
-      userLoginHours.length;
+      userLoginHours.reduce((sum, hour) => sum + hour, 0) / userLoginHours.length;
 
-    if (
-      userLoginHours.length > 10 &&
-      Math.abs(loginHour - averageLoginHour) > 6
-    ) {
+    if (userLoginHours.length > 10 && Math.abs(loginHour - averageLoginHour) > 6) {
       reasons.push('Login at unusual time');
       riskScore += 15;
     }
@@ -607,9 +542,7 @@ export class AuthSecurityService {
     if (isSuspicious) {
       this.logger.warn('Suspicious login activity detected', {
         email: this.sanitizationService.sanitizeEmail(attempt.email),
-        ipAddress: this.sanitizationService.sanitizeIpAddress(
-          attempt.ipAddress,
-        ),
+        ipAddress: this.sanitizationService.sanitizeIpAddress(attempt.ipAddress),
         reasons,
         riskScore,
       });
@@ -621,11 +554,7 @@ export class AuthSecurityService {
   /**
    * Generate device fingerprint
    */
-  generateDeviceFingerprint(
-    userAgent: string,
-    ipAddress: string,
-    acceptLanguage?: string,
-  ): string {
+  generateDeviceFingerprint(userAgent: string, ipAddress: string, acceptLanguage?: string): string {
     const data = `${userAgent}|${ipAddress}|${acceptLanguage || ''}`;
     return crypto.createHash('sha256').update(data).digest('hex');
   }
@@ -658,8 +587,7 @@ export class AuthSecurityService {
     }
 
     // Check if session should be renewed (halfway through its lifetime)
-    const sessionLifetime =
-      session.expiresAt.getTime() - session.createdAt.getTime();
+    const sessionLifetime = session.expiresAt.getTime() - session.createdAt.getTime();
     const sessionAge = Date.now() - session.createdAt.getTime();
 
     if (sessionAge > sessionLifetime / 2) {

@@ -57,12 +57,7 @@ export class DatabaseService implements OnModuleDestroy {
     cacheKey?: string,
     cacheTTL: number = CACHE_TTL.MEDIUM,
   ): Promise<PaginationResult<T>> {
-    const {
-      page = 1,
-      limit = 20,
-      sortBy = 'created_at',
-      sortOrder = 'desc',
-    } = options;
+    const { page = 1, limit = 20, sortBy = 'created_at', sortOrder = 'desc' } = options;
 
     const offset = (page - 1) * limit;
 
@@ -72,8 +67,7 @@ export class DatabaseService implements OnModuleDestroy {
       : null;
 
     if (finalCacheKey) {
-      const cached =
-        await this.cacheService.get<PaginationResult<T>>(finalCacheKey);
+      const cached = await this.cacheService.get<PaginationResult<T>>(finalCacheKey);
       if (cached) {
         return cached;
       }
@@ -83,11 +77,7 @@ export class DatabaseService implements OnModuleDestroy {
       // Get total count
       const [totalResult] = await this.db
         .select({ count: count() })
-        .from(
-          queryBuilder._.selectedFields
-            ? queryBuilder.getSQL().from
-            : queryBuilder,
-        );
+        .from(queryBuilder._.selectedFields ? queryBuilder.getSQL().from : queryBuilder);
 
       const total = totalResult.count;
 
@@ -98,10 +88,7 @@ export class DatabaseService implements OnModuleDestroy {
           : schema.tasks[sortBy as keyof typeof schema.tasks];
       const orderBy = sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn);
 
-      const data = await queryBuilder
-        .orderBy(orderBy)
-        .limit(limit)
-        .offset(offset);
+      const data = await queryBuilder.orderBy(orderBy).limit(limit).offset(offset);
 
       const result: PaginationResult<T> = {
         data,
@@ -145,10 +132,7 @@ export class DatabaseService implements OnModuleDestroy {
           total: dbStats.total_connections,
           max: dbStats.max_connections,
           utilization:
-            (
-              (dbStats.total_connections / dbStats.max_connections) *
-              100
-            ).toFixed(2) + '%',
+            ((dbStats.total_connections / dbStats.max_connections) * 100).toFixed(2) + '%',
         },
         timestamp: dbStats.timestamp,
       };
@@ -167,9 +151,7 @@ export class DatabaseService implements OnModuleDestroy {
    */
   async analyzeQuery(query: string): Promise<any> {
     try {
-      const result = await this.connection.sql.unsafe(
-        `EXPLAIN (ANALYZE, BUFFERS) ${query}`,
-      );
+      const result = await this.connection.sql.unsafe(`EXPLAIN (ANALYZE, BUFFERS) ${query}`);
       return result;
     } catch (error) {
       this.logger.error('Query analysis failed:', error);
@@ -219,10 +201,7 @@ export class DatabaseService implements OnModuleDestroy {
   /**
    * Transaction wrapper with retry logic
    */
-  async transaction<T>(
-    fn: (tx: any) => Promise<T>,
-    maxRetries: number = 3,
-  ): Promise<T> {
+  async transaction<T>(fn: (tx: any) => Promise<T>, maxRetries: number = 3): Promise<T> {
     let lastError: Error;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {

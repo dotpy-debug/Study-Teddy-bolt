@@ -30,9 +30,7 @@ export class DashboardService {
         const completedTasks = await this.drizzleService.db
           .select({ count: sql<number>`count(*)` })
           .from(studyTasks)
-          .where(
-            and(eq(studyTasks.userId, userId), eq(studyTasks.completed, true)),
-          );
+          .where(and(eq(studyTasks.userId, userId), eq(studyTasks.completed, true)));
 
         // Get total study hours (from study sessions)
         const totalStudyTime = await this.drizzleService.db
@@ -50,22 +48,17 @@ export class DashboardService {
         const pendingTasks = await this.drizzleService.db
           .select({ count: sql<number>`count(*)` })
           .from(studyTasks)
-          .where(
-            and(eq(studyTasks.userId, userId), eq(studyTasks.completed, false)),
-          );
+          .where(and(eq(studyTasks.userId, userId), eq(studyTasks.completed, false)));
 
         return {
           totalTasks: totalTasks[0]?.count || 0,
           completedTasks: completedTasks[0]?.count || 0,
           pendingTasks: pendingTasks[0]?.count || 0,
-          totalStudyHours:
-            Math.round(((totalStudyTime[0]?.totalMinutes || 0) / 60) * 10) / 10,
+          totalStudyHours: Math.round(((totalStudyTime[0]?.totalMinutes || 0) / 60) * 10) / 10,
           totalAIChats: totalAIChats[0]?.count || 0,
           completionRate:
             totalTasks[0]?.count > 0
-              ? Math.round(
-                  (completedTasks[0]?.count / totalTasks[0]?.count) * 100,
-                )
+              ? Math.round((completedTasks[0]?.count / totalTasks[0]?.count) * 100)
               : 0,
         };
       },
@@ -101,9 +94,9 @@ export class DashboardService {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const uniqueDates = [
-          ...new Set(sessions.map((s) => new Date(s.date).toDateString())),
-        ].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+        const uniqueDates = [...new Set(sessions.map((s) => new Date(s.date).toDateString()))].sort(
+          (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+        );
 
         // Check if studied today or yesterday to start streak
         const latestStudyDate = new Date(uniqueDates[0]);
@@ -148,18 +141,12 @@ export class DashboardService {
 
     // Generate cache key with week identifier to ensure weekly cache invalidation
     const weekIdentifier = startOfWeek.toISOString().split('T')[0];
-    const cacheKey = this.cacheService.generateKey(
-      'dashboard_weekly',
-      userId,
-      weekIdentifier,
-    );
+    const cacheKey = this.cacheService.generateKey('dashboard_weekly', userId, weekIdentifier);
 
     return this.cacheService.warm(
       cacheKey,
       async () => {
-        this.logger.debug(
-          `Fetching weekly overview from database for user: ${userId}`,
-        );
+        this.logger.debug(`Fetching weekly overview from database for user: ${userId}`);
 
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
@@ -197,8 +184,7 @@ export class DashboardService {
           const dateStr = date.toDateString();
 
           const dayTasks = weeklyTasks.filter(
-            (task) =>
-              task.dueDate && new Date(task.dueDate).toDateString() === dateStr,
+            (task) => task.dueDate && new Date(task.dueDate).toDateString() === dateStr,
           );
 
           const daySessions = weeklySessions.filter(
@@ -226,11 +212,8 @@ export class DashboardService {
           totalTasks: weeklyTasks.length,
           completedTasks: weeklyTasks.filter((t) => t.completed).length,
           totalStudyHours:
-            Math.round(
-              (weeklySessions.reduce((sum, s) => sum + s.durationMinutes, 0) /
-                60) *
-                10,
-            ) / 10,
+            Math.round((weeklySessions.reduce((sum, s) => sum + s.durationMinutes, 0) / 60) * 10) /
+            10,
           dailyBreakdown: weeklyData,
         };
       },
@@ -241,22 +224,15 @@ export class DashboardService {
   async getActivity(userId: string, query?: any) {
     const { startDate, endDate, activityType } = query || {};
 
-    const start = startDate
-      ? new Date(startDate)
-      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
     const end = endDate ? new Date(endDate) : new Date();
 
-    const cacheKey = this.cacheService.generateKey(
-      'dashboard_activity',
-      userId,
-    );
+    const cacheKey = this.cacheService.generateKey('dashboard_activity', userId);
 
     return this.cacheService.warm(
       cacheKey,
       async () => {
-        this.logger.debug(
-          `Fetching activity data from database for user: ${userId}`,
-        );
+        this.logger.debug(`Fetching activity data from database for user: ${userId}`);
 
         // Get study sessions in date range
         const sessions = await this.drizzleService.db
@@ -300,20 +276,11 @@ export class DashboardService {
         while (current <= end) {
           const dateStr = current.toDateString();
 
-          const dayTasks = tasks.filter(
-            (t) => new Date(t.createdAt).toDateString() === dateStr,
-          );
-          const daySessions = sessions.filter(
-            (s) => new Date(s.date).toDateString() === dateStr,
-          );
-          const dayChats = chats.filter(
-            (c) => new Date(c.createdAt).toDateString() === dateStr,
-          );
+          const dayTasks = tasks.filter((t) => new Date(t.createdAt).toDateString() === dateStr);
+          const daySessions = sessions.filter((s) => new Date(s.date).toDateString() === dateStr);
+          const dayChats = chats.filter((c) => new Date(c.createdAt).toDateString() === dateStr);
 
-          const studyTime = daySessions.reduce(
-            (sum, s) => sum + s.durationMinutes,
-            0,
-          );
+          const studyTime = daySessions.reduce((sum, s) => sum + s.durationMinutes, 0);
           const completedTasks = dayTasks.filter((t) => t.completed).length;
 
           activities.push({
@@ -338,9 +305,7 @@ export class DashboardService {
           summary: {
             totalDays: activities.length,
             activeDays: activities.filter((a) => a.value > 0).length,
-            averageActivity:
-              activities.reduce((sum, a) => sum + a.value, 0) /
-              activities.length,
+            averageActivity: activities.reduce((sum, a) => sum + a.value, 0) / activities.length,
           },
         };
       },
@@ -354,9 +319,7 @@ export class DashboardService {
     return this.cacheService.warm(
       cacheKey,
       async () => {
-        this.logger.debug(
-          `Fetching goals data from database for user: ${userId}`,
-        );
+        this.logger.debug(`Fetching goals data from database for user: ${userId}`);
 
         // Get today's stats
         const today = new Date();
@@ -405,22 +368,12 @@ export class DashboardService {
         const weekTasks = await this.drizzleService.db
           .select()
           .from(studyTasks)
-          .where(
-            and(
-              eq(studyTasks.userId, userId),
-              gte(studyTasks.createdAt, startOfWeek),
-            ),
-          );
+          .where(and(eq(studyTasks.userId, userId), gte(studyTasks.createdAt, startOfWeek)));
 
         const weekSessions = await this.drizzleService.db
           .select()
           .from(studySessions)
-          .where(
-            and(
-              eq(studySessions.userId, userId),
-              gte(studySessions.date, startOfWeek),
-            ),
-          );
+          .where(and(eq(studySessions.userId, userId), gte(studySessions.date, startOfWeek)));
 
         return {
           dailyGoals: {
@@ -436,21 +389,13 @@ export class DashboardService {
           progress: {
             daily: {
               tasks: todayTasks.filter((t) => t.completed).length,
-              studyTime: todaySessions.reduce(
-                (sum, s) => sum + s.durationMinutes,
-                0,
-              ),
+              studyTime: todaySessions.reduce((sum, s) => sum + s.durationMinutes, 0),
               aiInteractions: todayChats.length,
             },
             weekly: {
               tasks: weekTasks.filter((t) => t.completed).length,
-              studyTime: weekSessions.reduce(
-                (sum, s) => sum + s.durationMinutes,
-                0,
-              ),
-              subjectsStudied: new Set(
-                weekTasks.map((t) => t.subject).filter(Boolean),
-              ).size,
+              studyTime: weekSessions.reduce((sum, s) => sum + s.durationMinutes, 0),
+              subjectsStudied: new Set(weekTasks.map((t) => t.subject).filter(Boolean)).size,
             },
           },
         };

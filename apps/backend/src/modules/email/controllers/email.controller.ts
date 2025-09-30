@@ -10,12 +10,7 @@ import {
   HttpException,
   Logger,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ResendService } from '../resend.service';
 import { EmailTrackingService } from '../services/email-tracking.service';
 import { RateLimitingService } from '../services/rate-limiting.service';
@@ -125,14 +120,9 @@ export class EmailController {
   // Specialized email endpoints
   @Post('welcome')
   @ApiOperation({ summary: 'Send welcome email' })
-  async sendWelcomeEmail(
-    @Body() data: { email: string; context: WelcomeEmailContext },
-  ) {
+  async sendWelcomeEmail(@Body() data: { email: string; context: WelcomeEmailContext }) {
     try {
-      const result = await this.resendService.sendWelcomeEmail(
-        data.email,
-        data.context,
-      );
+      const result = await this.resendService.sendWelcomeEmail(data.email, data.context);
       return { success: true, data: result };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -141,14 +131,9 @@ export class EmailController {
 
   @Post('verify-email')
   @ApiOperation({ summary: 'Send email verification' })
-  async sendVerificationEmail(
-    @Body() data: { email: string; context: VerificationEmailContext },
-  ) {
+  async sendVerificationEmail(@Body() data: { email: string; context: VerificationEmailContext }) {
     try {
-      const result = await this.resendService.sendVerificationEmail(
-        data.email,
-        data.context,
-      );
+      const result = await this.resendService.sendVerificationEmail(data.email, data.context);
       return { success: true, data: result };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -157,14 +142,9 @@ export class EmailController {
 
   @Post('password-reset')
   @ApiOperation({ summary: 'Send password reset email' })
-  async sendPasswordResetEmail(
-    @Body() data: { email: string; context: PasswordResetContext },
-  ) {
+  async sendPasswordResetEmail(@Body() data: { email: string; context: PasswordResetContext }) {
     try {
-      const result = await this.resendService.sendPasswordResetEmail(
-        data.email,
-        data.context,
-      );
+      const result = await this.resendService.sendPasswordResetEmail(data.email, data.context);
       return { success: true, data: result };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -173,14 +153,9 @@ export class EmailController {
 
   @Post('study-reminder')
   @ApiOperation({ summary: 'Send study reminder email' })
-  async sendStudyReminderEmail(
-    @Body() data: { email: string; context: StudyReminderContext },
-  ) {
+  async sendStudyReminderEmail(@Body() data: { email: string; context: StudyReminderContext }) {
     try {
-      const result = await this.resendService.sendStudyReminderEmail(
-        data.email,
-        data.context,
-      );
+      const result = await this.resendService.sendStudyReminderEmail(data.email, data.context);
       return { success: true, data: result };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -189,14 +164,9 @@ export class EmailController {
 
   @Post('task-deadline')
   @ApiOperation({ summary: 'Send task deadline notification' })
-  async sendTaskDeadlineEmail(
-    @Body() data: { email: string; context: TaskDeadlineContext },
-  ) {
+  async sendTaskDeadlineEmail(@Body() data: { email: string; context: TaskDeadlineContext }) {
     try {
-      const result = await this.resendService.sendTaskDeadlineEmail(
-        data.email,
-        data.context,
-      );
+      const result = await this.resendService.sendTaskDeadlineEmail(data.email, data.context);
       return { success: true, data: result };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -205,14 +175,9 @@ export class EmailController {
 
   @Post('achievement')
   @ApiOperation({ summary: 'Send achievement notification' })
-  async sendAchievementEmail(
-    @Body() data: { email: string; context: AchievementContext },
-  ) {
+  async sendAchievementEmail(@Body() data: { email: string; context: AchievementContext }) {
     try {
-      const result = await this.resendService.sendAchievementEmail(
-        data.email,
-        data.context,
-      );
+      const result = await this.resendService.sendAchievementEmail(data.email, data.context);
       return { success: true, data: result };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -221,14 +186,9 @@ export class EmailController {
 
   @Post('weekly-summary')
   @ApiOperation({ summary: 'Send weekly summary email' })
-  async sendWeeklySummaryEmail(
-    @Body() data: { email: string; context: WeeklySummaryContext },
-  ) {
+  async sendWeeklySummaryEmail(@Body() data: { email: string; context: WeeklySummaryContext }) {
     try {
-      const result = await this.resendService.sendWeeklySummaryEmail(
-        data.email,
-        data.context,
-      );
+      const result = await this.resendService.sendWeeklySummaryEmail(data.email, data.context);
       return { success: true, data: result };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -237,9 +197,7 @@ export class EmailController {
 
   @Post('focus-session')
   @ApiOperation({ summary: 'Send focus session summary email' })
-  async sendFocusSessionEmail(
-    @Body() data: { email: string; context: FocusSessionContext },
-  ) {
+  async sendFocusSessionEmail(@Body() data: { email: string; context: FocusSessionContext }) {
     try {
       const result = await this.resendService.sendFocusSessionSummaryEmail(
         data.email,
@@ -265,8 +223,7 @@ export class EmailController {
       // Return 1x1 transparent pixel
       return {
         success: true,
-        pixel:
-          'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+        pixel: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
       };
     } catch (error) {
       this.logger.error('Failed to track email open', error);
@@ -276,10 +233,7 @@ export class EmailController {
 
   @Get('track/click')
   @ApiOperation({ summary: 'Track email click and redirect' })
-  async trackEmailClick(
-    @Query('id') emailId: string,
-    @Query('url') url: string,
-  ) {
+  async trackEmailClick(@Query('id') emailId: string, @Query('url') url: string) {
     try {
       await this.trackingService.trackEmailClicked(emailId, url);
 
@@ -328,10 +282,7 @@ export class EmailController {
   // Statistics and monitoring endpoints
   @Get('stats')
   @ApiOperation({ summary: 'Get email statistics' })
-  async getEmailStats(
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
+  async getEmailStats(@Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
     try {
       const start = startDate ? new Date(startDate) : undefined;
       const end = endDate ? new Date(endDate) : undefined;
@@ -364,8 +315,7 @@ export class EmailController {
   @ApiOperation({ summary: 'Get domain verification status' })
   async getDomainStatus(@Param('domain') domain: string) {
     try {
-      const status =
-        await this.resendService.getDomainVerificationStatus(domain);
+      const status = await this.resendService.getDomainVerificationStatus(domain);
       return {
         success: true,
         data: status,
@@ -380,9 +330,7 @@ export class EmailController {
   @ApiOperation({ summary: 'Test email configuration' })
   async testEmailConfiguration(@Body() data: { email: string }) {
     try {
-      const result = await this.resendService.testEmailConfiguration(
-        data.email,
-      );
+      const result = await this.resendService.testEmailConfiguration(data.email);
       return {
         success: true,
         data: result,

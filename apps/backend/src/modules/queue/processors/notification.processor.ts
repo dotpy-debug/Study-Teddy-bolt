@@ -19,20 +19,10 @@ export class NotificationProcessor extends WorkerHost {
 
   async process(job: Job<NotificationJob>): Promise<any> {
     this.logger.debug(`Processing notification job ${job.id}`);
-    const {
-      userId,
-      type,
-      title,
-      message,
-      data = {},
-      channels,
-      priority,
-    } = job.data;
+    const { userId, type, title, message, data = {}, channels, priority } = job.data;
 
     try {
-      this.logger.log(
-        `Processing notification: ${type} for user ${userId} - ${title}`,
-      );
+      this.logger.log(`Processing notification: ${type} for user ${userId} - ${title}`);
 
       // Determine notification channels (default to in-app if not specified)
       const notificationChannels = channels || ['in-app'];
@@ -40,22 +30,10 @@ export class NotificationProcessor extends WorkerHost {
       // Process notification based on type
       switch (type) {
         case 'task_reminder':
-          await this.processTaskReminder(
-            userId,
-            title,
-            message,
-            data || {},
-            notificationChannels,
-          );
+          await this.processTaskReminder(userId, title, message, data || {}, notificationChannels);
           break;
         case 'study_reminder':
-          await this.processStudyReminder(
-            userId,
-            title,
-            message,
-            data || {},
-            notificationChannels,
-          );
+          await this.processStudyReminder(userId, title, message, data || {}, notificationChannels);
           break;
         case 'achievement_unlocked':
           await this.processAchievementNotification(
@@ -67,13 +45,7 @@ export class NotificationProcessor extends WorkerHost {
           );
           break;
         case 'weekly_summary':
-          await this.processWeeklySummary(
-            userId,
-            title,
-            message,
-            data || {},
-            notificationChannels,
-          );
+          await this.processWeeklySummary(userId, title, message, data || {}, notificationChannels);
           break;
         case 'system_announcement':
           await this.processSystemAnnouncement(
@@ -85,13 +57,7 @@ export class NotificationProcessor extends WorkerHost {
           );
           break;
         case 'friend_request':
-          await this.processFriendRequest(
-            userId,
-            title,
-            message,
-            data || {},
-            notificationChannels,
-          );
+          await this.processFriendRequest(userId, title, message, data || {}, notificationChannels);
           break;
         case 'study_group_invite':
           await this.processStudyGroupInvite(
@@ -113,9 +79,7 @@ export class NotificationProcessor extends WorkerHost {
           );
       }
 
-      this.logger.log(
-        `Notification ${type} sent successfully to user ${userId}`,
-      );
+      this.logger.log(`Notification ${type} sent successfully to user ${userId}`);
       return {
         success: true,
         userId,
@@ -126,10 +90,7 @@ export class NotificationProcessor extends WorkerHost {
         sentAt: new Date(),
       };
     } catch (error) {
-      this.logger.error(
-        `Failed to process notification ${type} for user ${userId}:`,
-        error,
-      );
+      this.logger.error(`Failed to process notification ${type} for user ${userId}:`, error);
       throw error;
     }
   }
@@ -189,9 +150,7 @@ export class NotificationProcessor extends WorkerHost {
     data: Record<string, any>,
     channels: string[],
   ): Promise<void> {
-    this.logger.debug(
-      `Processing achievement notification for user ${userId}: ${title}`,
-    );
+    this.logger.debug(`Processing achievement notification for user ${userId}: ${title}`);
 
     for (const channel of channels) {
       switch (channel) {
@@ -239,9 +198,7 @@ export class NotificationProcessor extends WorkerHost {
     data: Record<string, any>,
     channels: string[],
   ): Promise<void> {
-    this.logger.debug(
-      `Processing system announcement for user ${userId}: ${title}`,
-    );
+    this.logger.debug(`Processing system announcement for user ${userId}: ${title}`);
 
     for (const channel of channels) {
       switch (channel) {
@@ -289,9 +246,7 @@ export class NotificationProcessor extends WorkerHost {
     data: Record<string, any>,
     channels: string[],
   ): Promise<void> {
-    this.logger.debug(
-      `Processing study group invite for user ${userId}: ${title}`,
-    );
+    this.logger.debug(`Processing study group invite for user ${userId}: ${title}`);
 
     for (const channel of channels) {
       switch (channel) {
@@ -316,9 +271,7 @@ export class NotificationProcessor extends WorkerHost {
     data: Record<string, any>,
     channels: string[],
   ): Promise<void> {
-    this.logger.debug(
-      `Processing generic notification ${type} for user ${userId}: ${title}`,
-    );
+    this.logger.debug(`Processing generic notification ${type} for user ${userId}: ${title}`);
 
     for (const channel of channels) {
       switch (channel) {
@@ -361,9 +314,7 @@ export class NotificationProcessor extends WorkerHost {
     message: string,
     data: Record<string, any>,
   ): Promise<void> {
-    this.logger.debug(
-      `Sending in-app notification to user ${userId}: ${title}`,
-    );
+    this.logger.debug(`Sending in-app notification to user ${userId}: ${title}`);
     // Placeholder: would store notification in database for user to see in app
   }
 

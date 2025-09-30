@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
@@ -75,20 +70,11 @@ export class MFAService {
       issuer: this.configService.get<string>('MFA_ISSUER', 'StudyTeddy'),
       appName: this.configService.get<string>('MFA_APP_NAME', 'StudyTeddy'),
       totpWindow: this.configService.get<number>('MFA_TOTP_WINDOW', 1),
-      backupCodeLength: this.configService.get<number>(
-        'MFA_BACKUP_CODE_LENGTH',
-        8,
-      ),
-      backupCodeCount: this.configService.get<number>(
-        'MFA_BACKUP_CODE_COUNT',
-        10,
-      ),
+      backupCodeLength: this.configService.get<number>('MFA_BACKUP_CODE_LENGTH', 8),
+      backupCodeCount: this.configService.get<number>('MFA_BACKUP_CODE_COUNT', 10),
       enableSMS: this.configService.get<boolean>('MFA_ENABLE_SMS', false),
       enableEmail: this.configService.get<boolean>('MFA_ENABLE_EMAIL', true),
-      trustedDeviceDuration: this.configService.get<number>(
-        'MFA_TRUSTED_DEVICE_DURATION_DAYS',
-        30,
-      ),
+      trustedDeviceDuration: this.configService.get<number>('MFA_TRUSTED_DEVICE_DURATION_DAYS', 30),
     };
   }
 
@@ -219,10 +205,7 @@ export class MFAService {
     try {
       for (let i = 0; i < hashedCodes.length; i++) {
         if (hashedCodes[i]) {
-          const isValid = await this.authSecurityService.verifyPassword(
-            code,
-            hashedCodes[i],
-          );
+          const isValid = await this.authSecurityService.verifyPassword(code, hashedCodes[i]);
           if (isValid) {
             this.logger.log('Backup code used for MFA', {
               userId,
@@ -367,9 +350,7 @@ export class MFAService {
       switch (challenge.type) {
         case 'totp':
           if (!mfaSecret) {
-            throw new BadRequestException(
-              'MFA secret is required for TOTP verification',
-            );
+            throw new BadRequestException('MFA secret is required for TOTP verification');
           }
 
           const isValidTOTP = await this.verifyTOTP(mfaSecret, code);
@@ -382,18 +363,13 @@ export class MFAService {
           } else {
             // Try backup codes if TOTP fails
             if (backupCodes && backupCodes.length > 0) {
-              const backupResult = await this.verifyBackupCode(
-                challenge.userId,
-                code,
-                backupCodes,
-              );
+              const backupResult = await this.verifyBackupCode(challenge.userId, code, backupCodes);
               if (backupResult.isValid) {
                 verificationResult = {
                   isValid: true,
                   method: 'backup_code',
                   usedBackupCode: backupResult.usedCodeIndex,
-                  remainingBackupCodes:
-                    backupCodes.filter((c) => c !== null).length - 1,
+                  remainingBackupCodes: backupCodes.filter((c) => c !== null).length - 1,
                 };
               } else {
                 verificationResult = { isValid: false, method: 'totp' };
@@ -445,10 +421,7 @@ export class MFAService {
         error: error.message,
       });
 
-      if (
-        error instanceof UnauthorizedException ||
-        error instanceof BadRequestException
-      ) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
         throw error;
       }
 
@@ -503,10 +476,7 @@ export class MFAService {
   /**
    * Check if device is trusted
    */
-  async isDeviceTrusted(
-    userId: string,
-    deviceFingerprint: string,
-  ): Promise<boolean> {
+  async isDeviceTrusted(userId: string, deviceFingerprint: string): Promise<boolean> {
     try {
       const deviceKey = this.getTrustedDeviceKey(userId, deviceFingerprint);
       const deviceData = await this.redisService.get(deviceKey);
@@ -542,10 +512,7 @@ export class MFAService {
   /**
    * Revoke device trust
    */
-  async revokeDeviceTrust(
-    userId: string,
-    deviceFingerprint?: string,
-  ): Promise<number> {
+  async revokeDeviceTrust(userId: string, deviceFingerprint?: string): Promise<number> {
     try {
       if (deviceFingerprint) {
         // Revoke specific device
@@ -609,9 +576,7 @@ export class MFAService {
         }
       }
 
-      return devices.sort(
-        (a, b) => b.lastUsed.getTime() - a.lastUsed.getTime(),
-      );
+      return devices.sort((a, b) => b.lastUsed.getTime() - a.lastUsed.getTime());
     } catch (error) {
       this.logger.error('Failed to get trusted devices', {
         userId,
@@ -645,10 +610,7 @@ export class MFAService {
     return `mfa_challenge:${challengeId}`;
   }
 
-  private getTrustedDeviceKey(
-    userId: string,
-    deviceFingerprint: string,
-  ): string {
+  private getTrustedDeviceKey(userId: string, deviceFingerprint: string): string {
     return `trusted_device:${userId}:${deviceFingerprint}`;
   }
 

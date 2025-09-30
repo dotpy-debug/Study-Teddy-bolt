@@ -38,15 +38,9 @@ export class SecurityMiddleware implements NestMiddleware {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader(
-      'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains',
-    );
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader(
-      'Permissions-Policy',
-      'geolocation=(), microphone=(), camera=()',
-    );
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
     // Remove server information
     res.removeHeader('X-Powered-By');
@@ -82,12 +76,7 @@ export class SecurityMiddleware implements NestMiddleware {
     ];
 
     // Path traversal patterns
-    const pathTraversalPatterns = [
-      /\.\.\//,
-      /\.\.\\/,
-      /%2e%2e%2f/i,
-      /%2e%2e%5c/i,
-    ];
+    const pathTraversalPatterns = [/\.\.\//, /\.\.\\/, /%2e%2e%2f/i, /%2e%2e%5c/i];
 
     // Command injection patterns
     const commandInjectionPatterns = [
@@ -107,9 +96,7 @@ export class SecurityMiddleware implements NestMiddleware {
     // Check URL, User-Agent, and request body
     const targets = [url, userAgent, body];
 
-    return targets.some((target) =>
-      allPatterns.some((pattern) => pattern.test(target)),
-    );
+    return targets.some((target) => allPatterns.some((pattern) => pattern.test(target)));
   }
 
   private logSuspiciousActivity(req: Request) {

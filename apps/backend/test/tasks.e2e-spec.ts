@@ -17,13 +17,11 @@ describe('TasksController (e2e)', () => {
     await app.init();
 
     // Create a test user and get access token
-    const registerResponse = await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({
-        name: 'Task Test User',
-        email: 'tasktest@example.com',
-        password: 'password123',
-      });
+    const registerResponse = await request(app.getHttpServer()).post('/auth/register').send({
+      name: 'Task Test User',
+      email: 'tasktest@example.com',
+      password: 'password123',
+    });
 
     accessToken = registerResponse.body.access_token;
     userId = registerResponse.body.user.id;
@@ -262,9 +260,7 @@ describe('TasksController (e2e)', () => {
     });
 
     it('should return 401 without authentication', () => {
-      return request(app.getHttpServer())
-        .delete(`/tasks/${taskId}`)
-        .expect(401);
+      return request(app.getHttpServer()).delete(`/tasks/${taskId}`).expect(401);
     });
   });
 
@@ -304,15 +300,11 @@ describe('TasksController (e2e)', () => {
         .expect((res) => {
           expect(Array.isArray(res.body)).toBe(true);
           // Should contain the task due today
-          const todayTask = res.body.find(
-            (task: any) => task.title === 'Today Task',
-          );
+          const todayTask = res.body.find((task: any) => task.title === 'Today Task');
           expect(todayTask).toBeDefined();
 
           // Should not contain the task due tomorrow
-          const tomorrowTask = res.body.find(
-            (task: any) => task.title === 'Tomorrow Task',
-          );
+          const tomorrowTask = res.body.find((task: any) => task.title === 'Tomorrow Task');
           expect(tomorrowTask).toBeUndefined();
         });
     });

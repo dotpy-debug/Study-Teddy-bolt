@@ -49,10 +49,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
   private readonly logger = new Logger(ComprehensiveSecurityMiddleware.name);
   private readonly config: SecurityMiddlewareConfig;
   private readonly blockedIPs: Set<string> = new Set();
-  private readonly suspiciousIPs: Map<
-    string,
-    { count: number; lastSeen: Date }
-  > = new Map();
+  private readonly suspiciousIPs: Map<string, { count: number; lastSeen: Date }> = new Map();
 
   constructor(
     private readonly configService: ConfigService,
@@ -80,10 +77,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
 
       // Step 1: IP-based security checks
       if (this.config.enableIPBlocking) {
-        const ipCheckResult = await this.performIPSecurityChecks(
-          clientInfo.ipAddress,
-          req,
-        );
+        const ipCheckResult = await this.performIPSecurityChecks(clientInfo.ipAddress, req);
         if (ipCheckResult.blocked) {
           return this.blockRequest(
             req,
@@ -113,11 +107,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
       // Step 4: Rate limiting
       if (this.config.enableRateLimiting) {
         try {
-          await this.rateLimitingService.enforceRateLimit(
-            req.path,
-            clientInfo.identifier,
-            req,
-          );
+          await this.rateLimitingService.enforceRateLimit(req.path, clientInfo.identifier, req);
         } catch (error) {
           return this.handleRateLimitExceeded(req, res, error);
         }
@@ -170,8 +160,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
       }
 
       // Step 8: Generate device fingerprint
-      req.securityContext.deviceFingerprint =
-        this.generateDeviceFingerprint(clientInfo);
+      req.securityContext.deviceFingerprint = this.generateDeviceFingerprint(clientInfo);
 
       // Step 9: Set security response headers
       this.setSecurityResponseHeaders(res, req.securityContext);
@@ -179,8 +168,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
       // Step 10: Log security event if high risk
       if (req.securityContext.riskScore > 50) {
         await this.securityLogger.logSecurityEvent({
-          level:
-            req.securityContext.threatLevel === 'critical' ? 'error' : 'warn',
+          level: req.securityContext.threatLevel === 'critical' ? 'error' : 'warn',
           category: 'network_security',
           event: 'high_risk_request',
           description: `High risk request detected (score: ${req.securityContext.riskScore})`,
@@ -238,50 +226,26 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
 
   private initializeConfig(): SecurityMiddlewareConfig {
     return {
-      enableRateLimiting: this.configService.get<boolean>(
-        'SECURITY_RATE_LIMITING',
-        true,
-      ),
-      enableInputSanitization: this.configService.get<boolean>(
-        'SECURITY_INPUT_SANITIZATION',
-        true,
-      ),
-      enableSecurityLogging: this.configService.get<boolean>(
-        'SECURITY_LOGGING',
-        true,
-      ),
+      enableRateLimiting: this.configService.get<boolean>('SECURITY_RATE_LIMITING', true),
+      enableInputSanitization: this.configService.get<boolean>('SECURITY_INPUT_SANITIZATION', true),
+      enableSecurityLogging: this.configService.get<boolean>('SECURITY_LOGGING', true),
       enableSuspiciousActivityDetection: this.configService.get<boolean>(
         'SECURITY_SUSPICIOUS_DETECTION',
         true,
       ),
-      enableIPBlocking: this.configService.get<boolean>(
-        'SECURITY_IP_BLOCKING',
-        true,
-      ),
+      enableIPBlocking: this.configService.get<boolean>('SECURITY_IP_BLOCKING', true),
       enableUserAgentValidation: this.configService.get<boolean>(
         'SECURITY_USER_AGENT_VALIDATION',
         true,
       ),
-      enableRequestSizeLimit: this.configService.get<boolean>(
-        'SECURITY_REQUEST_SIZE_LIMIT',
-        true,
-      ),
-      maxRequestSize: this.configService.get<number>(
-        'SECURITY_MAX_REQUEST_SIZE',
-        1024 * 1024,
-      ), // 1MB
+      enableRequestSizeLimit: this.configService.get<boolean>('SECURITY_REQUEST_SIZE_LIMIT', true),
+      maxRequestSize: this.configService.get<number>('SECURITY_MAX_REQUEST_SIZE', 1024 * 1024), // 1MB
       enableSlowLorisProtection: this.configService.get<boolean>(
         'SECURITY_SLOWLORIS_PROTECTION',
         true,
       ),
-      requestTimeoutMs: this.configService.get<number>(
-        'SECURITY_REQUEST_TIMEOUT',
-        30000,
-      ), // 30 seconds
-      enableCSRFProtection: this.configService.get<boolean>(
-        'SECURITY_CSRF_PROTECTION',
-        true,
-      ),
+      requestTimeoutMs: this.configService.get<number>('SECURITY_REQUEST_TIMEOUT', 30000), // 30 seconds
+      enableCSRFProtection: this.configService.get<boolean>('SECURITY_CSRF_PROTECTION', true),
       trustedProxies: this.configService
         .get<string>('SECURITY_TRUSTED_PROXIES', '')
         .split(',')
@@ -327,16 +291,12 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
       }
     }
 
-    return (
-      req.connection?.remoteAddress || req.socket?.remoteAddress || 'unknown'
-    );
+    return req.connection?.remoteAddress || req.socket?.remoteAddress || 'unknown';
   }
 
   private getRealClientIP(req: Request): string {
     // Similar to getClientIP but less strict for internal tracking
-    return (
-      req.connection?.remoteAddress || req.socket?.remoteAddress || 'unknown'
-    );
+    return req.connection?.remoteAddress || req.socket?.remoteAddress || 'unknown';
   }
 
   private isValidIP(ip: string): boolean {
@@ -482,13 +442,12 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
   private async sanitizeRequestInputs(req: Request): Promise<void> {
     // Sanitize body
     if (req.body && typeof req.body === 'object') {
-      req.securityContext!.sanitizedBody =
-        this.sanitizationService.sanitizeObject(req.body, {
-          textFields: ['title', 'description', 'content', 'name', 'note'],
-          htmlFields: ['htmlContent', 'richText'],
-          emailFields: ['email', 'contactEmail'],
-          urlFields: ['website', 'url', 'link'],
-        });
+      req.securityContext!.sanitizedBody = this.sanitizationService.sanitizeObject(req.body, {
+        textFields: ['title', 'description', 'content', 'name', 'note'],
+        htmlFields: ['htmlContent', 'richText'],
+        emailFields: ['email', 'contactEmail'],
+        urlFields: ['website', 'url', 'link'],
+      });
     }
 
     // Sanitize query parameters
@@ -496,8 +455,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
       req.securityContext!.sanitizedQuery = {};
       for (const [key, value] of Object.entries(req.query)) {
         if (typeof value === 'string') {
-          req.securityContext!.sanitizedQuery[key] =
-            this.sanitizationService.sanitizeText(value);
+          req.securityContext!.sanitizedQuery[key] = this.sanitizationService.sanitizeText(value);
         } else {
           req.securityContext!.sanitizedQuery[key] = value;
         }
@@ -509,8 +467,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
       req.securityContext!.sanitizedParams = {};
       for (const [key, value] of Object.entries(req.params)) {
         if (typeof value === 'string') {
-          req.securityContext!.sanitizedParams[key] =
-            this.sanitizationService.sanitizeText(value);
+          req.securityContext!.sanitizedParams[key] = this.sanitizationService.sanitizeText(value);
         } else {
           req.securityContext!.sanitizedParams[key] = value;
         }
@@ -566,14 +523,12 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
     }
 
     // Check request headers for suspicious patterns
-    const suspiciousHeaders = Object.entries(req.headers).filter(
-      ([key, value]) => {
-        if (typeof value === 'string') {
-          return /<script|javascript:|vbscript:|onload=|onerror=/i.test(value);
-        }
-        return false;
-      },
-    );
+    const suspiciousHeaders = Object.entries(req.headers).filter(([key, value]) => {
+      if (typeof value === 'string') {
+        return /<script|javascript:|vbscript:|onload=|onerror=/i.test(value);
+      }
+      return false;
+    });
 
     if (suspiciousHeaders.length > 0) {
       reasons.push('malicious_headers');
@@ -603,9 +558,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
 
     // Check for CSRF token in headers or body
     const token =
-      req.headers['x-csrf-token'] ||
-      req.headers['x-xsrf-token'] ||
-      (req.body && req.body._csrf);
+      req.headers['x-csrf-token'] || req.headers['x-xsrf-token'] || (req.body && req.body._csrf);
 
     if (!token) {
       return { valid: false, reason: 'Missing CSRF token' };
@@ -627,33 +580,22 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
     );
   }
 
-  private calculateThreatLevel(
-    riskScore: number,
-  ): 'low' | 'medium' | 'high' | 'critical' {
+  private calculateThreatLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {
     if (riskScore >= 80) return 'critical';
     if (riskScore >= 50) return 'high';
     if (riskScore >= 25) return 'medium';
     return 'low';
   }
 
-  private setSecurityResponseHeaders(
-    res: Response,
-    securityContext: any,
-  ): void {
+  private setSecurityResponseHeaders(res: Response, securityContext: any): void {
     // Add security context headers (for debugging in non-production)
     if (this.configService.get<string>('NODE_ENV') !== 'production') {
-      res.setHeader(
-        'X-Security-Risk-Score',
-        securityContext.riskScore.toString(),
-      );
+      res.setHeader('X-Security-Risk-Score', securityContext.riskScore.toString());
       res.setHeader('X-Security-Threat-Level', securityContext.threatLevel);
     }
 
     // Add request ID for tracking
-    res.setHeader(
-      'X-Request-ID',
-      `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    );
+    res.setHeader('X-Request-ID', `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   }
 
   private sanitizeHeaders(headers: any): any {
@@ -667,11 +609,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
     return sanitized;
   }
 
-  private async blockRequest(
-    req: Request,
-    res: Response,
-    reason: string,
-  ): Promise<void> {
+  private async blockRequest(req: Request, res: Response, reason: string): Promise<void> {
     const clientIP = this.getClientIP(req);
 
     // Log blocked request
@@ -704,11 +642,7 @@ export class ComprehensiveSecurityMiddleware implements NestMiddleware {
     });
   }
 
-  private async handleRateLimitExceeded(
-    req: Request,
-    res: Response,
-    error: any,
-  ): Promise<void> {
+  private async handleRateLimitExceeded(req: Request, res: Response, error: any): Promise<void> {
     const clientIP = this.getClientIP(req);
 
     await this.securityLogger.logRateLimitEvent('rate_limit_exceeded', {

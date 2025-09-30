@@ -81,10 +81,7 @@ export class SecurityGuard implements CanActivate {
       });
 
       // Check role requirements
-      if (
-        securityContext.requiredRoles &&
-        securityContext.requiredRoles.length > 0
-      ) {
+      if (securityContext.requiredRoles && securityContext.requiredRoles.length > 0) {
         const hasRequiredRole = securityContext.requiredRoles.some((role) =>
           userContext.roles.includes(role),
         );
@@ -103,10 +100,7 @@ export class SecurityGuard implements CanActivate {
       }
 
       // Check permission requirements
-      if (
-        securityContext.requiredPermissions &&
-        securityContext.requiredPermissions.length > 0
-      ) {
+      if (securityContext.requiredPermissions && securityContext.requiredPermissions.length > 0) {
         for (const permission of securityContext.requiredPermissions) {
           const accessResult = this.rbacService.canAccessResource({
             user: userContext,
@@ -127,9 +121,7 @@ export class SecurityGuard implements CanActivate {
               requiredPermission: permission,
               userPermissions: userContext.permissions,
             });
-            throw new ForbiddenException(
-              accessResult.reason || 'Access denied',
-            );
+            throw new ForbiddenException(accessResult.reason || 'Access denied');
           }
         }
       }
@@ -188,10 +180,7 @@ export class SecurityGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      if (
-        error instanceof UnauthorizedException ||
-        error instanceof ForbiddenException
-      ) {
+      if (error instanceof UnauthorizedException || error instanceof ForbiddenException) {
         throw error;
       }
 
@@ -215,14 +204,9 @@ export class SecurityGuard implements CanActivate {
     }
   }
 
-  private getSecurityContext(
-    handler: Function,
-    classTarget: Function,
-  ): SecurityGuardContext {
-    const handlerContext =
-      this.reflector.get<SecurityGuardContext>('security', handler) || {};
-    const classContext =
-      this.reflector.get<SecurityGuardContext>('security', classTarget) || {};
+  private getSecurityContext(handler: Function, classTarget: Function): SecurityGuardContext {
+    const handlerContext = this.reflector.get<SecurityGuardContext>('security', handler) || {};
+    const classContext = this.reflector.get<SecurityGuardContext>('security', classTarget) || {};
 
     // Merge class and handler contexts (handler takes precedence)
     return {
@@ -248,10 +232,7 @@ export class SecurityGuard implements CanActivate {
     return 'unknown';
   }
 
-  private async checkMFAVerification(
-    request: Request,
-    user: any,
-  ): Promise<boolean> {
+  private async checkMFAVerification(request: Request, user: any): Promise<boolean> {
     // Check if MFA is enabled for the user
     if (!user.mfaEnabled) {
       return true; // MFA not enabled, so verification not required
@@ -262,19 +243,14 @@ export class SecurityGuard implements CanActivate {
     if (sessionData) {
       // Verify that MFA was completed for this session
       // This would be tracked in the session security service
-      const session = await this.sessionSecurityService.validateSession(
-        sessionData as string,
-      );
+      const session = await this.sessionSecurityService.validateSession(sessionData as string);
       return session.session?.metadata?.mfaVerified === true;
     }
 
     return false;
   }
 
-  private async checkTrustedDevice(
-    request: Request,
-    user: any,
-  ): Promise<boolean> {
+  private async checkTrustedDevice(request: Request, user: any): Promise<boolean> {
     const deviceFingerprint = request.securityContext?.deviceFingerprint;
     if (!deviceFingerprint) {
       return false;
@@ -305,11 +281,7 @@ export class SecurityGuard implements CanActivate {
 
 // Security decorators
 export const Security = (context: SecurityGuardContext) => {
-  return (
-    target: any,
-    propertyKey?: string,
-    descriptor?: PropertyDescriptor,
-  ) => {
+  return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
     if (propertyKey) {
       // Method decorator
       Reflect.defineMetadata('security', context, descriptor!.value);
@@ -323,21 +295,17 @@ export const Security = (context: SecurityGuardContext) => {
 export const RequirePermissions = (...permissions: Permission[]) =>
   Security({ requiredPermissions: permissions });
 
-export const RequireRoles = (...roles: Role[]) =>
-  Security({ requiredRoles: roles });
+export const RequireRoles = (...roles: Role[]) => Security({ requiredRoles: roles });
 
 export const RequireMFA = () => Security({ requireMFA: true });
 
-export const RequireEmailVerification = () =>
-  Security({ requireEmailVerification: true });
+export const RequireEmailVerification = () => Security({ requireEmailVerification: true });
 
-export const RequireTrustedDevice = () =>
-  Security({ requireTrustedDevice: true });
+export const RequireTrustedDevice = () => Security({ requireTrustedDevice: true });
 
 export const AllowAnonymous = () => Security({ allowAnonymous: true });
 
-export const RiskThreshold = (threshold: number) =>
-  Security({ riskThreshold: threshold });
+export const RiskThreshold = (threshold: number) => Security({ riskThreshold: threshold });
 
 export const AdminOnly = () =>
   Security({

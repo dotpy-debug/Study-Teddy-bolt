@@ -1,16 +1,9 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SubjectsRepository } from './subjects.repository';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { QuerySubjectsDto } from './dto/query-subjects.dto';
-import {
-  SubjectAnalyticsQueryDto,
-  SubjectAnalyticsResponse,
-} from './dto/subject-analytics.dto';
+import { SubjectAnalyticsQueryDto, SubjectAnalyticsResponse } from './dto/subject-analytics.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -86,10 +79,7 @@ export class SubjectsService {
     await this.findOne(userId, subjectId);
 
     // Get metrics
-    const metrics = await this.subjectsRepository.getSubjectAnalytics(
-      subjectId,
-      query,
-    );
+    const metrics = await this.subjectsRepository.getSubjectAnalytics(subjectId, query);
 
     // Get daily focus time data
     const { startDate, endDate, window = 'week' } = query;
@@ -116,11 +106,7 @@ export class SubjectsService {
       }
     }
 
-    const dailyFocusTime = await this.subjectsRepository.getDailyFocusTime(
-      subjectId,
-      start,
-      end,
-    );
+    const dailyFocusTime = await this.subjectsRepository.getDailyFocusTime(subjectId, start, end);
 
     // Generate weekly completion data (mock for now - would need more complex queries)
     const weeklyCompletion = [
@@ -137,16 +123,12 @@ export class SubjectsService {
     ];
 
     // Calculate week-over-week comparison
-    const thisWeekMinutes = dailyFocusTime
-      .slice(-7)
-      .reduce((sum, day) => sum + day.minutes, 0);
+    const thisWeekMinutes = dailyFocusTime.slice(-7).reduce((sum, day) => sum + day.minutes, 0);
     const lastWeekMinutes = dailyFocusTime
       .slice(-14, -7)
       .reduce((sum, day) => sum + day.minutes, 0);
     const weeklyChange =
-      lastWeekMinutes > 0
-        ? ((thisWeekMinutes - lastWeekMinutes) / lastWeekMinutes) * 100
-        : 0;
+      lastWeekMinutes > 0 ? ((thisWeekMinutes - lastWeekMinutes) / lastWeekMinutes) * 100 : 0;
 
     return {
       metrics,

@@ -10,11 +10,7 @@ import { CacheModule } from '../../common/cache/cache.module';
 import { DrizzleService } from '../../db/drizzle.service';
 
 @Module({
-  imports: [
-    forwardRef(() => NotificationsModule),
-    PerformanceModule,
-    CacheModule,
-  ],
+  imports: [forwardRef(() => NotificationsModule), PerformanceModule, CacheModule],
   controllers: [TasksController, SubtasksController],
   providers: [TasksService, SubtasksService, TaskParserService, DrizzleService],
   exports: [TasksService, SubtasksService, TaskParserService],

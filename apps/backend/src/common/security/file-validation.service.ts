@@ -201,10 +201,7 @@ export class FileValidationService {
   /**
    * Validate file size
    */
-  private validateFileSize(
-    file: MulterFile,
-    config: FileValidationConfig,
-  ): FileValidationResult {
+  private validateFileSize(file: MulterFile, config: FileValidationConfig): FileValidationResult {
     if (file.size > config.maxSize) {
       return {
         isValid: false,
@@ -218,10 +215,7 @@ export class FileValidationService {
   /**
    * Validate MIME type
    */
-  private validateMimeType(
-    file: MulterFile,
-    config: FileValidationConfig,
-  ): FileValidationResult {
+  private validateMimeType(file: MulterFile, config: FileValidationConfig): FileValidationResult {
     if (!config.allowedMimeTypes.includes(file.mimetype)) {
       return {
         isValid: false,
@@ -311,11 +305,7 @@ export class FileValidationService {
    * Scan for malware patterns
    */
   private scanForMalware(file: MulterFile): FileValidationResult {
-    const content = file.buffer.toString(
-      'utf8',
-      0,
-      Math.min(file.buffer.length, 10000),
-    );
+    const content = file.buffer.toString('utf8', 0, Math.min(file.buffer.length, 10000));
 
     // Malicious patterns to detect
     const maliciousPatterns = [
@@ -345,12 +335,9 @@ export class FileValidationService {
 
     for (const pattern of maliciousPatterns) {
       if (pattern.test(content)) {
-        this.logger.warn(
-          `Detected malicious pattern in file: ${file.originalname}`,
-          {
-            pattern: pattern.source,
-          },
-        );
+        this.logger.warn(`Detected malicious pattern in file: ${file.originalname}`, {
+          pattern: pattern.source,
+        });
         return {
           isValid: false,
           error: 'File contains potentially malicious content',
@@ -385,10 +372,7 @@ export class FileValidationService {
       }
 
       // Document validation
-      if (
-        file.mimetype.includes('document') ||
-        file.mimetype.includes('word')
-      ) {
+      if (file.mimetype.includes('document') || file.mimetype.includes('word')) {
         return this.validateDocumentContent(file);
       }
 
@@ -447,9 +431,7 @@ export class FileValidationService {
 
     for (const pattern of suspiciousPatterns) {
       if (pattern.test(content)) {
-        this.logger.warn(
-          `Suspicious content detected in text file: ${file.originalname}`,
-        );
+        this.logger.warn(`Suspicious content detected in text file: ${file.originalname}`);
         // Don't block, but log for security monitoring
       }
     }
@@ -546,12 +528,7 @@ export class FileValidationService {
     const configs = {
       image: {
         maxSize: 5 * 1024 * 1024, // 5MB
-        allowedMimeTypes: [
-          'image/jpeg',
-          'image/png',
-          'image/webp',
-          'image/gif',
-        ],
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
         allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif'],
         checkFileSignature: true,
         sanitizeFileName: true,

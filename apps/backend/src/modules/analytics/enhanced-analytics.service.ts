@@ -1,28 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDrizzle } from '../../db/drizzle.provider';
 import { DrizzleDB } from '../../db/drizzle.types';
-import {
-  eq,
-  and,
-  sql,
-  gte,
-  lte,
-  desc,
-  asc,
-  count,
-  sum,
-  avg,
-  between,
-  or,
-} from 'drizzle-orm';
-import {
-  users,
-  tasks,
-  subjects,
-  focusSessions,
-  goals,
-  aiChats,
-} from '../../db/schema';
+import { eq, and, sql, gte, lte, desc, asc, count, sum, avg, between, or } from 'drizzle-orm';
+import { users, tasks, subjects, focusSessions, goals, aiChats } from '../../db/schema';
 import {
   AnalyticsQueryDto,
   TimeRangeDto,
@@ -80,10 +60,7 @@ export class EnhancedAnalyticsService {
   ) {}
 
   // Main dashboard tiles data
-  async getDashboardTiles(
-    userId: string,
-    timeRange: TimeRangeDto,
-  ): Promise<DashboardTile[]> {
+  async getDashboardTiles(userId: string, timeRange: TimeRangeDto): Promise<DashboardTile[]> {
     const cacheKey = `dashboard-tiles-${userId}-${JSON.stringify(timeRange)}`;
     const cached = await this.cacheManager.get<DashboardTile[]>(cacheKey);
 
@@ -118,9 +95,7 @@ export class EnhancedAnalyticsService {
       .where(
         and(
           eq(focusSessions.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       );
@@ -149,10 +124,7 @@ export class EnhancedAnalyticsService {
 
     const currentMinutes = Number(currentPeriodMinutes[0]?.totalMinutes) || 0;
     const previousMinutes = Number(previousPeriodMinutes[0]?.totalMinutes) || 0;
-    const trend = this.calculatePercentageChange(
-      previousMinutes,
-      currentMinutes,
-    );
+    const trend = this.calculatePercentageChange(previousMinutes, currentMinutes);
 
     return {
       id: 'focused-minutes',
@@ -226,17 +198,12 @@ export class EnhancedAnalyticsService {
   }
 
   // On-time rate tile
-  private async getOnTimeRateTile(
-    userId: string,
-    timeRange: TimeRangeDto,
-  ): Promise<DashboardTile> {
+  private async getOnTimeRateTile(userId: string, timeRange: TimeRangeDto): Promise<DashboardTile> {
     const { startDate, endDate } = this.getDateRange(timeRange);
 
     const onTimeData = await this.calculateOnTimeRate(
       userId,
-      startDate
-        ? new Date(startDate)
-        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       endDate ? new Date(endDate) : new Date(),
     );
 
@@ -245,18 +212,14 @@ export class EnhancedAnalyticsService {
       title: 'On-time rate',
       value: `${Math.round(onTimeData.onTimeRate)}%`,
       trend: onTimeData.trend,
-      trendDirection:
-        onTimeData.trend > 0 ? 'up' : onTimeData.trend < 0 ? 'down' : 'neutral',
+      trendDirection: onTimeData.trend > 0 ? 'up' : onTimeData.trend < 0 ? 'down' : 'neutral',
       icon: 'target',
       color: '#F59E0B',
     };
   }
 
   // Subject mix tile (returns pie chart data)
-  private async getSubjectMixTile(
-    userId: string,
-    timeRange: TimeRangeDto,
-  ): Promise<DashboardTile> {
+  private async getSubjectMixTile(userId: string, timeRange: TimeRangeDto): Promise<DashboardTile> {
     const subjectMixData = await this.getSubjectMixAnalytics(userId, timeRange);
 
     return {
@@ -269,10 +232,7 @@ export class EnhancedAnalyticsService {
   }
 
   // Get subject mix data for pie chart
-  async getSubjectMixAnalytics(
-    userId: string,
-    query: TimeRangeDto,
-  ): Promise<SubjectMixData[]> {
+  async getSubjectMixAnalytics(userId: string, query: TimeRangeDto): Promise<SubjectMixData[]> {
     const { startDate, endDate } = this.getDateRange(query);
 
     const subjectTime = await this.db
@@ -286,9 +246,7 @@ export class EnhancedAnalyticsService {
       .where(
         and(
           eq(subjects.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       )
@@ -299,14 +257,7 @@ export class EnhancedAnalyticsService {
       0,
     );
 
-    const colors = [
-      '#3B82F6',
-      '#10B981',
-      '#F59E0B',
-      '#8B5CF6',
-      '#EF4444',
-      '#6B7280',
-    ];
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#6B7280'];
 
     return subjectTime
       .filter((subject) => Number(subject.totalMinutes) > 0)
@@ -314,10 +265,7 @@ export class EnhancedAnalyticsService {
         subjectId: subject.subjectId,
         subjectName: subject.subjectName,
         totalMinutes: Number(subject.totalMinutes) || 0,
-        percentage:
-          totalTime > 0
-            ? ((Number(subject.totalMinutes) || 0) / totalTime) * 100
-            : 0,
+        percentage: totalTime > 0 ? ((Number(subject.totalMinutes) || 0) / totalTime) * 100 : 0,
         color: colors[index % colors.length],
       }))
       .sort((a, b) => b.totalMinutes - a.totalMinutes);
@@ -350,9 +298,7 @@ export class EnhancedAnalyticsService {
       );
 
     // Calculate previous period for trend
-    const daysDiff = Math.floor(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
+    const daysDiff = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const prevStartDate = new Date(startDate);
     prevStartDate.setDate(prevStartDate.getDate() - daysDiff);
     const prevEndDate = new Date(startDate);
@@ -476,25 +422,17 @@ export class EnhancedAnalyticsService {
   }
 
   // Advanced analytics with statistical analysis
-  async getAdvancedAnalytics(
-    userId: string,
-    timeRange: TimeRangeDto,
-  ): Promise<any> {
+  async getAdvancedAnalytics(userId: string, timeRange: TimeRangeDto): Promise<any> {
     const { startDate, endDate } = this.getDateRange(timeRange);
 
-    const [
-      studyPatterns,
-      performanceMetrics,
-      subjectPerformance,
-      goalProgress,
-      recommendations,
-    ] = await Promise.all([
-      this.analyzeStudyPatterns(userId, startDate, endDate),
-      this.calculatePerformanceMetrics(userId, startDate, endDate),
-      this.analyzeSubjectPerformance(userId, startDate, endDate),
-      this.analyzeGoalProgress(userId),
-      this.generateRecommendations(userId),
-    ]);
+    const [studyPatterns, performanceMetrics, subjectPerformance, goalProgress, recommendations] =
+      await Promise.all([
+        this.analyzeStudyPatterns(userId, startDate, endDate),
+        this.calculatePerformanceMetrics(userId, startDate, endDate),
+        this.analyzeSubjectPerformance(userId, startDate, endDate),
+        this.analyzeGoalProgress(userId),
+        this.generateRecommendations(userId),
+      ]);
 
     return {
       studyPatterns,
@@ -522,9 +460,7 @@ export class EnhancedAnalyticsService {
       .where(
         and(
           eq(focusSessions.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       )
@@ -542,9 +478,7 @@ export class EnhancedAnalyticsService {
       .where(
         and(
           eq(focusSessions.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       )
@@ -591,9 +525,7 @@ export class EnhancedAnalyticsService {
       .where(
         and(
           eq(focusSessions.userId, userId),
-          startDate
-            ? gte(focusSessions.startTime, new Date(startDate))
-            : undefined,
+          startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
           endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
         ),
       );
@@ -601,9 +533,7 @@ export class EnhancedAnalyticsService {
     const taskMetrics = await this.db
       .select({
         totalTasks: count(tasks.id),
-        completedTasks: count(
-          sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`,
-        ),
+        completedTasks: count(sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`),
         avgCompletionTime: sql<number>`AVG(EXTRACT(EPOCH FROM (${tasks.completedAt} - ${tasks.createdAt})) / 3600)`, // in hours
       })
       .from(tasks)
@@ -627,8 +557,7 @@ export class EnhancedAnalyticsService {
       shortestSession: Number(metrics.minSessionDuration) || 0,
       taskCompletionRate:
         taskData.totalTasks > 0
-          ? (Number(taskData.completedTasks) / Number(taskData.totalTasks)) *
-            100
+          ? (Number(taskData.completedTasks) / Number(taskData.totalTasks)) * 100
           : 0,
       averageTaskCompletionTime: Number(taskData.avgCompletionTime) || 0,
     };
@@ -657,12 +586,8 @@ export class EnhancedAnalyticsService {
           eq(subjects.userId, userId),
           or(
             and(
-              startDate
-                ? gte(focusSessions.startTime, new Date(startDate))
-                : undefined,
-              endDate
-                ? lte(focusSessions.startTime, new Date(endDate))
-                : undefined,
+              startDate ? gte(focusSessions.startTime, new Date(startDate)) : undefined,
+              endDate ? lte(focusSessions.startTime, new Date(endDate)) : undefined,
             ),
             and(
               startDate ? gte(tasks.createdAt, new Date(startDate)) : undefined,
@@ -701,13 +626,9 @@ export class EnhancedAnalyticsService {
       type: goal.type,
       progress: goal.progressPercentage,
       daysRemaining: goal.endDate
-        ? Math.ceil(
-            (goal.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-          )
+        ? Math.ceil((goal.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null,
-      onTrack:
-        goal.progressPercentage >=
-        this.getExpectedProgress(goal.startDate, goal.endDate),
+      onTrack: goal.progressPercentage >= this.getExpectedProgress(goal.startDate, goal.endDate),
       recommendation: this.getGoalRecommendation(goal),
     }));
   }
@@ -767,21 +688,11 @@ export class EnhancedAnalyticsService {
     const now = new Date();
     const ranges = {
       [PredefinedRange.TODAY]: {
-        startDate: new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-        ).toISOString(),
-        endDate: new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() + 1,
-        ).toISOString(),
+        startDate: new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString(),
+        endDate: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString(),
       },
       [PredefinedRange.THIS_WEEK]: {
-        startDate: new Date(
-          now.setDate(now.getDate() - now.getDay()),
-        ).toISOString(),
+        startDate: new Date(now.setDate(now.getDate() - now.getDay())).toISOString(),
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.LAST_7_DAYS]: {
@@ -789,15 +700,11 @@ export class EnhancedAnalyticsService {
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.LAST_30_DAYS]: {
-        startDate: new Date(
-          Date.now() - 30 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.LAST_90_DAYS]: {
-        startDate: new Date(
-          Date.now() - 90 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
         endDate: new Date().toISOString(),
       },
       [PredefinedRange.ALL_TIME]: {
@@ -821,9 +728,7 @@ export class EnhancedAnalyticsService {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const daysDiff = Math.floor(
-      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-    );
+    const daysDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
     const prevEnd = new Date(start);
     prevEnd.setDate(prevEnd.getDate() - 1);
@@ -836,10 +741,7 @@ export class EnhancedAnalyticsService {
     };
   }
 
-  private calculatePercentageChange(
-    oldValue: number,
-    newValue: number,
-  ): number {
+  private calculatePercentageChange(oldValue: number, newValue: number): number {
     if (oldValue === 0) return newValue > 0 ? 100 : 0;
     return ((newValue - oldValue) / oldValue) * 100;
   }
@@ -850,36 +752,21 @@ export class EnhancedAnalyticsService {
   }
 
   private getDayName(dayNumber: number): string {
-    const days = [
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-    ];
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[dayNumber] || 'Unknown';
   }
 
   private getExpectedProgress(startDate: Date, endDate: Date | null): number {
     if (!endDate) return 0;
 
-    const totalDays = Math.floor(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    const elapsedDays = Math.floor(
-      (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
+    const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const elapsedDays = Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
     return (elapsedDays / totalDays) * 100;
   }
 
   private getGoalRecommendation(goal: any): string {
-    const expectedProgress = this.getExpectedProgress(
-      goal.startDate,
-      goal.endDate,
-    );
+    const expectedProgress = this.getExpectedProgress(goal.startDate, goal.endDate);
 
     if (goal.progressPercentage < expectedProgress - 20) {
       return `You're behind schedule. Increase daily effort by ${Math.round((expectedProgress - goal.progressPercentage) / 10)}% to catch up.`;
@@ -898,11 +785,7 @@ export class EnhancedAnalyticsService {
     const result: { date: string; value: number }[] = [];
     const dataMap = new Map(data.map((d) => [d.date, d.value]));
 
-    for (
-      let d = new Date(startDate);
-      d <= endDate;
-      d.setDate(d.getDate() + 1)
-    ) {
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
       result.push({
         date: dateStr,
@@ -1026,21 +909,11 @@ export class EnhancedAnalyticsService {
     const currentTaskCount = Number(currentWeekTasks[0]?.count) || 0;
     const prevTaskCount = Number(prevWeekTasks[0]?.count) || 0;
 
-    const weekOverWeekChange = this.calculatePercentageChange(
-      prevTime,
-      currentTime,
-    );
-    const taskCompletionChange = this.calculatePercentageChange(
-      prevTaskCount,
-      currentTaskCount,
-    );
+    const weekOverWeekChange = this.calculatePercentageChange(prevTime, currentTime);
+    const taskCompletionChange = this.calculatePercentageChange(prevTaskCount, currentTaskCount);
 
     // Calculate on-time rate
-    const onTimeRateData = await this.calculateOnTimeRate(
-      userId,
-      weekStart,
-      weekEnd,
-    );
+    const onTimeRateData = await this.calculateOnTimeRate(userId, weekStart, weekEnd);
 
     // Get current streak
     const currentStreak = await this.calculateCurrentStreak(userId);

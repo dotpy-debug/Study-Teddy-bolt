@@ -35,8 +35,7 @@ export class DocumentProcessor extends WorkerHost {
       if (mimeType === 'application/pdf') {
         text = await this.extractPdfText(filePath);
       } else if (
-        mimeType ===
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       ) {
         text = await this.extractDocxText(filePath);
       } else if (mimeType === 'text/plain') {
@@ -72,10 +71,7 @@ export class DocumentProcessor extends WorkerHost {
     }
   }
 
-  private async extractText(data: {
-    documentId: string;
-    filePath: string;
-  }): Promise<string> {
+  private async extractText(data: { documentId: string; filePath: string }): Promise<string> {
     const { documentId, filePath } = data;
 
     try {
@@ -101,10 +97,7 @@ export class DocumentProcessor extends WorkerHost {
       this.logger.log(`Text extracted from document ${documentId}`);
       return text;
     } catch (error) {
-      this.logger.error(
-        `Failed to extract text from document ${documentId}:`,
-        error,
-      );
+      this.logger.error(`Failed to extract text from document ${documentId}:`, error);
       throw error;
     }
   }
@@ -140,11 +133,7 @@ export class DocumentProcessor extends WorkerHost {
     }
   }
 
-  private chunkText(
-    text: string,
-    chunkSize: number,
-    overlap: number,
-  ): string[] {
+  private chunkText(text: string, chunkSize: number, overlap: number): string[] {
     const chunks: string[] = [];
     const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
 
@@ -163,9 +152,7 @@ export class DocumentProcessor extends WorkerHost {
         }
 
         // Start new chunk with overlap
-        const overlapText = currentChunk.substring(
-          currentChunk.length - overlap,
-        );
+        const overlapText = currentChunk.substring(currentChunk.length - overlap);
         currentChunk = overlapText + sentence;
         currentLength = overlapText.length + sentenceLength;
       }
@@ -274,10 +261,7 @@ export class DocumentProcessor extends WorkerHost {
     return sorted;
   }
 
-  private async generateEmbeddings(data: {
-    documentId: string;
-    chunks: string[];
-  }): Promise<any> {
+  private async generateEmbeddings(data: { documentId: string; chunks: string[] }): Promise<any> {
     const { documentId, chunks } = data;
 
     try {
@@ -289,9 +273,7 @@ export class DocumentProcessor extends WorkerHost {
           .map(() => Math.random()),
       );
 
-      this.logger.log(
-        `Generated ${embeddings.length} embeddings for document ${documentId}`,
-      );
+      this.logger.log(`Generated ${embeddings.length} embeddings for document ${documentId}`);
 
       return {
         documentId,
@@ -299,10 +281,7 @@ export class DocumentProcessor extends WorkerHost {
         dimensions: 1536,
       };
     } catch (error) {
-      this.logger.error(
-        `Failed to generate embeddings for document ${documentId}:`,
-        error,
-      );
+      this.logger.error(`Failed to generate embeddings for document ${documentId}:`, error);
       throw error;
     }
   }

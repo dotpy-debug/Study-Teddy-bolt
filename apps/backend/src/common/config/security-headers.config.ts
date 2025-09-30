@@ -10,10 +10,7 @@ const logger = new Logger('Security Headers Configuration');
 export const getCSPConfig = (configService: ConfigService) => {
   const nodeEnv = configService.get<string>('NODE_ENV', 'development');
   const isProduction = nodeEnv === 'production';
-  const frontendUrl = configService.get<string>(
-    'FRONTEND_URL',
-    'http://localhost:3000',
-  );
+  const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
   const apiUrl = configService.get<string>('API_URL', 'http://localhost:3001');
 
   // Parse CDN URLs from environment
@@ -112,8 +109,7 @@ export const getCSPConfig = (configService: ConfigService) => {
   return {
     useDefaults: false,
     directives,
-    reportOnly:
-      !isProduction && configService.get<boolean>('CSP_REPORT_ONLY', false),
+    reportOnly: !isProduction && configService.get<boolean>('CSP_REPORT_ONLY', false),
   };
 };
 
@@ -238,9 +234,7 @@ export const getCustomSecurityHeaders = (configService: ConfigService) => {
     ].join(', '),
 
     // Cache Control
-    'Cache-Control': isProduction
-      ? 'no-cache, no-store, must-revalidate'
-      : 'no-cache',
+    'Cache-Control': isProduction ? 'no-cache, no-store, must-revalidate' : 'no-cache',
 
     // Pragma
     Pragma: 'no-cache',
@@ -295,10 +289,7 @@ export const getCustomSecurityHeaders = (configService: ConfigService) => {
 /**
  * Apply security headers middleware
  */
-export const applySecurityHeaders = (
-  app: any,
-  configService: ConfigService,
-) => {
+export const applySecurityHeaders = (app: any, configService: ConfigService) => {
   const helmetConfig = getSecurityHeadersConfig(configService);
   const customHeaders = getCustomSecurityHeaders(configService);
 
@@ -334,9 +325,7 @@ export const validateSecurityHeaders = (configService: ConfigService) => {
 
     const cspReportUri = configService.get<string>('CSP_REPORT_URI');
     if (!cspReportUri) {
-      logger.warn(
-        'CSP_REPORT_URI not set - CSP violations will not be reported',
-      );
+      logger.warn('CSP_REPORT_URI not set - CSP violations will not be reported');
     }
   }
 

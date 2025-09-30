@@ -28,12 +28,7 @@ export class SessionsRepository {
     const [session] = await this.drizzleService.db
       .select()
       .from(studySessions)
-      .where(
-        and(
-          eq(studySessions.userId, userId),
-          eq(studySessions.status, 'active'),
-        ),
-      )
+      .where(and(eq(studySessions.userId, userId), eq(studySessions.status, 'active')))
       .limit(1);
 
     return session;
@@ -43,12 +38,7 @@ export class SessionsRepository {
     const sessions = await this.drizzleService.db
       .select()
       .from(studySessions)
-      .where(
-        and(
-          eq(studySessions.userId, userId),
-          eq(studySessions.status, 'paused'),
-        ),
-      )
+      .where(and(eq(studySessions.userId, userId), eq(studySessions.status, 'paused')))
       .orderBy(desc(studySessions.startTime));
 
     return sessions;
@@ -77,10 +67,7 @@ export class SessionsRepository {
     return session;
   }
 
-  async update(
-    sessionId: string,
-    data: Partial<typeof studySessions.$inferInsert>,
-  ) {
+  async update(sessionId: string, data: Partial<typeof studySessions.$inferInsert>) {
     const [session] = await this.drizzleService.db
       .update(studySessions)
       .set({
@@ -149,16 +136,11 @@ export class SessionsRepository {
     return stats;
   }
 
-  async getSessionsByType(
-    userId: string,
-    type: 'pomodoro' | 'free' | 'goal_based',
-  ) {
+  async getSessionsByType(userId: string, type: 'pomodoro' | 'free' | 'goal_based') {
     return this.drizzleService.db
       .select()
       .from(studySessions)
-      .where(
-        and(eq(studySessions.userId, userId), eq(studySessions.type, type)),
-      )
+      .where(and(eq(studySessions.userId, userId), eq(studySessions.type, type)))
       .orderBy(desc(studySessions.startTime));
   }
 
@@ -166,12 +148,7 @@ export class SessionsRepository {
     return this.drizzleService.db
       .select()
       .from(studySessions)
-      .where(
-        and(
-          eq(studySessions.userId, userId),
-          eq(studySessions.subjectId, subjectId),
-        ),
-      )
+      .where(and(eq(studySessions.userId, userId), eq(studySessions.subjectId, subjectId)))
       .orderBy(desc(studySessions.startTime));
   }
 

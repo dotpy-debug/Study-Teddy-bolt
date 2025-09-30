@@ -77,14 +77,7 @@ export class SanitizationService {
           'a',
           'img',
         ],
-        ALLOWED_ATTR: config?.allowedAttributes || [
-          'href',
-          'src',
-          'alt',
-          'title',
-          'class',
-          'id',
-        ],
+        ALLOWED_ATTR: config?.allowedAttributes || ['href', 'src', 'alt', 'title', 'class', 'id'],
         ALLOWED_URI_REGEXP:
           /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
       });
@@ -210,10 +203,7 @@ export class SanitizationService {
   /**
    * Sanitize URLs
    */
-  sanitizeUrl(
-    url: string,
-    allowedProtocols: string[] = ['http', 'https'],
-  ): string {
+  sanitizeUrl(url: string, allowedProtocols: string[] = ['http', 'https']): string {
     if (!url || typeof url !== 'string') {
       return '';
     }
@@ -389,9 +379,7 @@ export class SanitizationService {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map((item) =>
-        this.sanitizeObject(item, rules, currentDepth + 1),
-      );
+      return obj.map((item) => this.sanitizeObject(item, rules, currentDepth + 1));
     }
 
     if (typeof obj === 'object' && obj !== null) {

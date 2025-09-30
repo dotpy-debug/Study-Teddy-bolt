@@ -40,12 +40,7 @@ export class ErrorInterceptor implements NestInterceptor {
         const duration = Date.now() - startTime;
 
         // Enhance error with request context
-        const enhancedError = this.enhanceError(
-          error,
-          request,
-          requestId,
-          duration,
-        );
+        const enhancedError = this.enhanceError(error, request, requestId, duration);
 
         // Log error with context
         this.logError(enhancedError, request, requestId, duration);
@@ -68,12 +63,7 @@ export class ErrorInterceptor implements NestInterceptor {
     return `req_${timestamp}_${random}`;
   }
 
-  private enhanceError(
-    error: any,
-    request: Request,
-    requestId: string,
-    duration: number,
-  ): any {
+  private enhanceError(error: any, request: Request, requestId: string, duration: number): any {
     // Don't modify the error if it's already an HttpException
     if (error instanceof HttpException) {
       return error;
@@ -122,12 +112,7 @@ export class ErrorInterceptor implements NestInterceptor {
     }
   }
 
-  private logError(
-    error: any,
-    request: Request,
-    requestId: string,
-    duration: number,
-  ): void {
+  private logError(error: any, request: Request, requestId: string, duration: number): void {
     const logData = {
       requestId,
       method: request.method,

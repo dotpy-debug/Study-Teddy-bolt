@@ -69,9 +69,7 @@ export class SendEmailDto {
   @IsOptional()
   @IsArray()
   @IsEmail({}, { each: true, message: 'All CC addresses must be valid emails' })
-  @Transform(({ value }) =>
-    value?.map((email: string) => email.toLowerCase().trim()),
-  )
+  @Transform(({ value }) => value?.map((email: string) => email.toLowerCase().trim()))
   cc?: string[];
 
   @ApiPropertyOptional({
@@ -80,13 +78,8 @@ export class SendEmailDto {
   })
   @IsOptional()
   @IsArray()
-  @IsEmail(
-    {},
-    { each: true, message: 'All BCC addresses must be valid emails' },
-  )
-  @Transform(({ value }) =>
-    value?.map((email: string) => email.toLowerCase().trim()),
-  )
+  @IsEmail({}, { each: true, message: 'All BCC addresses must be valid emails' })
+  @Transform(({ value }) => value?.map((email: string) => email.toLowerCase().trim()))
   bcc?: string[];
 
   @ApiProperty({

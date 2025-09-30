@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Calendar, CheckCircle2, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import calendarService, { CalendarAccount } from '@/services/calendar.service';
+import calendarService, { CalendarAccount } from '../services/calendar.service';
 import { toast } from 'sonner';
 
 export function CalendarConnection() {

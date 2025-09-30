@@ -1,8 +1,4 @@
-import {
-  createParamDecorator,
-  ExecutionContext,
-  BadRequestException,
-} from '@nestjs/common';
+import { createParamDecorator, ExecutionContext, BadRequestException } from '@nestjs/common';
 import { z, ZodSchema, ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 
@@ -10,27 +6,25 @@ import { fromZodError } from 'zod-validation-error';
  * Custom decorator for Zod validation
  * Validates request body, query parameters, or path parameters using Zod schemas
  */
-export const ZodValidate = createParamDecorator(
-  (schema: ZodSchema, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    const data = request.body || request.query || request.params;
+export const ZodValidate = createParamDecorator((schema: ZodSchema, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
+  const data = request.body || request.query || request.params;
 
-    try {
-      return schema.parse(data);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const validationError = fromZodError(error);
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Validation failed',
-          errors: validationError.details,
-          timestamp: new Date().toISOString(),
-        });
-      }
-      throw error;
+  try {
+    return schema.parse(data);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const validationError = fromZodError(error);
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Validation failed',
+        errors: validationError.details,
+        timestamp: new Date().toISOString(),
+      });
     }
-  },
-);
+    throw error;
+  }
+});
 
 /**
  * Decorator for validating request body with Zod schema
@@ -40,77 +34,71 @@ export const ZodBody = (schema: ZodSchema) => ZodValidate(schema);
 /**
  * Decorator for validating query parameters with Zod schema
  */
-export const ZodQuery = createParamDecorator(
-  (schema: ZodSchema, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    const queryData = request.query;
+export const ZodQuery = createParamDecorator((schema: ZodSchema, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
+  const queryData = request.query;
 
-    try {
-      return schema.parse(queryData);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const validationError = fromZodError(error);
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Query validation failed',
-          errors: validationError.details,
-          timestamp: new Date().toISOString(),
-        });
-      }
-      throw error;
+  try {
+    return schema.parse(queryData);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const validationError = fromZodError(error);
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Query validation failed',
+        errors: validationError.details,
+        timestamp: new Date().toISOString(),
+      });
     }
-  },
-);
+    throw error;
+  }
+});
 
 /**
  * Decorator for validating path parameters with Zod schema
  */
-export const ZodParam = createParamDecorator(
-  (schema: ZodSchema, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    const paramData = request.params;
+export const ZodParam = createParamDecorator((schema: ZodSchema, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
+  const paramData = request.params;
 
-    try {
-      return schema.parse(paramData);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const validationError = fromZodError(error);
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Parameter validation failed',
-          errors: validationError.details,
-          timestamp: new Date().toISOString(),
-        });
-      }
-      throw error;
+  try {
+    return schema.parse(paramData);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const validationError = fromZodError(error);
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Parameter validation failed',
+        errors: validationError.details,
+        timestamp: new Date().toISOString(),
+      });
     }
-  },
-);
+    throw error;
+  }
+});
 
 /**
  * Decorator for validating headers with Zod schema
  */
-export const ZodHeaders = createParamDecorator(
-  (schema: ZodSchema, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    const headerData = request.headers;
+export const ZodHeaders = createParamDecorator((schema: ZodSchema, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
+  const headerData = request.headers;
 
-    try {
-      return schema.parse(headerData);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const validationError = fromZodError(error);
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Header validation failed',
-          errors: validationError.details,
-          timestamp: new Date().toISOString(),
-        });
-      }
-      throw error;
+  try {
+    return schema.parse(headerData);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const validationError = fromZodError(error);
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Header validation failed',
+        errors: validationError.details,
+        timestamp: new Date().toISOString(),
+      });
     }
-  },
-);
+    throw error;
+  }
+});
 
 /**
  * Method decorator for automatic validation of multiple request parts
@@ -121,11 +109,7 @@ export function ZodValidation(options: {
   params?: ZodSchema;
   headers?: ZodSchema;
 }) {
-  return function (
-    target: any,
-    propertyName: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -209,11 +193,7 @@ export function createZodValidationPipe(schema: ZodSchema) {
 export function ZodAsyncValidation(
   validationFn: (data: any, ctx: ExecutionContext) => Promise<any>,
 ) {
-  return function (
-    target: any,
-    propertyName: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -253,11 +233,7 @@ export function ZodConditionalValidation(
   condition: (ctx: ExecutionContext) => boolean,
   schema: ZodSchema,
 ) {
-  return function (
-    target: any,
-    propertyName: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -267,9 +243,7 @@ export function ZodConditionalValidation(
         const request = ctx.switchToHttp().getRequest();
 
         try {
-          const validatedData = schema.parse(
-            request.body || request.query || request.params,
-          );
+          const validatedData = schema.parse(request.body || request.query || request.params);
           Object.assign(request, { validatedData });
         } catch (error) {
           if (error instanceof ZodError) {

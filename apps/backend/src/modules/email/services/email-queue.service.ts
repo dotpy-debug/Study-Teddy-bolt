@@ -22,10 +22,7 @@ export class EmailQueueService {
   /**
    * Add an email to the queue for immediate processing
    */
-  async queueEmail(
-    emailOptions: EmailOptions,
-    queueOptions?: QueueOptions,
-  ): Promise<string> {
+  async queueEmail(emailOptions: EmailOptions, queueOptions?: QueueOptions): Promise<string> {
     try {
       const jobData: EmailJobData = {
         emailOptions,
@@ -110,10 +107,7 @@ export class EmailQueueService {
   /**
    * Queue multiple emails as a batch
    */
-  async queueBatchEmails(
-    emails: EmailOptions[],
-    queueOptions?: QueueOptions,
-  ): Promise<string[]> {
+  async queueBatchEmails(emails: EmailOptions[], queueOptions?: QueueOptions): Promise<string[]> {
     try {
       const batchSize = this.configService.get<number>('EMAIL_BATCH_SIZE', 10);
       const jobIds: string[] = [];
@@ -136,28 +130,22 @@ export class EmailQueueService {
           },
         };
 
-        const job = await this.emailQueue.add(
-          'send-batch-emails',
-          batchJobData,
-          {
-            priority: (queueOptions?.priority || 0) - 1, // Lower priority for batch emails
-            delay: i > 0 ? 5000 : 0, // Add delay between batches
-            attempts: queueOptions?.attempts || 2,
-            backoff: {
-              type: 'exponential',
-              delay: 10000,
-            },
-            removeOnComplete: 5,
-            removeOnFail: 3,
+        const job = await this.emailQueue.add('send-batch-emails', batchJobData, {
+          priority: (queueOptions?.priority || 0) - 1, // Lower priority for batch emails
+          delay: i > 0 ? 5000 : 0, // Add delay between batches
+          attempts: queueOptions?.attempts || 2,
+          backoff: {
+            type: 'exponential',
+            delay: 10000,
           },
-        );
+          removeOnComplete: 5,
+          removeOnFail: 3,
+        });
 
         jobIds.push(job.id as string);
       }
 
-      this.logger.log(
-        `Batch of ${emails.length} emails queued in ${jobIds.length} batches`,
-      );
+      this.logger.log(`Batch of ${emails.length} emails queued in ${jobIds.length} batches`);
       return jobIds;
     } catch (error) {
       this.logger.error('Failed to queue batch emails', error);

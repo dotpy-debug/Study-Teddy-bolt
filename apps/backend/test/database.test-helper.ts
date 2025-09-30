@@ -43,9 +43,7 @@ export class DatabaseTestHelper {
     await db.delete(users);
   }
 
-  static async createTestUser(
-    overrides: Partial<typeof users.$inferInsert> = {},
-  ) {
+  static async createTestUser(overrides: Partial<typeof users.$inferInsert> = {}) {
     const db = this.drizzleService.db;
 
     const defaultUser = {
@@ -119,29 +117,19 @@ export class DatabaseTestHelper {
       ...overrides,
     };
 
-    const [session] = await db
-      .insert(studySessions)
-      .values(defaultSession)
-      .returning();
+    const [session] = await db.insert(studySessions).values(defaultSession).returning();
     return session;
   }
 
   static async findUserByEmail(email: string) {
     const db = this.drizzleService.db;
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     return user;
   }
 
   static async findTasksByUserId(userId: string) {
     const db = this.drizzleService.db;
-    return await db
-      .select()
-      .from(studyTasks)
-      .where(eq(studyTasks.userId, userId));
+    return await db.select().from(studyTasks).where(eq(studyTasks.userId, userId));
   }
 
   static async findChatsByUserId(userId: string) {
@@ -151,10 +139,7 @@ export class DatabaseTestHelper {
 
   static async findSessionsByUserId(userId: string) {
     const db = this.drizzleService.db;
-    return await db
-      .select()
-      .from(studySessions)
-      .where(eq(studySessions.userId, userId));
+    return await db.select().from(studySessions).where(eq(studySessions.userId, userId));
   }
 
   static async seedTestData() {
@@ -272,9 +257,7 @@ export const DatabaseTestUtils = {
 
   async getTableRowCount(tableName: string): Promise<number> {
     try {
-      const result = await DatabaseTestHelper.db.execute(
-        `SELECT COUNT(*) FROM ${tableName}`,
-      );
+      const result = await DatabaseTestHelper.db.execute(`SELECT COUNT(*) FROM ${tableName}`);
       return parseInt(result.rows[0]?.count || '0');
     } catch (error) {
       return 0;

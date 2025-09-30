@@ -22,10 +22,7 @@ export const updateProfileSchema = z.object({
   language: languageCodeSchema.optional(),
   bio: z.string().max(500, 'Bio must not exceed 500 characters').optional(),
   website: urlSchema.optional(),
-  location: z
-    .string()
-    .max(100, 'Location must not exceed 100 characters')
-    .optional(),
+  location: z.string().max(100, 'Location must not exceed 100 characters').optional(),
   avatar: urlSchema.optional(),
 });
 
@@ -63,9 +60,7 @@ export const userPreferencesSchema = z.object({
     .optional(),
   privacy: z
     .object({
-      profileVisibility: z
-        .enum(['public', 'friends', 'private'])
-        .default('private'),
+      profileVisibility: z.enum(['public', 'friends', 'private']).default('private'),
       showProgress: z.boolean().default(false),
       showAchievements: z.boolean().default(false),
       allowFriendRequests: z.boolean().default(true),
@@ -84,29 +79,13 @@ export const userPreferencesSchema = z.object({
 // User education info schema
 export const educationInfoSchema = z.object({
   educationLevel: z
-    .enum([
-      'high_school',
-      'undergraduate',
-      'graduate',
-      'postgraduate',
-      'professional',
-      'other',
-    ])
+    .enum(['high_school', 'undergraduate', 'graduate', 'postgraduate', 'professional', 'other'])
     .optional(),
-  institution: z
-    .string()
-    .max(200, 'Institution name must not exceed 200 characters')
-    .optional(),
-  fieldOfStudy: z
-    .string()
-    .max(100, 'Field of study must not exceed 100 characters')
-    .optional(),
+  institution: z.string().max(200, 'Institution name must not exceed 200 characters').optional(),
+  fieldOfStudy: z.string().max(100, 'Field of study must not exceed 100 characters').optional(),
   graduationYear: z.number().int().min(1950).max(2050).optional(),
   currentYear: z.number().int().min(1).max(10).optional(),
-  studentId: z
-    .string()
-    .max(50, 'Student ID must not exceed 50 characters')
-    .optional(),
+  studentId: z.string().max(50, 'Student ID must not exceed 50 characters').optional(),
 });
 
 // User goals schema
@@ -116,15 +95,10 @@ export const userGoalsSchema = z.object({
       z.object({
         id: uuidSchema.optional(),
         title: z.string().min(1, 'Goal title is required').max(100),
-        description: z
-          .string()
-          .max(500, 'Description must not exceed 500 characters')
-          .optional(),
+        description: z.string().max(500, 'Description must not exceed 500 characters').optional(),
         targetDate: dateSchema.optional(),
         priority: z.enum(['low', 'medium', 'high']).default('medium'),
-        category: z
-          .enum(['academic', 'skill', 'career', 'personal', 'other'])
-          .default('academic'),
+        category: z.enum(['academic', 'skill', 'career', 'personal', 'other']).default('academic'),
         progress: z.number().min(0).max(100).default(0),
         milestones: z
           .array(
@@ -205,10 +179,7 @@ export const userSearchSchema = z.object({
 // Friend request schema
 export const friendRequestSchema = z.object({
   userId: uuidSchema,
-  message: z
-    .string()
-    .max(200, 'Message must not exceed 200 characters')
-    .optional(),
+  message: z.string().max(200, 'Message must not exceed 200 characters').optional(),
 });
 
 // Friend request response schema
@@ -220,10 +191,7 @@ export const friendRequestResponseSchema = z.object({
 // Block user schema
 export const blockUserSchema = z.object({
   userId: uuidSchema,
-  reason: z
-    .string()
-    .max(200, 'Reason must not exceed 200 characters')
-    .optional(),
+  reason: z.string().max(200, 'Reason must not exceed 200 characters').optional(),
 });
 
 // Report user schema
@@ -237,14 +205,8 @@ export const reportUserSchema = z.object({
     'copyright_violation',
     'other',
   ]),
-  description: z
-    .string()
-    .min(10, 'Please provide a detailed description')
-    .max(500),
-  evidence: z
-    .array(urlSchema)
-    .max(5, 'Cannot attach more than 5 evidence files')
-    .optional(),
+  description: z.string().min(10, 'Please provide a detailed description').max(500),
+  evidence: z.array(urlSchema).max(5, 'Cannot attach more than 5 evidence files').optional(),
 });
 
 // User verification schema
@@ -253,13 +215,7 @@ export const userVerificationSchema = z.object({
   documents: z
     .array(
       z.object({
-        type: z.enum([
-          'student_id',
-          'transcript',
-          'enrollment_letter',
-          'faculty_id',
-          'other',
-        ]),
+        type: z.enum(['student_id', 'transcript', 'enrollment_letter', 'faculty_id', 'other']),
         url: urlSchema,
         description: z.string().max(200).optional(),
       }),
@@ -279,10 +235,7 @@ export const accountDeletionRequestSchema = z.object({
     'technical_issues',
     'other',
   ]),
-  feedback: z
-    .string()
-    .max(1000, 'Feedback must not exceed 1000 characters')
-    .optional(),
+  feedback: z.string().max(1000, 'Feedback must not exceed 1000 characters').optional(),
   deleteData: z.boolean().refine((val) => val === true, {
     message: 'You must confirm data deletion',
   }),
@@ -314,12 +267,7 @@ export const dataExportRequestSchema = z.object({
 // Account recovery schema
 export const accountRecoveryRequestSchema = z.object({
   email: emailSchema,
-  recoveryMethod: z.enum([
-    'backup_email',
-    'security_questions',
-    'phone',
-    'manual_review',
-  ]),
+  recoveryMethod: z.enum(['backup_email', 'security_questions', 'phone', 'manual_review']),
   verificationData: z.record(z.string()).optional(),
   reason: z.string().max(500, 'Reason must not exceed 500 characters'),
 });
@@ -328,19 +276,13 @@ export const accountRecoveryRequestSchema = z.object({
 export const assignUserRoleSchema = z.object({
   userId: uuidSchema,
   role: z.enum(['user', 'moderator', 'admin', 'educator', 'premium']),
-  reason: z
-    .string()
-    .max(200, 'Reason must not exceed 200 characters')
-    .optional(),
+  reason: z.string().max(200, 'Reason must not exceed 200 characters').optional(),
   expiresAt: dateSchema.optional(),
 });
 
 // Bulk user operation schema (admin only)
 export const bulkUserOperationSchema = z.object({
-  userIds: z
-    .array(uuidSchema)
-    .min(1, 'At least one user ID is required')
-    .max(100),
+  userIds: z.array(uuidSchema).min(1, 'At least one user ID is required').max(100),
   operation: z.enum(['suspend', 'unsuspend', 'verify', 'unverify', 'delete']),
   reason: z.string().max(200, 'Reason must not exceed 200 characters'),
   notifyUsers: z.boolean().default(true),

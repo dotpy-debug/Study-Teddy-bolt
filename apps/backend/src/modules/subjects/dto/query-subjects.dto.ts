@@ -1,12 +1,4 @@
-import {
-  IsOptional,
-  IsInt,
-  IsString,
-  Min,
-  Max,
-  IsIn,
-  IsBoolean,
-} from 'class-validator';
+import { IsOptional, IsInt, IsString, Min, Max, IsIn, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -29,13 +21,7 @@ export class QuerySubjectsDto {
   @ApiPropertyOptional({ example: 'name', description: 'Sort field' })
   @IsOptional()
   @IsString()
-  @IsIn([
-    'name',
-    'createdAt',
-    'updatedAt',
-    'totalStudyMinutes',
-    'lastStudiedAt',
-  ])
+  @IsIn(['name', 'createdAt', 'updatedAt', 'totalStudyMinutes', 'lastStudiedAt'])
   sort?: string = 'name';
 
   @ApiPropertyOptional({ example: 'asc', description: 'Sort order' })

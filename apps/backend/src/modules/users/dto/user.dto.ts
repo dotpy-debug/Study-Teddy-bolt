@@ -108,8 +108,7 @@ export class UpdateUserPreferencesDto {
   })
   @IsOptional()
   @IsEnum(NotificationPreferenceEnum, {
-    message:
-      'Notification preference must be one of: all, important_only, none',
+    message: 'Notification preference must be one of: all, important_only, none',
   })
   emailNotifications?: NotificationPreferenceEnum;
 
@@ -121,8 +120,7 @@ export class UpdateUserPreferencesDto {
   })
   @IsOptional()
   @IsEnum(NotificationPreferenceEnum, {
-    message:
-      'Push notification preference must be one of: all, important_only, none',
+    message: 'Push notification preference must be one of: all, important_only, none',
   })
   pushNotifications?: NotificationPreferenceEnum;
 

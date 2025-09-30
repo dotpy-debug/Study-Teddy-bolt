@@ -55,30 +55,18 @@ export class CalendarSchedulingService {
         // Check if there's a gap before this busy slot
         if (currentTime < busyStart) {
           // Calculate available duration
-          const availableDuration =
-            (busyStart.getTime() - currentTime.getTime()) / (1000 * 60);
+          const availableDuration = (busyStart.getTime() - currentTime.getTime()) / (1000 * 60);
 
           // Check if the gap is large enough
           if (availableDuration >= durationMinutes) {
             // Split into slots of the requested duration
             let slotStart = new Date(currentTime);
-            while (
-              slotStart.getTime() + durationMinutes * 60 * 1000 <=
-              busyStart.getTime()
-            ) {
-              const slotEnd = new Date(
-                slotStart.getTime() + durationMinutes * 60 * 1000,
-              );
+            while (slotStart.getTime() + durationMinutes * 60 * 1000 <= busyStart.getTime()) {
+              const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60 * 1000);
 
               // Check time constraints
               if (
-                this.isWithinTimeConstraints(
-                  slotStart,
-                  slotEnd,
-                  startHour,
-                  endHour,
-                  daysOfWeek,
-                )
+                this.isWithinTimeConstraints(slotStart, slotEnd, startHour, endHour, daysOfWeek)
               ) {
                 availableSlots.push({
                   start: slotStart,
@@ -88,9 +76,7 @@ export class CalendarSchedulingService {
               }
 
               // Move to next potential slot (with break time)
-              slotStart = new Date(
-                slotEnd.getTime() + breakMinutes * 60 * 1000,
-              );
+              slotStart = new Date(slotEnd.getTime() + breakMinutes * 60 * 1000);
             }
           }
         }
@@ -101,28 +87,14 @@ export class CalendarSchedulingService {
 
       // Check for availability after the last busy slot
       if (currentTime < endTime) {
-        const remainingDuration =
-          (endTime.getTime() - currentTime.getTime()) / (1000 * 60);
+        const remainingDuration = (endTime.getTime() - currentTime.getTime()) / (1000 * 60);
 
         if (remainingDuration >= durationMinutes) {
           let slotStart = new Date(currentTime);
-          while (
-            slotStart.getTime() + durationMinutes * 60 * 1000 <=
-            endTime.getTime()
-          ) {
-            const slotEnd = new Date(
-              slotStart.getTime() + durationMinutes * 60 * 1000,
-            );
+          while (slotStart.getTime() + durationMinutes * 60 * 1000 <= endTime.getTime()) {
+            const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60 * 1000);
 
-            if (
-              this.isWithinTimeConstraints(
-                slotStart,
-                slotEnd,
-                startHour,
-                endHour,
-                daysOfWeek,
-              )
-            ) {
+            if (this.isWithinTimeConstraints(slotStart, slotEnd, startHour, endHour, daysOfWeek)) {
               availableSlots.push({
                 start: slotStart,
                 end: slotEnd,
@@ -153,20 +125,14 @@ export class CalendarSchedulingService {
       const maxSearchDays = options.maxSearchDays || 14;
       const endSearchAt =
         options.endSearchAt ||
-        new Date(
-          options.startSearchFrom.getTime() +
-            maxSearchDays * 24 * 60 * 60 * 1000,
-        );
+        new Date(options.startSearchFrom.getTime() + maxSearchDays * 24 * 60 * 60 * 1000);
 
       let currentSearchStart = new Date(options.startSearchFrom);
       const searchIncrement = 24 * 60 * 60 * 1000; // 1 day
 
       while (currentSearchStart < endSearchAt) {
         const currentSearchEnd = new Date(
-          Math.min(
-            currentSearchStart.getTime() + searchIncrement,
-            endSearchAt.getTime(),
-          ),
+          Math.min(currentSearchStart.getTime() + searchIncrement, endSearchAt.getTime()),
         );
 
         const availableSlots = await this.findAvailableSlots(
@@ -235,12 +201,8 @@ export class CalendarSchedulingService {
           );
 
           const conflictingEvent = events.find((event) => {
-            const eventStart = new Date(
-              event.start?.dateTime || event.start?.date || '',
-            ).getTime();
-            const eventEnd = new Date(
-              event.end?.dateTime || event.end?.date || '',
-            ).getTime();
+            const eventStart = new Date(event.start?.dateTime || event.start?.date || '').getTime();
+            const eventEnd = new Date(event.end?.dateTime || event.end?.date || '').getTime();
             return eventStart === busyStart && eventEnd === busyEnd;
           });
 
@@ -284,9 +246,7 @@ export class CalendarSchedulingService {
       const maxSuggestions = options?.maxSuggestions || 3;
       const searchDays = options?.searchDays || 7;
 
-      const searchEnd = new Date(
-        preferredStart.getTime() + searchDays * 24 * 60 * 60 * 1000,
-      );
+      const searchEnd = new Date(preferredStart.getTime() + searchDays * 24 * 60 * 60 * 1000);
 
       const availableSlots = await this.findAvailableSlots(
         tokens,
@@ -310,9 +270,7 @@ export class CalendarSchedulingService {
       // Return top suggestions
       return availableSlots.slice(0, maxSuggestions);
     } catch (error) {
-      this.logger.error(
-        `Failed to suggest alternative slots: ${error.message}`,
-      );
+      this.logger.error(`Failed to suggest alternative slots: ${error.message}`);
       throw error;
     }
   }
@@ -344,36 +302,25 @@ export class CalendarSchedulingService {
       );
 
       // Distribute sessions evenly across available days
-      const sessionsPerDay = Math.ceil(
-        numberOfSessions / Math.max(daysUntilDeadline, 1),
-      );
+      const sessionsPerDay = Math.ceil(numberOfSessions / Math.max(daysUntilDeadline, 1));
 
       const studySessions: TimeSlot[] = [];
       const currentDate = new Date(now);
       let sessionsScheduled = 0;
 
-      while (
-        sessionsScheduled < numberOfSessions &&
-        currentDate < taskDeadline
-      ) {
+      while (sessionsScheduled < numberOfSessions && currentDate < taskDeadline) {
         const dayStart = new Date(currentDate);
         dayStart.setHours(options?.preferredTimes?.startHour || 9, 0, 0, 0);
 
         const dayEnd = new Date(currentDate);
         dayEnd.setHours(options?.preferredTimes?.endHour || 21, 0, 0, 0);
 
-        const daySlots = await this.findAvailableSlots(
-          tokens,
-          dayStart,
-          dayEnd,
-          sessionDuration,
-          {
-            breakMinutes: options?.breakMinutes || 15,
-            startHour: options?.preferredTimes?.startHour,
-            endHour: options?.preferredTimes?.endHour,
-            daysOfWeek: options?.preferredTimes?.daysOfWeek,
-          },
-        );
+        const daySlots = await this.findAvailableSlots(tokens, dayStart, dayEnd, sessionDuration, {
+          breakMinutes: options?.breakMinutes || 15,
+          startHour: options?.preferredTimes?.startHour,
+          endHour: options?.preferredTimes?.endHour,
+          daysOfWeek: options?.preferredTimes?.daysOfWeek,
+        });
 
         // Add up to sessionsPerDay from this day
         const slotsToAdd = Math.min(
@@ -390,9 +337,7 @@ export class CalendarSchedulingService {
 
       return studySessions;
     } catch (error) {
-      this.logger.error(
-        `Failed to calculate optimal study times: ${error.message}`,
-      );
+      this.logger.error(`Failed to calculate optimal study times: ${error.message}`);
       throw error;
     }
   }
@@ -419,9 +364,7 @@ export class CalendarSchedulingService {
       if (new Date(current.start) <= new Date(lastMerged.end)) {
         // Overlapping or adjacent, merge them
         lastMerged.end =
-          new Date(current.end) > new Date(lastMerged.end)
-            ? current.end
-            : lastMerged.end;
+          new Date(current.end) > new Date(lastMerged.end) ? current.end : lastMerged.end;
       } else {
         // No overlap, add as new slot
         merged.push(current);
@@ -456,10 +399,7 @@ export class CalendarSchedulingService {
     }
 
     if (endHour !== undefined) {
-      if (
-        end.getHours() > endHour ||
-        (end.getHours() === endHour && end.getMinutes() > 0)
-      ) {
+      if (end.getHours() > endHour || (end.getHours() === endHour && end.getMinutes() > 0)) {
         return false;
       }
     }

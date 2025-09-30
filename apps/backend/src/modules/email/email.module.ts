@@ -33,10 +33,7 @@ import { EmailPermissionsGuard } from './guards/email-permissions.guard';
           },
         },
         defaults: {
-          from: configService.get<string>(
-            'EMAIL_FROM',
-            '"Study Teddy" <noreply@studyteddy.com>',
-          ),
+          from: configService.get<string>('EMAIL_FROM', '"Study Teddy" <noreply@studyteddy.com>'),
         },
         template: {
           dir: join(__dirname, '..', '..', 'templates'),

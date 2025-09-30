@@ -35,10 +35,7 @@ import { EmailTemplateService } from '../email-queue/services/email-template.ser
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import {
-  EmailRateLimitGuard,
-  EmailRateLimit,
-} from './guards/email-rate-limit.guard';
+import { EmailRateLimitGuard, EmailRateLimit } from './guards/email-rate-limit.guard';
 import {
   EmailPermissionsGuard,
   RequireEmailPermissions,
@@ -80,8 +77,7 @@ export class EmailController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Send single email',
-    description:
-      'Send a single email to a recipient with optional template and tracking',
+    description: 'Send a single email to a recipient with optional template and tracking',
   })
   @ApiBody({ type: SendEmailDto })
   @ApiResponse({
@@ -110,9 +106,7 @@ export class EmailController {
           sendEmailDto.template,
         );
         if (!templateExists) {
-          throw new BadRequestException(
-            `Template '${sendEmailDto.template}' not found`,
-          );
+          throw new BadRequestException(`Template '${sendEmailDto.template}' not found`);
         }
       }
 
@@ -147,8 +141,7 @@ export class EmailController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Send batch emails',
-    description:
-      'Send multiple emails in a batch with personalized content for each recipient',
+    description: 'Send multiple emails in a batch with personalized content for each recipient',
   })
   @ApiBody({ type: BatchEmailDto })
   @ApiResponse({
@@ -175,9 +168,7 @@ export class EmailController {
           batchEmailDto.template,
         );
         if (!templateExists) {
-          throw new BadRequestException(
-            `Template '${batchEmailDto.template}' not found`,
-          );
+          throw new BadRequestException(`Template '${batchEmailDto.template}' not found`);
         }
       }
 
@@ -214,8 +205,7 @@ export class EmailController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Schedule email',
-    description:
-      'Schedule an email to be sent at a specific time or on a recurring basis',
+    description: 'Schedule an email to be sent at a specific time or on a recurring basis',
   })
   @ApiBody({ type: ScheduleEmailDto })
   @ApiResponse({
@@ -232,9 +222,7 @@ export class EmailController {
     @Body() scheduleEmailDto: ScheduleEmailDto,
   ): Promise<SendEmailResponseDto> {
     try {
-      this.logger.log(
-        `Scheduling email for ${scheduleEmailDto.scheduledAt} by user ${userId}`,
-      );
+      this.logger.log(`Scheduling email for ${scheduleEmailDto.scheduledAt} by user ${userId}`);
 
       // Validate scheduled time is in the future
       const scheduledTime = new Date(scheduleEmailDto.scheduledAt);
@@ -248,9 +236,7 @@ export class EmailController {
           scheduleEmailDto.email.template,
         );
         if (!templateExists) {
-          throw new BadRequestException(
-            `Template '${scheduleEmailDto.email.template}' not found`,
-          );
+          throw new BadRequestException(`Template '${scheduleEmailDto.email.template}' not found`);
         }
       }
 
@@ -280,8 +266,7 @@ export class EmailController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get email status',
-    description:
-      'Get the current status and tracking information for a specific email',
+    description: 'Get the current status and tracking information for a specific email',
   })
   @ApiParam({
     name: 'id',
@@ -302,10 +287,7 @@ export class EmailController {
     @CurrentUser() userId: string,
   ): Promise<EmailStatusResponseDto> {
     try {
-      const status = await this.emailQueueService.getEmailStatus(
-        emailId,
-        userId,
-      );
+      const status = await this.emailQueueService.getEmailStatus(emailId, userId);
       if (!status) {
         throw new NotFoundException(`Email with ID ${emailId} not found`);
       }
@@ -346,19 +328,12 @@ export class EmailController {
     @CurrentUser() userId: string,
   ): Promise<{ message: string; cancelled: boolean }> {
     try {
-      const result = await this.emailQueueService.cancelScheduledEmail(
-        emailId,
-        userId,
-      );
+      const result = await this.emailQueueService.cancelScheduledEmail(emailId, userId);
       if (!result.found) {
-        throw new NotFoundException(
-          `Scheduled email with ID ${emailId} not found`,
-        );
+        throw new NotFoundException(`Scheduled email with ID ${emailId} not found`);
       }
       if (!result.cancelled) {
-        throw new BadRequestException(
-          'Email cannot be cancelled (already sent or in progress)',
-        );
+        throw new BadRequestException('Email cannot be cancelled (already sent or in progress)');
       }
 
       return {
@@ -416,8 +391,7 @@ export class EmailController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Preview email template',
-    description:
-      'Generate a preview of an email template with provided context data',
+    description: 'Generate a preview of an email template with provided context data',
   })
   @ApiParam({
     name: 'id',
@@ -484,8 +458,7 @@ export class EmailController {
   })
   async getEmailPreferences(@CurrentUser() userId: string) {
     try {
-      const preferences =
-        await this.notificationPreferencesService.getEmailPreferences(userId);
+      const preferences = await this.notificationPreferencesService.getEmailPreferences(userId);
       return preferences;
     } catch (error) {
       this.logger.error(`Failed to get email preferences: ${error.message}`);
@@ -510,11 +483,10 @@ export class EmailController {
     @Body() updatePreferencesDto: UpdateEmailPreferencesDto,
   ) {
     try {
-      const result =
-        await this.notificationPreferencesService.updateEmailPreferences(
-          userId,
-          updatePreferencesDto,
-        );
+      const result = await this.notificationPreferencesService.updateEmailPreferences(
+        userId,
+        updatePreferencesDto,
+      );
       return {
         message: 'Email preferences updated successfully',
         preferences: result,
@@ -546,14 +518,9 @@ export class EmailController {
     @Body() unsubscribeDto: HandleUnsubscribeDto,
   ): Promise<UnsubscribeResponseDto> {
     try {
-      const result =
-        await this.notificationPreferencesService.handleUnsubscribe(
-          unsubscribeDto,
-        );
+      const result = await this.notificationPreferencesService.handleUnsubscribe(unsubscribeDto);
 
-      this.logger.log(
-        `Unsubscribe processed for ${unsubscribeDto.email || 'token-based request'}`,
-      );
+      this.logger.log(`Unsubscribe processed for ${unsubscribeDto.email || 'token-based request'}`);
 
       return {
         message: result.message,
@@ -589,10 +556,7 @@ export class EmailController {
     @Body() resubscribeDto: ResubscribeDto,
   ): Promise<{ message: string; resubscribed: boolean }> {
     try {
-      const result =
-        await this.notificationPreferencesService.handleResubscribe(
-          resubscribeDto,
-        );
+      const result = await this.notificationPreferencesService.handleResubscribe(resubscribeDto);
 
       this.logger.log(`Resubscribe processed for ${resubscribeDto.email}`);
 
@@ -631,14 +595,10 @@ export class EmailController {
   ): Promise<{ unsubscribeLink: string; token: string; expiresAt: string }> {
     try {
       const result =
-        await this.notificationPreferencesService.generateUnsubscribeLink(
-          generateLinkDto,
-        );
+        await this.notificationPreferencesService.generateUnsubscribeLink(generateLinkDto);
       return result;
     } catch (error) {
-      this.logger.error(
-        `Failed to generate unsubscribe link: ${error.message}`,
-      );
+      this.logger.error(`Failed to generate unsubscribe link: ${error.message}`);
       throw error;
     }
   }
@@ -647,8 +607,7 @@ export class EmailController {
   @Public()
   @ApiOperation({
     summary: 'Webhook for email events',
-    description:
-      'Handle webhook events from email service providers (open, click, bounce, etc.)',
+    description: 'Handle webhook events from email service providers (open, click, bounce, etc.)',
   })
   @ApiHeader({
     name: 'X-Webhook-Signature',
@@ -682,9 +641,7 @@ export class EmailController {
         throw new BadRequestException('Invalid webhook signature');
       }
 
-      const result = await this.emailQueueService.processWebhookEvents(
-        webhookData.events,
-      );
+      const result = await this.emailQueueService.processWebhookEvents(webhookData.events);
 
       this.logger.log(`Processed ${result.processed} webhook events`);
 
@@ -738,15 +695,9 @@ export class EmailController {
       },
     },
   })
-  async getAnalyticsSummary(
-    @CurrentUser() userId: string,
-    @Query('days') days: number = 30,
-  ) {
+  async getAnalyticsSummary(@CurrentUser() userId: string, @Query('days') days: number = 30) {
     try {
-      const analytics = await this.emailQueueService.getEmailAnalytics(
-        userId,
-        days,
-      );
+      const analytics = await this.emailQueueService.getEmailAnalytics(userId, days);
       return analytics;
     } catch (error) {
       this.logger.error(`Failed to get analytics summary: ${error.message}`);

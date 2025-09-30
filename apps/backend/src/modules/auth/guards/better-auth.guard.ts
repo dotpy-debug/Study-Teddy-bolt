@@ -58,11 +58,10 @@ export class BetterAuthGuard implements CanActivate {
       }
 
       // Check if email is verified (if required)
-      const requireEmailVerification =
-        this.reflector.getAllAndOverride<boolean>('requireEmailVerification', [
-          context.getHandler(),
-          context.getClass(),
-        ]);
+      const requireEmailVerification = this.reflector.getAllAndOverride<boolean>(
+        'requireEmailVerification',
+        [context.getHandler(), context.getClass()],
+      );
 
       if (requireEmailVerification && !user.emailVerified) {
         this.logger.debug('Email verification required');
@@ -92,5 +91,4 @@ import { SetMetadata } from '@nestjs/common';
 export const Public = () => SetMetadata('isPublic', true);
 
 // Decorator to require email verification
-export const RequireEmailVerification = () =>
-  SetMetadata('requireEmailVerification', true);
+export const RequireEmailVerification = () => SetMetadata('requireEmailVerification', true);

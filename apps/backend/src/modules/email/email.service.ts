@@ -46,20 +46,13 @@ export class EmailService {
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
   ) {
-    this.frontendUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:3000',
-    );
+    this.frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
   }
 
   /**
    * Send a password reset email
    */
-  async sendPasswordResetEmail(
-    email: string,
-    name: string,
-    resetToken: string,
-  ): Promise<void> {
+  async sendPasswordResetEmail(email: string, name: string, resetToken: string): Promise<void> {
     const resetLink = `${this.frontendUrl}/auth/reset-password?token=${resetToken}`;
     const expiresIn = '1 hour';
 
@@ -79,10 +72,7 @@ export class EmailService {
 
       this.logger.log(`Password reset email sent to ${email}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to send password reset email to ${email}`,
-        error,
-      );
+      this.logger.error(`Failed to send password reset email to ${email}`, error);
       throw new Error('Failed to send password reset email');
     }
   }
@@ -150,14 +140,9 @@ export class EmailService {
         context,
       });
 
-      this.logger.log(
-        `Study reminder email sent to ${email} for task: ${taskTitle}`,
-      );
+      this.logger.log(`Study reminder email sent to ${email} for task: ${taskTitle}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to send study reminder email to ${email}`,
-        error,
-      );
+      this.logger.error(`Failed to send study reminder email to ${email}`, error);
       // Don't throw error for reminder emails - they're not critical
     }
   }
@@ -197,10 +182,7 @@ export class EmailService {
   /**
    * Send password reset success confirmation
    */
-  async sendPasswordResetSuccessEmail(
-    email: string,
-    name: string,
-  ): Promise<void> {
+  async sendPasswordResetSuccessEmail(email: string, name: string): Promise<void> {
     const loginLink = `${this.frontendUrl}/auth/login`;
 
     try {
@@ -216,10 +198,7 @@ export class EmailService {
 
       this.logger.log(`Password reset success email sent to ${email}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to send password reset success email to ${email}`,
-        error,
-      );
+      this.logger.error(`Failed to send password reset success email to ${email}`, error);
       // Don't throw error for success confirmation emails
     }
   }
@@ -251,9 +230,7 @@ export class EmailService {
     const successful = results.filter((r) => r.status === 'fulfilled').length;
     const failed = results.filter((r) => r.status === 'rejected').length;
 
-    this.logger.log(
-      `Batch study reminders sent: ${successful} successful, ${failed} failed`,
-    );
+    this.logger.log(`Batch study reminders sent: ${successful} successful, ${failed} failed`);
   }
 
   /**
@@ -276,10 +253,7 @@ export class EmailService {
           ...context,
           appName: this.appName,
           currentYear: new Date().getFullYear(),
-          supportEmail: this.configService.get<string>(
-            'SUPPORT_EMAIL',
-            'support@studyteddy.com',
-          ),
+          supportEmail: this.configService.get<string>('SUPPORT_EMAIL', 'support@studyteddy.com'),
         };
       }
 
@@ -338,10 +312,7 @@ export class EmailService {
 
       this.logger.log(`Weekly summary email sent to ${email}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to send weekly summary email to ${email}`,
-        error,
-      );
+      this.logger.error(`Failed to send weekly summary email to ${email}`, error);
     }
   }
 
@@ -374,9 +345,7 @@ export class EmailService {
         },
       });
 
-      this.logger.log(
-        `Achievement email sent to ${email} for: ${achievement.title}`,
-      );
+      this.logger.log(`Achievement email sent to ${email} for: ${achievement.title}`);
     } catch (error) {
       this.logger.error(`Failed to send achievement email to ${email}`, error);
     }

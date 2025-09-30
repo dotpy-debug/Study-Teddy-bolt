@@ -17,13 +17,11 @@ describe('DashboardController (e2e)', () => {
     await app.init();
 
     // Create a test user and get access token
-    const registerResponse = await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({
-        name: 'Dashboard Test User',
-        email: 'dashboardtest@example.com',
-        password: 'password123',
-      });
+    const registerResponse = await request(app.getHttpServer()).post('/auth/register').send({
+      name: 'Dashboard Test User',
+      email: 'dashboardtest@example.com',
+      password: 'password123',
+    });
 
     accessToken = registerResponse.body.access_token;
     userId = registerResponse.body.user.id;
@@ -235,17 +233,13 @@ describe('DashboardController (e2e)', () => {
         .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('activities');
-          expect(res.body.startDate).toBe(
-            startDate.toISOString().split('T')[0],
-          );
+          expect(res.body.startDate).toBe(startDate.toISOString().split('T')[0]);
           expect(res.body.endDate).toBe(endDate.toISOString().split('T')[0]);
         });
     });
 
     it('should return 401 without authentication', () => {
-      return request(app.getHttpServer())
-        .get('/dashboard/activity')
-        .expect(401);
+      return request(app.getHttpServer()).get('/dashboard/activity').expect(401);
     });
   });
 

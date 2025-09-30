@@ -19,11 +19,7 @@ export const sessionStatusEnum = pgEnum('session_status', [
   'completed',
   'abandoned',
 ]);
-export const sessionTypeEnum = pgEnum('session_type', [
-  'pomodoro',
-  'free',
-  'goal_based',
-]);
+export const sessionTypeEnum = pgEnum('session_type', ['pomodoro', 'free', 'goal_based']);
 
 export const studySessions = pgTable(
   'study_sessions',
@@ -67,35 +63,27 @@ export const sessionAnalytics = pgTable('session_analytics', {
   productivityScore: numeric('productivity_score', { precision: 3, scale: 2 }),
   averageFocusTime: integer('average_focus_time'), // in seconds
   peakFocusTime: text('peak_focus_time'), // time of day when most focused
-  breakPattern: jsonb('break_pattern')
-    .default([])
-    .$type<{ time: string; duration: number }[]>(),
+  breakPattern: jsonb('break_pattern').default([]).$type<{ time: string; duration: number }[]>(),
   keyInsights: jsonb('key_insights').default([]).$type<string[]>(),
   recommendations: jsonb('recommendations').default([]).$type<string[]>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const studySessionsRelations = relations(
-  studySessions,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [studySessions.userId],
-      references: [users.id],
-    }),
-    subject: one(subjects, {
-      fields: [studySessions.subjectId],
-      references: [subjects.id],
-    }),
-    analytics: one(sessionAnalytics),
+export const studySessionsRelations = relations(studySessions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [studySessions.userId],
+    references: [users.id],
   }),
-);
+  subject: one(subjects, {
+    fields: [studySessions.subjectId],
+    references: [subjects.id],
+  }),
+  analytics: one(sessionAnalytics),
+}));
 
-export const sessionAnalyticsRelations = relations(
-  sessionAnalytics,
-  ({ one }) => ({
-    session: one(studySessions, {
-      fields: [sessionAnalytics.sessionId],
-      references: [studySessions.id],
-    }),
+export const sessionAnalyticsRelations = relations(sessionAnalytics, ({ one }) => ({
+  session: one(studySessions, {
+    fields: [sessionAnalytics.sessionId],
+    references: [studySessions.id],
   }),
-);
+}));

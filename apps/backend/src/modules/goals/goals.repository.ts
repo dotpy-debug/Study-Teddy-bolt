@@ -1,18 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  and,
-  eq,
-  desc,
-  asc,
-  like,
-  ilike,
-  or,
-  gte,
-  lte,
-  inArray,
-  sql,
-  isNull,
-} from 'drizzle-orm';
+import { and, eq, desc, asc, like, ilike, or, gte, lte, inArray, sql, isNull } from 'drizzle-orm';
 import { DrizzleService } from '../../db/drizzle.service';
 import {
   goals,
@@ -104,22 +91,16 @@ export class GoalsRepository {
 
     if (search) {
       conditions.push(
-        or(
-          ilike(goals.title, `%${search}%`),
-          ilike(goals.description, `%${search}%`),
-        ),
+        or(ilike(goals.title, `%${search}%`), ilike(goals.description, `%${search}%`)),
       );
     }
 
     if (tags) {
       const tagArray = tags.split(',').map((tag) => tag.trim());
-      conditions.push(
-        sql`${goals.tags} ?| array[${tagArray.map((tag) => `'${tag}'`).join(',')}]`,
-      );
+      conditions.push(sql`${goals.tags} ?| array[${tagArray.map((tag) => `'${tag}'`).join(',')}]`);
     }
 
-    const orderBy =
-      sortOrder === 'desc' ? desc(goals[sortBy]) : asc(goals[sortBy]);
+    const orderBy = sortOrder === 'desc' ? desc(goals[sortBy]) : asc(goals[sortBy]);
 
     try {
       const [result, totalResult] = await Promise.all([
@@ -257,11 +238,7 @@ export class GoalsRepository {
     }
   }
 
-  async addProgress(
-    goalId: string,
-    userId: string,
-    progressDto: GoalProgressDto,
-  ) {
+  async addProgress(goalId: string, userId: string, progressDto: GoalProgressDto) {
     try {
       return await this.drizzleService.db.transaction(async (tx) => {
         // Add progress entry
@@ -284,13 +261,9 @@ export class GoalsRepository {
           .limit(1);
 
         if (goal[0]) {
-          const currentValue =
-            parseFloat(goal[0].currentValue) + progressDto.value;
+          const currentValue = parseFloat(goal[0].currentValue) + progressDto.value;
           const targetValue = parseFloat(goal[0].targetValue);
-          const progressPercentage = Math.min(
-            (currentValue / targetValue) * 100,
-            100,
-          );
+          const progressPercentage = Math.min((currentValue / targetValue) * 100, 100);
           const isCompleted = progressPercentage >= 100;
 
           await tx
@@ -489,12 +462,7 @@ export class GoalsRepository {
       return await this.drizzleService.db
         .select()
         .from(goalReminders)
-        .where(
-          and(
-            eq(goalReminders.isSent, false),
-            lte(goalReminders.scheduledFor, now),
-          ),
-        )
+        .where(and(eq(goalReminders.isSent, false), lte(goalReminders.scheduledFor, now)))
         .orderBy(asc(goalReminders.scheduledFor));
     } catch (error) {
       this.logger.error('Error getting pending reminders:', error);
@@ -596,63 +564,57 @@ export class GoalsRepository {
         conditions.push(eq(goals.category, query.category));
       }
 
-      const [
-        totalGoals,
-        completedGoals,
-        activeGoals,
-        categoryStats,
-        typeStats,
-        averageCompletion,
-      ] = await Promise.all([
-        // Total goals count
-        this.drizzleService.db
-          .select({ count: sql<number>`count(*)` })
-          .from(goals)
-          .where(and(...conditions)),
+      const [totalGoals, completedGoals, activeGoals, categoryStats, typeStats, averageCompletion] =
+        await Promise.all([
+          // Total goals count
+          this.drizzleService.db
+            .select({ count: sql<number>`count(*)` })
+            .from(goals)
+            .where(and(...conditions)),
 
-        // Completed goals count
-        this.drizzleService.db
-          .select({ count: sql<number>`count(*)` })
-          .from(goals)
-          .where(and(...conditions, eq(goals.isCompleted, true))),
+          // Completed goals count
+          this.drizzleService.db
+            .select({ count: sql<number>`count(*)` })
+            .from(goals)
+            .where(and(...conditions, eq(goals.isCompleted, true))),
 
-        // Active goals count
-        this.drizzleService.db
-          .select({ count: sql<number>`count(*)` })
-          .from(goals)
-          .where(and(...conditions, eq(goals.status, 'active'))),
+          // Active goals count
+          this.drizzleService.db
+            .select({ count: sql<number>`count(*)` })
+            .from(goals)
+            .where(and(...conditions, eq(goals.status, 'active'))),
 
-        // Goals by category
-        this.drizzleService.db
-          .select({
-            category: goals.category,
-            count: sql<number>`count(*)`,
-            completedCount: sql<number>`count(*) filter (where ${goals.isCompleted} = true)`,
-          })
-          .from(goals)
-          .where(and(...conditions))
-          .groupBy(goals.category),
+          // Goals by category
+          this.drizzleService.db
+            .select({
+              category: goals.category,
+              count: sql<number>`count(*)`,
+              completedCount: sql<number>`count(*) filter (where ${goals.isCompleted} = true)`,
+            })
+            .from(goals)
+            .where(and(...conditions))
+            .groupBy(goals.category),
 
-        // Goals by type
-        this.drizzleService.db
-          .select({
-            type: goals.type,
-            count: sql<number>`count(*)`,
-            completedCount: sql<number>`count(*) filter (where ${goals.isCompleted} = true)`,
-            averageProgress: sql<number>`avg(cast(${goals.progressPercentage} as decimal))`,
-          })
-          .from(goals)
-          .where(and(...conditions))
-          .groupBy(goals.type),
+          // Goals by type
+          this.drizzleService.db
+            .select({
+              type: goals.type,
+              count: sql<number>`count(*)`,
+              completedCount: sql<number>`count(*) filter (where ${goals.isCompleted} = true)`,
+              averageProgress: sql<number>`avg(cast(${goals.progressPercentage} as decimal))`,
+            })
+            .from(goals)
+            .where(and(...conditions))
+            .groupBy(goals.type),
 
-        // Average completion rate
-        this.drizzleService.db
-          .select({
-            averageProgress: sql<number>`avg(cast(${goals.progressPercentage} as decimal))`,
-          })
-          .from(goals)
-          .where(and(...conditions)),
-      ]);
+          // Average completion rate
+          this.drizzleService.db
+            .select({
+              averageProgress: sql<number>`avg(cast(${goals.progressPercentage} as decimal))`,
+            })
+            .from(goals)
+            .where(and(...conditions)),
+        ]);
 
       return {
         summary: {

@@ -69,18 +69,14 @@ export class NotificationsGateway
       const token = this.extractTokenFromSocket(client);
 
       if (!token) {
-        this.logger.warn(
-          `Connection rejected: No token provided from ${client.id}`,
-        );
+        this.logger.warn(`Connection rejected: No token provided from ${client.id}`);
         client.disconnect();
         return;
       }
 
       const payload = await this.validateToken(token);
       if (!payload || !payload.sub) {
-        this.logger.warn(
-          `Connection rejected: Invalid token from ${client.id}`,
-        );
+        this.logger.warn(`Connection rejected: Invalid token from ${client.id}`);
         client.disconnect();
         return;
       }
@@ -181,10 +177,7 @@ export class NotificationsGateway
       types: data.types || [],
     });
 
-    this.logger.debug(
-      `User ${client.userId} subscribed to notifications`,
-      data,
-    );
+    this.logger.debug(`User ${client.userId} subscribed to notifications`, data);
   }
 
   @SubscribeMessage('unsubscribe-from-notifications')
@@ -219,10 +212,7 @@ export class NotificationsGateway
       types: data.types || [],
     });
 
-    this.logger.debug(
-      `User ${client.userId} unsubscribed from notifications`,
-      data,
-    );
+    this.logger.debug(`User ${client.userId} unsubscribed from notifications`, data);
   }
 
   @SubscribeMessage('mark-notification-read')
@@ -243,9 +233,7 @@ export class NotificationsGateway
       userId: client.userId,
     });
 
-    this.logger.debug(
-      `User ${client.userId} marked notification ${data.notificationId} as read`,
-    );
+    this.logger.debug(`User ${client.userId} marked notification ${data.notificationId} as read`);
   }
 
   @SubscribeMessage('get-connection-info')
@@ -268,10 +256,7 @@ export class NotificationsGateway
 
   // Event listeners for service events
   @OnEvent('notification.created')
-  handleNotificationCreated(data: {
-    userId: string;
-    notification: NotificationPayload;
-  }) {
+  handleNotificationCreated(data: { userId: string; notification: NotificationPayload }) {
     this.sendNotificationToUser(data.userId, data.notification);
   }
 
@@ -315,10 +300,7 @@ export class NotificationsGateway
   }
 
   @OnEvent('notifications.archived')
-  handleNotificationsArchived(data: {
-    userId: string;
-    notificationIds: string[];
-  }) {
+  handleNotificationsArchived(data: { userId: string; notificationIds: string[] }) {
     this.server.to(`user:${data.userId}`).emit('notifications-archived', {
       notificationIds: data.notificationIds,
       userId: data.userId,
@@ -326,11 +308,7 @@ export class NotificationsGateway
   }
 
   @OnEvent('notifications.bulkOperation')
-  handleBulkOperation(data: {
-    action: string;
-    notificationIds: string[];
-    userId: string;
-  }) {
+  handleBulkOperation(data: { action: string; notificationIds: string[]; userId: string }) {
     this.server.to(`user:${data.userId}`).emit('bulk-operation-completed', {
       action: data.action,
       notificationIds: data.notificationIds,
@@ -358,14 +336,10 @@ export class NotificationsGateway
     this.server.to(`user:${userId}`).emit('new-notification', notification);
 
     // Send to category-specific rooms
-    this.server
-      .to(`category:${notification.category}`)
-      .emit('category-notification', notification);
+    this.server.to(`category:${notification.category}`).emit('category-notification', notification);
 
     // Send to type-specific rooms
-    this.server
-      .to(`type:${notification.type}`)
-      .emit('type-notification', notification);
+    this.server.to(`type:${notification.type}`).emit('type-notification', notification);
 
     // Update unread count
     this.sendUnreadCount(userId);

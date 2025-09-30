@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { NotificationsRepository } from './notifications.repository';
@@ -167,15 +162,10 @@ export class NotificationsService {
         notification,
       });
 
-      this.logger.log(
-        `Created notification ${notification.id} for user ${userId}`,
-      );
+      this.logger.log(`Created notification ${notification.id} for user ${userId}`);
       return notification;
     } catch (error) {
-      this.logger.error(
-        `Failed to create notification for user ${userId}`,
-        error,
-      );
+      this.logger.error(`Failed to create notification for user ${userId}`, error);
       throw error;
     }
   }
@@ -203,10 +193,7 @@ export class NotificationsService {
   async getNotificationById(id: string, userId: string) {
     const notification = await this.repository.findById(id);
 
-    if (
-      !notification ||
-      notification.notifications_enhanced.userId !== userId
-    ) {
+    if (!notification || notification.notifications_enhanced.userId !== userId) {
       throw new NotFoundException('Notification not found');
     }
 
@@ -311,10 +298,7 @@ export class NotificationsService {
     return preferences;
   }
 
-  async updatePreferences(
-    userId: string,
-    dto: UpdateNotificationPreferencesDto,
-  ) {
+  async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto) {
     const updated = await this.repository.upsertUserPreferences(userId, dto);
 
     this.logger.log(`Updated notification preferences for user ${userId}`);
@@ -323,10 +307,7 @@ export class NotificationsService {
 
   // PUSH NOTIFICATIONS
   async subscribeToPush(userId: string, subscription: any) {
-    const pushSubscription: Omit<
-      PushSubscription,
-      'id' | 'createdAt' | 'updatedAt'
-    > = {
+    const pushSubscription: Omit<PushSubscription, 'id' | 'createdAt' | 'updatedAt'> = {
       userId,
       endpoint: subscription.endpoint,
       keys: {
@@ -337,8 +318,7 @@ export class NotificationsService {
       isActive: true,
     };
 
-    const created =
-      await this.repository.createPushSubscription(pushSubscription);
+    const created = await this.repository.createPushSubscription(pushSubscription);
 
     this.logger.log(`Created push subscription for user ${userId}`);
     return created;
@@ -390,10 +370,7 @@ export class NotificationsService {
   // SCHEDULED NOTIFICATIONS
   async scheduleNotification(
     userId: string,
-    notification: Omit<
-      ScheduledNotification,
-      'id' | 'createdAt' | 'updatedAt' | 'executionCount'
-    >,
+    notification: Omit<ScheduledNotification, 'id' | 'createdAt' | 'updatedAt' | 'executionCount'>,
   ) {
     return this.repository.createScheduledNotification({
       ...notification,
@@ -404,8 +381,7 @@ export class NotificationsService {
   @Cron(CronExpression.EVERY_MINUTE)
   async processScheduledNotifications() {
     try {
-      const pendingNotifications =
-        await this.repository.getPendingScheduledNotifications(100);
+      const pendingNotifications = await this.repository.getPendingScheduledNotifications(100);
 
       for (const scheduled of pendingNotifications) {
         await this.executeScheduledNotification(scheduled);
@@ -416,9 +392,7 @@ export class NotificationsService {
   }
 
   // BATCH NOTIFICATIONS
-  async sendBatchNotifications(
-    batch: Omit<NotificationBatch, 'id' | 'createdAt' | 'updatedAt'>,
-  ) {
+  async sendBatchNotifications(batch: Omit<NotificationBatch, 'id' | 'createdAt' | 'updatedAt'>) {
     const createdBatch = await this.repository.createNotificationBatch({
       ...batch,
       totalCount: batch.userIds.length,
@@ -456,18 +430,14 @@ export class NotificationsService {
 
   // DELIVERY METHODS
   private async deliverNotification(notification: any) {
-    const deliveryPromises = notification.channels.map(
-      (channel: NotificationChannel) =>
-        this.deliverToChannel(notification, channel),
+    const deliveryPromises = notification.channels.map((channel: NotificationChannel) =>
+      this.deliverToChannel(notification, channel),
     );
 
     await Promise.allSettled(deliveryPromises);
   }
 
-  private async deliverToChannel(
-    notification: any,
-    channel: NotificationChannel,
-  ) {
+  private async deliverToChannel(notification: any, channel: NotificationChannel) {
     try {
       // Create delivery record
       const delivery = await this.repository.createDelivery({
@@ -521,10 +491,7 @@ export class NotificationsService {
         },
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to deliver notification ${notification.id} via ${channel}`,
-        error,
-      );
+      this.logger.error(`Failed to deliver notification ${notification.id} via ${channel}`, error);
     }
   }
 
@@ -538,10 +505,7 @@ export class NotificationsService {
 
   private async deliverWebSocket(notification: any): Promise<boolean> {
     try {
-      this.notificationsGateway.sendNotificationToUser(
-        notification.userId,
-        notification,
-      );
+      this.notificationsGateway.sendNotificationToUser(notification.userId, notification);
       return true;
     } catch (error) {
       this.logger.error('Failed to deliver WebSocket notification', error);
@@ -572,13 +536,9 @@ export class NotificationsService {
     }
   }
 
-  private async deliverPush(
-    notification: any,
-  ): Promise<{ success: boolean; error?: string }> {
+  private async deliverPush(notification: any): Promise<{ success: boolean; error?: string }> {
     try {
-      const subscriptions = await this.repository.getPushSubscriptions(
-        notification.userId,
-      );
+      const subscriptions = await this.repository.getPushSubscriptions(notification.userId);
 
       if (subscriptions.length === 0) {
         return { success: false, error: 'No push subscriptions found' };
@@ -639,11 +599,7 @@ export class NotificationsService {
     const effectiveChannels: NotificationChannel[] = [];
 
     for (const channel of requestedChannels) {
-      const channelEnabled = this.isChannelEnabled(
-        channel,
-        category,
-        preferences,
-      );
+      const channelEnabled = this.isChannelEnabled(channel, category, preferences);
       if (channelEnabled) {
         effectiveChannels.push(channel);
       }
@@ -730,11 +686,7 @@ export class NotificationsService {
     return nextAvailable;
   }
 
-  private async applyTemplate(
-    templateId: string,
-    variables: Record<string, any>,
-    baseData: any,
-  ) {
+  private async applyTemplate(templateId: string, variables: Record<string, any>, baseData: any) {
     const template = await this.getTemplateById(templateId);
 
     let title = template.title;
@@ -791,15 +743,9 @@ export class NotificationsService {
         updateData.isActive = false;
       }
 
-      await this.repository.updateScheduledNotification(
-        scheduled.id,
-        updateData,
-      );
+      await this.repository.updateScheduledNotification(scheduled.id, updateData);
     } catch (error) {
-      this.logger.error(
-        `Failed to execute scheduled notification ${scheduled.id}`,
-        error,
-      );
+      this.logger.error(`Failed to execute scheduled notification ${scheduled.id}`, error);
     }
   }
 
@@ -811,10 +757,7 @@ export class NotificationsService {
       return null;
     }
 
-    if (
-      recurring.maxOccurrences &&
-      scheduled.executionCount >= recurring.maxOccurrences
-    ) {
+    if (recurring.maxOccurrences && scheduled.executionCount >= recurring.maxOccurrences) {
       return null;
     }
 
@@ -879,10 +822,7 @@ export class NotificationsService {
           await this.createNotification(userId, notificationData);
           successCount++;
         } catch (error) {
-          this.logger.error(
-            `Failed to send batch notification to user ${userId}`,
-            error,
-          );
+          this.logger.error(`Failed to send batch notification to user ${userId}`, error);
           failureCount++;
         }
       }
@@ -898,10 +838,7 @@ export class NotificationsService {
   }
 
   private getDefaultCategoryPreferences() {
-    const defaultChannels = [
-      NotificationChannel.IN_APP,
-      NotificationChannel.EMAIL,
-    ];
+    const defaultChannels = [NotificationChannel.IN_APP, NotificationChannel.EMAIL];
 
     return {
       [NotificationCategory.STUDY]: {

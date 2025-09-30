@@ -145,10 +145,7 @@ export class TestDataFactory {
   /**
    * Create a mock subject
    */
-  static createSubject(
-    userId: string,
-    overrides: Partial<MockSubject> = {},
-  ): MockSubject {
+  static createSubject(userId: string, overrides: Partial<MockSubject> = {}): MockSubject {
     return {
       id: faker.string.uuid(),
       userId,
@@ -166,10 +163,7 @@ export class TestDataFactory {
   /**
    * Create a mock task
    */
-  static createTask(
-    userId: string,
-    overrides: Partial<MockTask> = {},
-  ): MockTask {
+  static createTask(userId: string, overrides: Partial<MockTask> = {}): MockTask {
     return {
       id: faker.string.uuid(),
       userId,
@@ -213,10 +207,7 @@ export class TestDataFactory {
   /**
    * Create a mock AI chat
    */
-  static createAIChat(
-    userId: string,
-    overrides: Partial<MockAIChat> = {},
-  ): MockAIChat {
+  static createAIChat(userId: string, overrides: Partial<MockAIChat> = {}): MockAIChat {
     const promptTokens = faker.number.int({ min: 10, max: 100 });
     const completionTokens = faker.number.int({ min: 10, max: 150 });
 
@@ -258,10 +249,7 @@ export class TestDataFactory {
   /**
    * Create a mock flashcard
    */
-  static createFlashcard(
-    deckId: string,
-    overrides: Partial<MockFlashcard> = {},
-  ): MockFlashcard {
+  static createFlashcard(deckId: string, overrides: Partial<MockFlashcard> = {}): MockFlashcard {
     return {
       id: faker.string.uuid(),
       deckId,
@@ -278,10 +266,7 @@ export class TestDataFactory {
   /**
    * Create a mock assignment
    */
-  static createAssignment(
-    userId: string,
-    overrides: Partial<MockAssignment> = {},
-  ): MockAssignment {
+  static createAssignment(userId: string, overrides: Partial<MockAssignment> = {}): MockAssignment {
     return {
       id: faker.string.uuid(),
       userId,

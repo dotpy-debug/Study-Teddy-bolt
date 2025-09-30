@@ -66,9 +66,9 @@ describe('FocusSessionsService', () => {
       const activeSession = FocusSessionFactory.createActive({ userId });
       jest.spyOn(service, 'getCurrentSession').mockResolvedValue(activeSession);
 
-      await expect(
-        service.startSession(userId, startSessionDto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.startSession(userId, startSessionDto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(eventEmitter.emit).not.toHaveBeenCalled();
     });
@@ -144,9 +144,7 @@ describe('FocusSessionsService', () => {
     it('should throw NotFoundException if no active session exists', async () => {
       jest.spyOn(service, 'getCurrentSession').mockResolvedValue(null);
 
-      await expect(service.stopSession(userId, stopSessionDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.stopSession(userId, stopSessionDto)).rejects.toThrow(NotFoundException);
 
       expect(eventEmitter.emit).not.toHaveBeenCalled();
     });
@@ -204,14 +202,11 @@ describe('FocusSessionsService', () => {
       expect(result.description).toBe(scheduleDto.description);
       expect(result.scheduledDuration).toBe(scheduleDto.duration);
 
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'focus.session.schedule.reminder',
-        {
-          sessionId: result.id,
-          userId,
-          reminderTime: expect.any(Date),
-        },
-      );
+      expect(eventEmitter.emit).toHaveBeenCalledWith('focus.session.schedule.reminder', {
+        sessionId: result.id,
+        userId,
+        reminderTime: expect.any(Date),
+      });
     });
 
     it('should throw BadRequestException for past scheduling time', async () => {
@@ -224,9 +219,9 @@ describe('FocusSessionsService', () => {
         startTime: pastTime.toISOString(),
       };
 
-      await expect(
-        service.scheduleSession(userId, scheduleDto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.scheduleSession(userId, scheduleDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should handle calendar sync when calendar event ID provided', async () => {
@@ -287,9 +282,7 @@ describe('FocusSessionsService', () => {
     const sessionId = 'session-123';
 
     it('should throw NotFoundException for non-existent session', async () => {
-      await expect(service.getSession(userId, sessionId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getSession(userId, sessionId)).rejects.toThrow(NotFoundException);
     });
 
     // TODO: Implement when database integration is added
@@ -308,9 +301,9 @@ describe('FocusSessionsService', () => {
     };
 
     it('should throw NotFoundException for non-existent session', async () => {
-      await expect(
-        service.updateSession(userId, sessionId, updateDto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.updateSession(userId, sessionId, updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     // TODO: Implement when database integration is added
@@ -328,9 +321,7 @@ describe('FocusSessionsService', () => {
     const sessionId = 'session-123';
 
     it('should throw NotFoundException for non-existent session', async () => {
-      await expect(service.cancelSession(userId, sessionId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.cancelSession(userId, sessionId)).rejects.toThrow(NotFoundException);
     });
 
     // TODO: Implement when database integration is added
@@ -344,9 +335,7 @@ describe('FocusSessionsService', () => {
     const sessionId = 'session-123';
 
     it('should throw NotFoundException for non-existent session', async () => {
-      await expect(
-        service.extendSession(userId, sessionId, 15),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.extendSession(userId, sessionId, 15)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException for invalid extension duration', async () => {
@@ -357,9 +346,9 @@ describe('FocusSessionsService', () => {
         BadRequestException,
       );
 
-      await expect(
-        service.extendSession(userId, sessionId, 70),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.extendSession(userId, sessionId, 70)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     // TODO: Implement when database integration is added

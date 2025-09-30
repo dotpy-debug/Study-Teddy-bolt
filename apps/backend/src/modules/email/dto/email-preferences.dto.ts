@@ -213,9 +213,7 @@ export class UpdateEmailPreferencesDto {
   @IsOptional()
   @IsArray()
   @IsEmail({}, { each: true })
-  @Transform(({ value }) =>
-    value?.map((email: string) => email.toLowerCase().trim()),
-  )
+  @Transform(({ value }) => value?.map((email: string) => email.toLowerCase().trim()))
   alternativeEmails?: string[];
 
   @ApiPropertyOptional({

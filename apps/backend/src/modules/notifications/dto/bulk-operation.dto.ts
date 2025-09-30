@@ -30,10 +30,7 @@ export class BulkOperationDto {
   @ApiProperty({
     description: 'Array of notification IDs to operate on',
     type: [String],
-    example: [
-      '123e4567-e89b-12d3-a456-426614174000',
-      '987fcdeb-51a2-43d1-b567-987654321000',
-    ],
+    example: ['123e4567-e89b-12d3-a456-426614174000', '987fcdeb-51a2-43d1-b567-987654321000'],
   })
   @IsArray()
   @ArrayNotEmpty()

@@ -54,17 +54,13 @@ describe('AIService', () => {
       },
     };
 
-    (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(
-      () => mockOpenAIInstance as any,
-    );
+    (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(() => mockOpenAIInstance as any);
 
     // Create mock database
     const mockDb = {
       insert: jest.fn().mockReturnValue({
         values: jest.fn().mockReturnValue({
-          returning: jest
-            .fn()
-            .mockResolvedValue([TestDataFactory.createAIChat(mockUserId)]),
+          returning: jest.fn().mockResolvedValue([TestDataFactory.createAIChat(mockUserId)]),
         }),
       }),
       select: jest.fn().mockReturnValue({
@@ -138,9 +134,7 @@ describe('AIService', () => {
       };
 
       // Mock OpenAI response
-      (mockOpenAI.chat.completions.create as jest.Mock).mockResolvedValue(
-        mockChatCompletion,
-      );
+      (mockOpenAI.chat.completions.create as jest.Mock).mockResolvedValue(mockChatCompletion);
 
       // Mock database operations
       const { db } = require('../../db');
@@ -183,17 +177,13 @@ describe('AIService', () => {
     });
 
     it('should throw HttpException when OpenAI API fails', async () => {
-      (mockOpenAI.chat.completions.create as jest.Mock).mockRejectedValue(
-        new Error('API Error'),
+      (mockOpenAI.chat.completions.create as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+      await expect(service.askQuestion(mockChatDto, mockUserId)).rejects.toThrow(HttpException);
+
+      await expect(service.askQuestion(mockChatDto, mockUserId)).rejects.toThrow(
+        'AI service temporarily unavailable',
       );
-
-      await expect(
-        service.askQuestion(mockChatDto, mockUserId),
-      ).rejects.toThrow(HttpException);
-
-      await expect(
-        service.askQuestion(mockChatDto, mockUserId),
-      ).rejects.toThrow('AI service temporarily unavailable');
     });
   });
 
@@ -214,16 +204,11 @@ describe('AIService', () => {
       };
 
       cacheService.warm = jest.fn().mockResolvedValue(mockChatHistory);
-      cacheService.generateKey = jest
-        .fn()
-        .mockReturnValue('ai_chat_history:user-123');
+      cacheService.generateKey = jest.fn().mockReturnValue('ai_chat_history:user-123');
 
       const result = await service.getChatHistory(mockUserId);
 
-      expect(cacheService.generateKey).toHaveBeenCalledWith(
-        'ai_chat_history',
-        mockUserId,
-      );
+      expect(cacheService.generateKey).toHaveBeenCalledWith('ai_chat_history', mockUserId);
       expect(cacheService.warm).toHaveBeenCalledWith(
         'ai_chat_history:user-123',
         expect.any(Function),
@@ -258,9 +243,7 @@ describe('AIService', () => {
       cacheService.warm = jest.fn().mockImplementation(async (key, fn) => {
         return await fn();
       });
-      cacheService.generateKey = jest
-        .fn()
-        .mockReturnValue('ai_chat_history:user-123');
+      cacheService.generateKey = jest.fn().mockReturnValue('ai_chat_history:user-123');
 
       const result = await service.getChatHistory(mockUserId);
 
@@ -314,13 +297,11 @@ describe('AIService', () => {
       };
       db.delete.mockReturnValue(mockDeleteChain);
 
-      await expect(
-        service.deleteChatMessage(chatId, mockUserId),
-      ).rejects.toThrow(HttpException);
+      await expect(service.deleteChatMessage(chatId, mockUserId)).rejects.toThrow(HttpException);
 
-      await expect(
-        service.deleteChatMessage(chatId, mockUserId),
-      ).rejects.toThrow('Chat message not found');
+      await expect(service.deleteChatMessage(chatId, mockUserId)).rejects.toThrow(
+        'Chat message not found',
+      );
     });
 
     it('should throw HttpException when user is not authorized', async () => {
@@ -341,13 +322,9 @@ describe('AIService', () => {
       };
       db.delete.mockReturnValue(mockDeleteChain);
 
-      await expect(
-        service.deleteChatMessage(chatId, mockUserId),
-      ).rejects.toThrow(HttpException);
+      await expect(service.deleteChatMessage(chatId, mockUserId)).rejects.toThrow(HttpException);
 
-      await expect(
-        service.deleteChatMessage(chatId, mockUserId),
-      ).rejects.toThrow('Unauthorized');
+      await expect(service.deleteChatMessage(chatId, mockUserId)).rejects.toThrow('Unauthorized');
     });
   });
 
@@ -369,10 +346,7 @@ describe('AIService', () => {
 
       jest.spyOn(service, 'askQuestion').mockResolvedValue(mockResponse);
 
-      const result = await service.generatePracticeQuestions(
-        generateDto,
-        mockUserId,
-      );
+      const result = await service.generatePracticeQuestions(generateDto, mockUserId);
 
       expect(service.askQuestion).toHaveBeenCalledWith(
         {
@@ -433,25 +407,18 @@ describe('AIService', () => {
       };
       db.select.mockReturnValue(mockSelectChain);
 
-      await expect(service.getAiStats(mockUserId)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(service.getAiStats(mockUserId)).rejects.toThrow(HttpException);
     });
   });
 
   describe('invalidateChatCache', () => {
     it('should invalidate chat cache', async () => {
-      cacheService.generateKey = jest
-        .fn()
-        .mockReturnValue('ai_chat_history:user-123');
+      cacheService.generateKey = jest.fn().mockReturnValue('ai_chat_history:user-123');
       cacheService.del = jest.fn().mockResolvedValue();
 
       await service.invalidateChatCache(mockUserId);
 
-      expect(cacheService.generateKey).toHaveBeenCalledWith(
-        'ai_chat_history',
-        mockUserId,
-      );
+      expect(cacheService.generateKey).toHaveBeenCalledWith('ai_chat_history', mockUserId);
       expect(cacheService.del).toHaveBeenCalledWith('ai_chat_history:user-123');
     });
   });

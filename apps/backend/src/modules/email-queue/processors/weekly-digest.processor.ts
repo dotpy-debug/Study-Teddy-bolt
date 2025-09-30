@@ -2,10 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger, Inject } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { WEEKLY_DIGEST_QUEUE } from '../email-queue.module';
-import {
-  WeeklyDigestJobData,
-  WeeklyDigestEmailJobData,
-} from '../types/email-job.types';
+import { WeeklyDigestJobData, WeeklyDigestEmailJobData } from '../types/email-job.types';
 import { DRIZZLE_DB } from '../../../db/db.module';
 import { DatabaseService } from '../../../db/database.service';
 import { EmailQueueService } from '../email-queue.service';
@@ -37,8 +34,7 @@ export class WeeklyDigestProcessor extends WorkerHost {
   }
 
   async process(job: Job<WeeklyDigestJobData>): Promise<void> {
-    const { userId, weekStartDate, weekEndDate, timezone, userPreferences } =
-      job.data;
+    const { userId, weekStartDate, weekEndDate, timezone, userPreferences } = job.data;
 
     this.logger.debug(`Processing weekly digest for user: ${userId}`, {
       weekStartDate,
@@ -67,27 +63,19 @@ export class WeeklyDigestProcessor extends WorkerHost {
       const [preferences] = await this.db
         .select({
           emailEnabled: notificationPreferences.emailEnabled,
-          emailWeeklyDigestEnabled:
-            notificationPreferences.emailWeeklyDigestEnabled,
+          emailWeeklyDigestEnabled: notificationPreferences.emailWeeklyDigestEnabled,
         })
         .from(notificationPreferences)
         .where(eq(notificationPreferences.userId, userId))
         .limit(1);
 
-      if (
-        !preferences?.emailEnabled ||
-        !preferences?.emailWeeklyDigestEnabled
-      ) {
+      if (!preferences?.emailEnabled || !preferences?.emailWeeklyDigestEnabled) {
         this.logger.debug(`Weekly digest disabled for user: ${userId}`);
         return;
       }
 
       // Generate weekly stats
-      const weeklyStats = await this.generateWeeklyStats(
-        userId,
-        weekStartDate,
-        weekEndDate,
-      );
+      const weeklyStats = await this.generateWeeklyStats(userId, weekStartDate, weekEndDate);
 
       // Create digest email data
       const digestEmailData: WeeklyDigestEmailJobData = {
@@ -104,9 +92,7 @@ export class WeeklyDigestProcessor extends WorkerHost {
       // Send the digest email directly (bypass queue to avoid circular dependency)
       await this.sendWeeklyDigestEmail(digestEmailData);
 
-      this.logger.log(
-        `Weekly digest processed successfully for user: ${userId}`,
-      );
+      this.logger.log(`Weekly digest processed successfully for user: ${userId}`);
     } catch (error) {
       this.logger.error(`Failed to process weekly digest for user: ${userId}`, {
         error: error.message,
@@ -117,9 +103,7 @@ export class WeeklyDigestProcessor extends WorkerHost {
     }
   }
 
-  private async sendWeeklyDigestEmail(
-    emailData: WeeklyDigestEmailJobData,
-  ): Promise<void> {
+  private async sendWeeklyDigestEmail(emailData: WeeklyDigestEmailJobData): Promise<void> {
     let deliveryLogId: string;
 
     try {
@@ -136,8 +120,7 @@ export class WeeklyDigestProcessor extends WorkerHost {
       });
 
       // Generate template data
-      const templateData =
-        await this.prepareWeeklyDigestTemplateData(emailData);
+      const templateData = await this.prepareWeeklyDigestTemplateData(emailData);
 
       // Generate email template
       const template = await this.emailTemplateService.generateTemplate(
@@ -214,8 +197,7 @@ export class WeeklyDigestProcessor extends WorkerHost {
 
       const totalStudyMinutes = Number(studyTimeResult?.totalMinutes) || 0;
       const focusSessionsCompleted = Number(studyTimeResult?.sessionCount) || 0;
-      const averageFocusScore =
-        Math.round(Number(studyTimeResult?.avgFocusScore)) || 0;
+      const averageFocusScore = Math.round(Number(studyTimeResult?.avgFocusScore)) || 0;
 
       // Get completed tasks count
       const [tasksResult] = await this.db
@@ -360,9 +342,7 @@ export class WeeklyDigestProcessor extends WorkerHost {
     }
   }
 
-  private async prepareWeeklyDigestTemplateData(
-    emailData: WeeklyDigestEmailJobData,
-  ): Promise<any> {
+  private async prepareWeeklyDigestTemplateData(emailData: WeeklyDigestEmailJobData): Promise<any> {
     const baseData = {
       userName: emailData.recipientName,
       appUrl: 'https://studyteddy.com', // This should come from config
@@ -400,9 +380,7 @@ export class WeeklyDigestProcessor extends WorkerHost {
         ...subject,
         studyFormatted: this.formatDuration(subject.studyMinutes),
         percentage:
-          totalStudyMinutes > 0
-            ? Math.round((subject.studyMinutes / totalStudyMinutes) * 100)
-            : 0,
+          totalStudyMinutes > 0 ? Math.round((subject.studyMinutes / totalStudyMinutes) * 100) : 0,
       })),
 
       achievements: stats.achievements.map((achievement) => ({

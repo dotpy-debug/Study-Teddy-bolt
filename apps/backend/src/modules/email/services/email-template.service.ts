@@ -3,11 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { compile } from 'handlebars';
-import {
-  EmailTemplate,
-  TemplateRenderResult,
-  EmailTemplateContext,
-} from '../types/email.types';
+import { EmailTemplate, TemplateRenderResult, EmailTemplateContext } from '../types/email.types';
 
 @Injectable()
 export class EmailTemplateService {
@@ -18,10 +14,7 @@ export class EmailTemplateService {
 
   constructor(private readonly configService: ConfigService) {
     this.templatePath = path.join(__dirname, '..', 'templates');
-    this.cacheEnabled = this.configService.get<boolean>(
-      'EMAIL_TEMPLATE_CACHE',
-      true,
-    );
+    this.cacheEnabled = this.configService.get<boolean>('EMAIL_TEMPLATE_CACHE', true);
   }
 
   /**
@@ -83,10 +76,7 @@ export class EmailTemplateService {
   /**
    * Load template content from file system
    */
-  private async loadTemplate(
-    templateName: string,
-    format: 'html' | 'txt',
-  ): Promise<string> {
+  private async loadTemplate(templateName: string, format: 'html' | 'txt'): Promise<string> {
     const fileName = `${templateName}.${format}`;
     const filePath = path.join(this.templatePath, fileName);
 
@@ -108,14 +98,8 @@ export class EmailTemplateService {
    * Enrich context with common variables
    */
   private enrichContext(context: EmailTemplateContext): EmailTemplateContext {
-    const frontendUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:3000',
-    );
-    const supportEmail = this.configService.get<string>(
-      'SUPPORT_EMAIL',
-      'support@studyteddy.com',
-    );
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    const supportEmail = this.configService.get<string>('SUPPORT_EMAIL', 'support@studyteddy.com');
     const appName = this.configService.get<string>('APP_NAME', 'Study Teddy');
 
     return {
@@ -138,19 +122,14 @@ export class EmailTemplateService {
       // This is a simplified validation - in a production system,
       // you might want to parse the template and extract required variables
       const requiredVariables = this.getRequiredVariables(templateName);
-      const missingVariables = requiredVariables.filter(
-        (variable) => !(variable in context),
-      );
+      const missingVariables = requiredVariables.filter((variable) => !(variable in context));
 
       return {
         valid: missingVariables.length === 0,
         missingVariables,
       };
     } catch (error) {
-      this.logger.error(
-        `Template validation failed for ${templateName}`,
-        error,
-      );
+      this.logger.error(`Template validation failed for ${templateName}`, error);
       return {
         valid: false,
         missingVariables: [],
@@ -167,24 +146,9 @@ export class EmailTemplateService {
       [EmailTemplate.EMAIL_VERIFICATION]: ['name', 'verificationToken'],
       [EmailTemplate.PASSWORD_RESET]: ['name', 'resetToken'],
       [EmailTemplate.STUDY_REMINDER]: ['name', 'taskTitle', 'dueDate'],
-      [EmailTemplate.TASK_DEADLINE]: [
-        'name',
-        'taskId',
-        'taskTitle',
-        'dueDate',
-        'timeUntilDue',
-      ],
-      [EmailTemplate.ACHIEVEMENT]: [
-        'name',
-        'achievementTitle',
-        'achievementDescription',
-      ],
-      [EmailTemplate.WEEKLY_SUMMARY]: [
-        'name',
-        'tasksCompleted',
-        'studyHours',
-        'streakDays',
-      ],
+      [EmailTemplate.TASK_DEADLINE]: ['name', 'taskId', 'taskTitle', 'dueDate', 'timeUntilDue'],
+      [EmailTemplate.ACHIEVEMENT]: ['name', 'achievementTitle', 'achievementDescription'],
+      [EmailTemplate.WEEKLY_SUMMARY]: ['name', 'tasksCompleted', 'studyHours', 'streakDays'],
       [EmailTemplate.FOCUS_SESSION_SUMMARY]: [
         'name',
         'sessionDuration',
@@ -238,9 +202,7 @@ export class EmailTemplateService {
 
       return htmlFiles
         .map((file) => file.replace('.html', ''))
-        .filter(
-          async (templateName) => await this.templateExists(templateName),
-        );
+        .filter(async (templateName) => await this.templateExists(templateName));
     } catch (error) {
       this.logger.error('Failed to list available templates', error);
       return [];
@@ -252,28 +214,25 @@ export class EmailTemplateService {
    */
   private registerHelpers(): void {
     // Math helper for calculations in templates
-    require('handlebars').registerHelper(
-      'math',
-      function (lvalue, operator, rvalue) {
-        lvalue = parseFloat(lvalue);
-        rvalue = parseFloat(rvalue);
+    require('handlebars').registerHelper('math', function (lvalue, operator, rvalue) {
+      lvalue = parseFloat(lvalue);
+      rvalue = parseFloat(rvalue);
 
-        switch (operator) {
-          case '+':
-            return lvalue + rvalue;
-          case '-':
-            return lvalue - rvalue;
-          case '*':
-            return lvalue * rvalue;
-          case '/':
-            return rvalue !== 0 ? lvalue / rvalue : 0;
-          case '%':
-            return lvalue % rvalue;
-          default:
-            return 0;
-        }
-      },
-    );
+      switch (operator) {
+        case '+':
+          return lvalue + rvalue;
+        case '-':
+          return lvalue - rvalue;
+        case '*':
+          return lvalue * rvalue;
+        case '/':
+          return rvalue !== 0 ? lvalue / rvalue : 0;
+        case '%':
+          return lvalue % rvalue;
+        default:
+          return 0;
+      }
+    });
 
     // Equals helper for conditional rendering
     require('handlebars').registerHelper('eq', function (a, b) {

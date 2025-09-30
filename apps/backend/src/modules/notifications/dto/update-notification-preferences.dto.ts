@@ -1,11 +1,4 @@
-import {
-  IsOptional,
-  IsBoolean,
-  IsObject,
-  IsNumber,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsOptional, IsBoolean, IsObject, IsNumber, Min, Max } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class NotificationChannelPreferencesDto {

@@ -28,18 +28,9 @@ export class CSRFService {
     private readonly securityLogger: SecurityLoggerService,
   ) {
     this.tokenTTL = this.configService.get<number>('CSRF_TOKEN_TTL', 3600000); // 1 hour default
-    this.cookieName = this.configService.get<string>(
-      'CSRF_COOKIE_NAME',
-      'XSRF-TOKEN',
-    );
-    this.headerName = this.configService.get<string>(
-      'CSRF_HEADER_NAME',
-      'X-XSRF-TOKEN',
-    );
-    this.doubleSubmitCookie = this.configService.get<boolean>(
-      'CSRF_DOUBLE_SUBMIT',
-      true,
-    );
+    this.cookieName = this.configService.get<string>('CSRF_COOKIE_NAME', 'XSRF-TOKEN');
+    this.headerName = this.configService.get<string>('CSRF_HEADER_NAME', 'X-XSRF-TOKEN');
+    this.doubleSubmitCookie = this.configService.get<boolean>('CSRF_DOUBLE_SUBMIT', true);
     this.sameSitePolicy = this.configService.get<'strict' | 'lax' | 'none'>(
       'CSRF_SAME_SITE',
       'strict',
@@ -115,10 +106,7 @@ export class CSRFService {
       }
 
       // Validate the token
-      const hashedProvidedToken = this.createTokenHash(
-        providedToken,
-        tokenData.secret,
-      );
+      const hashedProvidedToken = this.createTokenHash(providedToken, tokenData.secret);
       const isValid = crypto.timingSafeEqual(
         Buffer.from(tokenData.token),
         Buffer.from(hashedProvidedToken),
@@ -143,8 +131,7 @@ export class CSRFService {
    * Set CSRF token in response (for double-submit cookie pattern)
    */
   setTokenCookie(res: Response, token: string): void {
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
     res.cookie(this.cookieName, token, {
       httpOnly: false, // Must be false for JavaScript access in double-submit pattern
@@ -167,12 +154,7 @@ export class CSRFService {
     }
 
     // Check custom header variations
-    const headerVariations = [
-      'x-csrf-token',
-      'x-xsrf-token',
-      'csrf-token',
-      'xsrf-token',
-    ];
+    const headerVariations = ['x-csrf-token', 'x-xsrf-token', 'csrf-token', 'xsrf-token'];
 
     for (const header of headerVariations) {
       token = req.headers[header] as string;
@@ -211,9 +193,7 @@ export class CSRFService {
   /**
    * Validate request with CSRF protection
    */
-  async validateRequest(
-    req: Request,
-  ): Promise<{ valid: boolean; reason?: string }> {
+  async validateRequest(req: Request): Promise<{ valid: boolean; reason?: string }> {
     // Skip CSRF check for safe methods
     const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
     if (safeMethods.includes(req.method)) {
@@ -317,11 +297,7 @@ export class CSRFService {
     const authHeader = req.headers.authorization;
     if (authHeader) {
       // Create a session ID from the auth token (simplified)
-      return crypto
-        .createHash('sha256')
-        .update(authHeader)
-        .digest('hex')
-        .substring(0, 16);
+      return crypto.createHash('sha256').update(authHeader).digest('hex').substring(0, 16);
     }
 
     return null;
@@ -381,10 +357,7 @@ export class CSRFService {
   /**
    * Log validation success
    */
-  private async logValidationSuccess(
-    sessionId: string,
-    req?: Request,
-  ): Promise<void> {
+  private async logValidationSuccess(sessionId: string, req?: Request): Promise<void> {
     await this.securityLogger.logSecurityEvent({
       level: 'debug',
       category: 'authentication',

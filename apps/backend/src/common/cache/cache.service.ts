@@ -76,10 +76,7 @@ export class CacheService {
         `Pattern deletion not fully supported with current cache implementation. Consider upgrading to Redis for production.`,
       );
     } catch (error) {
-      this.logger.error(
-        `Cache delete pattern error for pattern ${pattern}:`,
-        error,
-      );
+      this.logger.error(`Cache delete pattern error for pattern ${pattern}:`, error);
     }
   }
 
@@ -139,11 +136,7 @@ export class CacheService {
   }
 
   // Cache warming method
-  async warm<T>(
-    key: string,
-    dataFunction: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async warm<T>(key: string, dataFunction: () => Promise<T>, ttl?: number): Promise<T> {
     const cachedValue = await this.get<T>(key);
     if (cachedValue !== null) {
       return cachedValue;

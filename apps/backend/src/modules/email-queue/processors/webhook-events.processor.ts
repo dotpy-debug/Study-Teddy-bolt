@@ -138,9 +138,7 @@ export class WebhookEventsProcessor extends WorkerHost {
     }
   }
 
-  private async handleEmailSent(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleEmailSent(event: WebhookEventJobData['event']): Promise<void> {
     await this.emailDeliveryService.updateEmailStatus(event.emailId, {
       status: 'sent',
       sentAt: new Date(event.timestamp),
@@ -155,9 +153,7 @@ export class WebhookEventsProcessor extends WorkerHost {
     });
   }
 
-  private async handleEmailDelivered(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleEmailDelivered(event: WebhookEventJobData['event']): Promise<void> {
     await this.emailDeliveryService.updateEmailStatus(event.emailId, {
       status: 'delivered',
       deliveredAt: new Date(event.timestamp),
@@ -172,12 +168,8 @@ export class WebhookEventsProcessor extends WorkerHost {
     });
   }
 
-  private async handleEmailOpened(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
-    const openCount = await this.emailDeliveryService.incrementOpenCount(
-      event.emailId,
-    );
+  private async handleEmailOpened(event: WebhookEventJobData['event']): Promise<void> {
+    const openCount = await this.emailDeliveryService.incrementOpenCount(event.emailId);
 
     if (openCount === 1) {
       // First open
@@ -202,12 +194,8 @@ export class WebhookEventsProcessor extends WorkerHost {
     await this.updateEngagementMetrics(event.recipient, 'open');
   }
 
-  private async handleEmailClicked(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
-    const clickCount = await this.emailDeliveryService.incrementClickCount(
-      event.emailId,
-    );
+  private async handleEmailClicked(event: WebhookEventJobData['event']): Promise<void> {
+    const clickCount = await this.emailDeliveryService.incrementClickCount(event.emailId);
 
     if (clickCount === 1) {
       // First click
@@ -232,9 +220,7 @@ export class WebhookEventsProcessor extends WorkerHost {
     await this.updateEngagementMetrics(event.recipient, 'click');
   }
 
-  private async handleEmailBounced(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleEmailBounced(event: WebhookEventJobData['event']): Promise<void> {
     await this.emailDeliveryService.updateEmailStatus(event.emailId, {
       status: 'bounced',
       bouncedAt: new Date(event.timestamp),
@@ -257,16 +243,10 @@ export class WebhookEventsProcessor extends WorkerHost {
     }
 
     // Update reputation metrics
-    await this.updateReputationMetrics(
-      event.recipient,
-      'bounce',
-      event.bounceData?.bounceType,
-    );
+    await this.updateReputationMetrics(event.recipient, 'bounce', event.bounceData?.bounceType);
   }
 
-  private async handleEmailComplained(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleEmailComplained(event: WebhookEventJobData['event']): Promise<void> {
     await this.emailDeliveryService.updateEmailStatus(event.emailId, {
       status: 'complained',
       complainedAt: new Date(event.timestamp),
@@ -290,9 +270,7 @@ export class WebhookEventsProcessor extends WorkerHost {
     await this.updateReputationMetrics(event.recipient, 'complaint');
   }
 
-  private async handleEmailUnsubscribed(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleEmailUnsubscribed(event: WebhookEventJobData['event']): Promise<void> {
     // Track unsubscribe event
     await this.emailDeliveryService.trackEvent(event.emailId, {
       type: 'unsubscribed',
@@ -311,9 +289,7 @@ export class WebhookEventsProcessor extends WorkerHost {
     this.logger.log(`User unsubscribed via email link: ${event.recipient}`);
   }
 
-  private async handleEmailFailed(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleEmailFailed(event: WebhookEventJobData['event']): Promise<void> {
     await this.emailDeliveryService.updateEmailStatus(event.emailId, {
       status: 'failed',
       failedAt: new Date(event.timestamp),
@@ -328,18 +304,13 @@ export class WebhookEventsProcessor extends WorkerHost {
     });
 
     // Check if email should be retried
-    const shouldRetry = await this.shouldRetryFailedEmail(
-      event.emailId,
-      event.metadata,
-    );
+    const shouldRetry = await this.shouldRetryFailedEmail(event.emailId, event.metadata);
     if (shouldRetry) {
       await this.scheduleEmailRetry(event.emailId);
     }
   }
 
-  private async handleBatchCompleted(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleBatchCompleted(event: WebhookEventJobData['event']): Promise<void> {
     // Update batch status
     await this.emailDeliveryService.updateBatchStatus(event.emailId, {
       status: 'completed',
@@ -350,9 +321,7 @@ export class WebhookEventsProcessor extends WorkerHost {
     this.logger.log(`Batch completed: ${event.emailId}`, event.metadata);
   }
 
-  private async handleBatchFailed(
-    event: WebhookEventJobData['event'],
-  ): Promise<void> {
+  private async handleBatchFailed(event: WebhookEventJobData['event']): Promise<void> {
     // Update batch status
     await this.emailDeliveryService.updateBatchStatus(event.emailId, {
       status: 'failed',
@@ -376,9 +345,7 @@ export class WebhookEventsProcessor extends WorkerHost {
         timestamp: new Date(),
       });
 
-      this.logger.log(
-        `Marked email as invalid due to hard bounce: ${recipient}`,
-      );
+      this.logger.log(`Marked email as invalid due to hard bounce: ${recipient}`);
     } catch (error) {
       this.logger.error(`Failed to handle hard bounce for ${recipient}`, error);
     }
@@ -400,14 +367,9 @@ export class WebhookEventsProcessor extends WorkerHost {
         keepSecurity: true, // Keep security notifications
       });
 
-      this.logger.log(
-        `Auto-unsubscribed from marketing due to spam complaint: ${recipient}`,
-      );
+      this.logger.log(`Auto-unsubscribed from marketing due to spam complaint: ${recipient}`);
     } catch (error) {
-      this.logger.error(
-        `Failed to handle spam complaint for ${recipient}`,
-        error,
-      );
+      this.logger.error(`Failed to handle spam complaint for ${recipient}`, error);
     }
   }
 
@@ -416,15 +378,9 @@ export class WebhookEventsProcessor extends WorkerHost {
     action: 'open' | 'click',
   ): Promise<void> {
     try {
-      await this.emailDeliveryService.updateRecipientEngagement(
-        recipient,
-        action,
-      );
+      await this.emailDeliveryService.updateRecipientEngagement(recipient, action);
     } catch (error) {
-      this.logger.error(
-        `Failed to update engagement metrics for ${recipient}`,
-        error,
-      );
+      this.logger.error(`Failed to update engagement metrics for ${recipient}`, error);
     }
   }
 
@@ -434,16 +390,9 @@ export class WebhookEventsProcessor extends WorkerHost {
     bounceType?: string,
   ): Promise<void> {
     try {
-      await this.emailDeliveryService.updateSenderReputation(
-        recipient,
-        event,
-        bounceType,
-      );
+      await this.emailDeliveryService.updateSenderReputation(recipient, event, bounceType);
     } catch (error) {
-      this.logger.error(
-        `Failed to update reputation metrics for ${recipient}`,
-        error,
-      );
+      this.logger.error(`Failed to update reputation metrics for ${recipient}`, error);
     }
   }
 
@@ -452,8 +401,7 @@ export class WebhookEventsProcessor extends WorkerHost {
     metadata?: Record<string, any>,
   ): Promise<boolean> {
     try {
-      const deliveryInfo =
-        await this.emailDeliveryService.getDeliveryLog(emailId);
+      const deliveryInfo = await this.emailDeliveryService.getDeliveryLog(emailId);
       if (!deliveryInfo) return false;
 
       // Check retry count and error type
@@ -464,19 +412,11 @@ export class WebhookEventsProcessor extends WorkerHost {
 
       // Check if error is retryable
       const errorType = metadata?.errorType || 'unknown';
-      const retryableErrors = [
-        'rate_limit',
-        'temporary_failure',
-        'timeout',
-        'connection_error',
-      ];
+      const retryableErrors = ['rate_limit', 'temporary_failure', 'timeout', 'connection_error'];
 
       return retryableErrors.includes(errorType);
     } catch (error) {
-      this.logger.error(
-        `Failed to check retry status for email ${emailId}`,
-        error,
-      );
+      this.logger.error(`Failed to check retry status for email ${emailId}`, error);
       return false;
     }
   }

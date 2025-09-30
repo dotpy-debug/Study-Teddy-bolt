@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import {
-  emailSchema,
-  passwordSchema,
-  nameSchema,
-  uuidSchema,
-} from './common.schemas';
+import { emailSchema, passwordSchema, nameSchema, uuidSchema } from './common.schemas';
 
 // User registration schema
 export const registerSchema = z.object({
@@ -18,10 +13,7 @@ export const registerSchema = z.object({
   acceptPrivacy: z.boolean().refine((val) => val === true, {
     message: 'You must accept the privacy policy',
   }),
-  captchaToken: z
-    .string()
-    .min(1, 'Captcha verification is required')
-    .optional(),
+  captchaToken: z.string().min(1, 'Captcha verification is required').optional(),
 });
 
 // User login schema
@@ -29,19 +21,13 @@ export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional().default(false),
-  captchaToken: z
-    .string()
-    .min(1, 'Captcha verification is required')
-    .optional(),
+  captchaToken: z.string().min(1, 'Captcha verification is required').optional(),
 });
 
 // Password reset request schema
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
-  captchaToken: z
-    .string()
-    .min(1, 'Captcha verification is required')
-    .optional(),
+  captchaToken: z.string().min(1, 'Captcha verification is required').optional(),
 });
 
 // Password reset schema
@@ -142,10 +128,7 @@ export const deleteAccountSchema = z.object({
       message: 'You must type "DELETE" to confirm account deletion',
     }),
   }),
-  reason: z
-    .string()
-    .max(500, 'Reason must not exceed 500 characters')
-    .optional(),
+  reason: z.string().max(500, 'Reason must not exceed 500 characters').optional(),
 });
 
 // Login attempt schema (for security logging)
@@ -160,10 +143,7 @@ export const loginAttemptSchema = z.object({
 
 // Security question schemas
 export const securityQuestionSchema = z.object({
-  question: z
-    .string()
-    .min(5, 'Question must be at least 5 characters')
-    .max(200),
+  question: z.string().min(5, 'Question must be at least 5 characters').max(200),
   answer: z.string().min(2, 'Answer must be at least 2 characters').max(100),
 });
 
@@ -191,9 +171,7 @@ export const generateBackupCodesSchema = z.object({
 });
 
 export const useBackupCodeSchema = z.object({
-  code: z
-    .string()
-    .regex(/^[A-Z0-9]{8}$/, 'Backup code must be 8 characters long'),
+  code: z.string().regex(/^[A-Z0-9]{8}$/, 'Backup code must be 8 characters long'),
 });
 
 // Login with magic link schema

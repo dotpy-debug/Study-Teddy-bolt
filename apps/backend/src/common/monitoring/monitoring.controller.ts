@@ -1,11 +1,5 @@
 import { Controller, Get, UseGuards, Query, Param } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { PerformanceService } from './performance.service';
 import { ErrorTrackingService } from './error-tracking.service';
@@ -101,10 +95,7 @@ export class MonitoringController {
       timestamp: new Date().toISOString(),
       metrics: {
         memoryUsageMB: Math.round(metrics.memoryUsage.heapUsed / 1024 / 1024),
-        errorRate:
-          metrics.requestCount > 0
-            ? metrics.errorCount / metrics.requestCount
-            : 0,
+        errorRate: metrics.requestCount > 0 ? metrics.errorCount / metrics.requestCount : 0,
         averageResponseTime: Math.round(metrics.averageResponseTime),
         uptime: Math.round(metrics.uptime / 1000),
       },

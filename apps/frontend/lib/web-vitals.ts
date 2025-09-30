@@ -149,8 +149,8 @@ export function trackCustomMetric(name: string, value: number, unit: string = 'm
 }
 
 // Initialize performance observer for long tasks
-export function observeLongTasks(threshold: number = 50) {
-  if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+export function observeLongTasks(threshold: number = 50): (() => void) | undefined {
+  if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return undefined;
 
   try {
     const observer = new PerformanceObserver((list) => {
@@ -173,5 +173,6 @@ export function observeLongTasks(threshold: number = 50) {
     return () => observer.disconnect();
   } catch (e) {
     console.error('Failed to observe long tasks', e);
+    return undefined;
   }
 }

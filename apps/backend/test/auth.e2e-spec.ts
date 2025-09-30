@@ -67,16 +67,10 @@ describe('AuthController (e2e)', () => {
       };
 
       // First registration should succeed
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData)
-        .expect(201);
+      await request(app.getHttpServer()).post('/auth/register').send(userData).expect(201);
 
       // Second registration with same email should fail
-      return request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userData)
-        .expect(409);
+      return request(app.getHttpServer()).post('/auth/register').send(userData).expect(409);
     });
   });
 
@@ -130,13 +124,11 @@ describe('AuthController (e2e)', () => {
     let accessToken: string;
 
     beforeEach(async () => {
-      const response = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          name: 'Auth Test User',
-          email: 'authtest@example.com',
-          password: 'password123',
-        });
+      const response = await request(app.getHttpServer()).post('/auth/register').send({
+        name: 'Auth Test User',
+        email: 'authtest@example.com',
+        password: 'password123',
+      });
 
       accessToken = response.body.access_token;
     });

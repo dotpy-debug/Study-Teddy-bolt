@@ -76,9 +76,7 @@ if (dsn) {
       const userAgent = event.request?.headers?.['user-agent'];
       if (
         userAgent &&
-        (userAgent.includes('bot') ||
-          userAgent.includes('crawler') ||
-          userAgent.includes('spider'))
+        (userAgent.includes('bot') || userAgent.includes('crawler') || userAgent.includes('spider'))
       ) {
         return null;
       }
@@ -148,8 +146,7 @@ if (dsn) {
     maxValueLength: 250,
 
     // Server name (don't send hostname in production)
-    serverName:
-      environment === 'production' ? undefined : require('os').hostname(),
+    serverName: environment === 'production' ? undefined : require('os').hostname(),
   });
 
   console.log(`Sentry initialized for ${environment} environment`);
@@ -192,9 +189,7 @@ function enhanceErrorContext(event: any, hint: any) {
       version: require('os').release(),
     },
     app: {
-      app_start_time: new Date(
-        Date.now() - process.uptime() * 1000,
-      ).toISOString(),
+      app_start_time: new Date(Date.now() - process.uptime() * 1000).toISOString(),
       app_memory: process.memoryUsage(),
     },
   };

@@ -41,8 +41,7 @@ export class CreateNotificationDto {
     default: 'system',
   })
   @IsEnum(NotificationType, {
-    message:
-      'Type must be one of: reminder, achievement, system, ai_suggestion',
+    message: 'Type must be one of: reminder, achievement, system, ai_suggestion',
   })
   @Transform(({ value }) => value || NotificationType.SYSTEM)
   type: NotificationType;

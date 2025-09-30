@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
-import {
-  CalendarTokens,
-  GoogleCalendarConfig,
-} from '../interfaces/calendar.interfaces';
+import { CalendarTokens, GoogleCalendarConfig } from '../interfaces/calendar.interfaces';
 
 @Injectable()
 export class GoogleOAuthService {
@@ -16,12 +13,8 @@ export class GoogleOAuthService {
   constructor(private readonly configService: ConfigService) {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
-    const redirectUrl = this.configService.get<string>(
-      'GOOGLE_CALENDAR_REDIRECT_URL',
-    );
-    const scopes =
-      this.configService.get<string>('GOOGLE_CALENDAR_SCOPES')?.split(',') ||
-      [];
+    const redirectUrl = this.configService.get<string>('GOOGLE_CALENDAR_REDIRECT_URL');
+    const scopes = this.configService.get<string>('GOOGLE_CALENDAR_SCOPES')?.split(',') || [];
     const calendarName = this.configService.get<string>(
       'GOOGLE_CALENDAR_CALENDAR_NAME',
       'Study Teddy',
@@ -34,8 +27,7 @@ export class GoogleOAuthService {
     this.config = {
       clientId,
       clientSecret,
-      redirectUrl:
-        redirectUrl || 'http://localhost:3001/api/calendar/oauth/callback',
+      redirectUrl: redirectUrl || 'http://localhost:3001/api/calendar/oauth/callback',
       scopes:
         scopes.length > 0
           ? scopes
@@ -96,9 +88,7 @@ export class GoogleOAuthService {
       };
     } catch (error) {
       this.logger.error(`Failed to exchange code for tokens: ${error.message}`);
-      throw new Error(
-        `Failed to authenticate with Google Calendar: ${error.message}`,
-      );
+      throw new Error(`Failed to authenticate with Google Calendar: ${error.message}`);
     }
   }
 
@@ -130,9 +120,7 @@ export class GoogleOAuthService {
       };
     } catch (error) {
       this.logger.error(`Failed to refresh access token: ${error.message}`);
-      throw new Error(
-        `Failed to refresh Google Calendar access: ${error.message}`,
-      );
+      throw new Error(`Failed to refresh Google Calendar access: ${error.message}`);
     }
   }
 
@@ -159,9 +147,7 @@ export class GoogleOAuthService {
         const { data } = await oauth2.userinfo.get();
         return data;
       } catch (innerError) {
-        this.logger.error(
-          `Failed to verify access token: ${innerError.message}`,
-        );
+        this.logger.error(`Failed to verify access token: ${innerError.message}`);
         throw new Error('Invalid or expired access token');
       }
     }
@@ -200,9 +186,7 @@ export class GoogleOAuthService {
       this.logger.debug(`Revoked token for user`);
     } catch (error) {
       this.logger.error(`Failed to revoke token: ${error.message}`);
-      throw new Error(
-        `Failed to revoke Google Calendar access: ${error.message}`,
-      );
+      throw new Error(`Failed to revoke Google Calendar access: ${error.message}`);
     }
   }
 
